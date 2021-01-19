@@ -5,6 +5,7 @@ body {
     max-width: 600px;
     margin: 50px auto;
     line-height: 1.5;
+    text-align: justify;
   }
   
   a {
