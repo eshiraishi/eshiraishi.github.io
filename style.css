@@ -2,7 +2,7 @@ body {
     background: #eee;
     color: #444;
     font: 18px Helvetica;
-    max-width: 600px;
+    max-width: 700px;
     margin: 50px auto;
     line-height: 1.5;
     text-align: justify;
@@ -11,10 +11,6 @@ body {
   a {
     text-decoration: none;
     color: royalblue;
-  }
-  
-  h1, h2 { 
-    color: #444
   }
   
   ul {
@@ -31,8 +27,7 @@ body {
     text-align: center;
     margin: 0 auto;
   }
-  
-  iframe {
-    width: 100%;
-    border: 0
-  }
+
+.container {
+  margin: 50px;
+}
