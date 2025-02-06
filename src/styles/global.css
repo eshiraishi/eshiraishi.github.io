@@ -81,3 +81,16 @@
     }
   }
 }
+
+p:has(> svg[id^=mermaid]) {
+
+background-color: #fff;
+border-radius: 0.5rem;
+}
+
+
+svg[id^=mermaid] {
+  position: relative;
+  margin: auto;
+  display: block;
+}

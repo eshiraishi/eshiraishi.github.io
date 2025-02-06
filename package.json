@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "astro check && astro build",
+    "build": "npm install -D @playwright/test@latest && npx playwright install --with-deps && astro check && astro build",
     "preview": "astro preview",
     "astro": "astro",
     "format": "prettier --write .",
@@ -13,20 +13,29 @@
   },
   "dependencies": {
     "@astrojs/check": "^0.9.4",
-    "@astrojs/mdx": "^4.0.2",
-    "@astrojs/rss": "^4.0.9",
+    "@astrojs/mdx": "^4.0.8",
+    "@astrojs/rss": "^4.0.11",
     "@astrojs/sitemap": "^3.2.1",
-    "@astrojs/tailwind": "^5.1.2",
-    "astro": "^5.1.0",
-    "tailwind-merge": "^2.5.4",
-    "tailwindcss": "^3.4.14",
-    "typescript": "^5.6.3"
+    "@astrojs/tailwind": "^5.1.5",
+    "@expressive-code/plugin-collapsible-sections": "^0.40.1",
+    "@expressive-code/plugin-line-numbers": "^0.40.1",
+    "@shikijs/rehype": "^2.3.1",
+    "astro": "^5.2.5",
+    "astro-expressive-code": "^0.40.1",
+    "playwright": "^1.50.1",
+    "rehype-katex": "^7.0.1",
+    "remark-math": "^6.0.0",
+    "remark-mermaidjs": "^7.0.0",
+    "remark-rehype": "^11.1.1",
+    "tailwind-merge": "^2.6.0",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.3"
   },
   "devDependencies": {
-    "prettier": "^3.3.3",
+    "prettier": "^3.4.2",
     "prettier-plugin-astro": "^0.14.1",
     "prettier-plugin-astro-organize-imports": "^0.4.11",
-    "prettier-plugin-tailwindcss": "^0.6.8"
+    "prettier-plugin-tailwindcss": "^0.6.11"
   },
   "prettier": {
     "plugins": [

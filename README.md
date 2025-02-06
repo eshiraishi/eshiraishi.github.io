@@ -48,11 +48,11 @@ npm run format
 Edit the `src/consts.ts` file to update your information and site's metadata:
 
 ```ts
-export const SITE_URL = "https://miniblog.nicholasly.com";
-export const SITE_TITLE = "Miniblog";
-export const SITE_DESCRIPTION = "Welcome to my website!";
+export const SITE_URL = "https://eshiraishi.github.io";
+export const SITE_TITLE = "Enzo Shiraishi";
+export const SITE_DESCRIPTION = "Enzo Shiraishi's website and blog!";
 
-export const EMAIL = "hello@nicholasly.com";
+export const EMAIL = "enzo.shiraishi@gmail.com";
 ```
 
 ### Blog Posts

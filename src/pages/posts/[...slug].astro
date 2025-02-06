@@ -1,5 +1,6 @@
 ---
 import { type CollectionEntry, getCollection } from "astro:content";
+import 'katex/dist/katex.css';
 import Layout from "../../layouts/Layout.astro";
 import { formatDate } from "../../lib/utils";
 
@@ -20,6 +21,7 @@ const { Content } = await post.render();
   title={post.data.title}
   description={post.data.description}
   image={post.data.image}
+  lengthClassName="max-w-3xl"
 >
   <main>
     <h1 class="mb-5 text-xl font-medium">
