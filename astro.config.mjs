@@ -21,7 +21,7 @@ export default defineConfig({
   site: SITE_URL,
   markdown: {
     remarkPlugins: [
-      [remarkMermaid, { mermaidConfig: { theme: 'dark' } }],
+      [remarkMermaid, { mermaidConfig: { theme: 'neutral' } }],
       [remarkMath, { singleDollarTextMath: true }],
       remarkRehype,
     ],

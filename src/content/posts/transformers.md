@@ -939,8 +939,7 @@ O *decoder* é responsável por gerar, a partir sequência recebida com *shift* 
 
 ```mermaid
 flowchart
-    encoderOutput(Sequência gerada
-pelo *encoder*)
+    encoderOutput(Sequência gerada pelo *encoder*)
     Value(*Values*)
     Key(*Keys*)
     Query(*Queries*)
@@ -1060,7 +1059,7 @@ class Decoder(nn.Module):
 ### Processamento de saída
 
 ```mermaid
-flowchart
+flowchart LR
     DecoderBlockN(Input)
     linear(Linear)
     Softmax(Softmax)

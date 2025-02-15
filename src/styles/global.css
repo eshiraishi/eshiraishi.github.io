@@ -82,14 +82,12 @@
   }
 }
 
-/* p:has(> svg[id^=mermaid]) {
-
-background-color: #fff;
-border-radius: 0.5rem;
-} */
-
 
 svg[id^=mermaid] {
+  background-color: #ffffff;
+  border: 1px solid #909090;
+  border-radius: 0.5rem;
+  padding: 1rem;
   position: relative;
   margin: auto;
   display: block;
