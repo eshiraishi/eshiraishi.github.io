@@ -72,7 +72,7 @@ const {
     <ClientRouter />
   </head>
   <body
-    class="font-sans text-zinc-900 antialiased transition-colors dark:bg-zinc-900 dark:text-zinc-200"
+    class="font-sans text-neutral-900 antialiased transition-colors dark:bg-neutral-900 dark:text-neutral-200"
   >
     <div class={cn(`${lengthClassName} text-justify mx-auto p-4`, className)}>
       <Header />
@@ -145,4 +145,13 @@ const {
   if (document.getElementsByClassName("mermaid").length > 0) {
     renderDiagrams(graphs);
   }
+</script>
+
+<script is:inline>
+  const dataTheme =
+    window.matchMedia &&
+    window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark-plus"
+      : "light-plus";
+  document.documentElement.setAttribute("data-theme", dataTheme);
 </script>

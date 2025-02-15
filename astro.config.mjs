@@ -20,9 +20,8 @@ import { SITE_URL } from "./src/consts";
 export default defineConfig({
   site: SITE_URL,
   markdown: {
-    // syntaxHighlight: false,
     remarkPlugins: [
-      [remarkMermaid, { mermaidConfig: { theme: 'neutral' } }],
+      [remarkMermaid, { mermaidConfig: { theme: 'dark' } }],
       [remarkMath, { singleDollarTextMath: true }],
       remarkRehype,
     ],
@@ -39,11 +38,10 @@ export default defineConfig({
   },
   integrations: [
     expressiveCode({
-      useDarkModeMediaQuery: false,
       themes: ['dark-plus', 'light-plus'],
       styleOverrides: {
-        uiFontFamily: "'Geist', sans-serif",
-        codeFontFamily: "'Geist Mono', monospace",
+        uiFontFamily: "'Inter', sans-serif",
+        codeFontFamily: "'Roboto Mono', monospace",
       },
       removeUnusedThemes: true,
       useStyleReset: false,

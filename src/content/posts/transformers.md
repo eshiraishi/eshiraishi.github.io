@@ -791,13 +791,13 @@ class InputProcessor(nn.Module):
 
 ```mermaid
 flowchart
+    Key(*Keys*)
     Mask(Máscara nula)    
     Query(*Queries*)
-    Key(*Keys*)
     Value(*Values*)
     Sum1(Soma)
     Sum2(Soma)
-    MHA(*Multi-Head Attention*)
+    MHA(*Multihead Attention*)
     LayerNorm1(*LayerNorm*)
     LayerNorm2(*LayerNorm*)
     Linear1(Camada linear)
@@ -808,7 +808,6 @@ flowchart
     Query --> MHA
     Key --> MHA
     Value --> MHA
-    Value --> Sum1
     MHA --> Sum1
     Sum1 --> LayerNorm1
     LayerNorm1 --> Linear1
@@ -818,6 +817,7 @@ flowchart
     Linear2 --> Sum2
     Sum2 --> LayerNorm2
     LayerNorm2 --> output
+    Value --> Sum1
 ```
 
 Antes de falar sobre o *encoder* e *decoder*, vamos ver as camadas de *transformer*, que são uma operação que acontece em ambos os componentes. Essas camadas operam da seguinte forma:
@@ -944,7 +944,7 @@ pelo *encoder*)
     Value(*Values*)
     Key(*Keys*)
     Query(*Queries*)
-    MHA(*Multi-Head Attention*)
+    MHA(*Multihead Attention*)
     DecoderBlock(Bloco de *transformer*)
     decoderBlockOutput(Sequência gerada)
     attentionMask(Máscara de atenção)
