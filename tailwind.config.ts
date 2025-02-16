@@ -8,14 +8,20 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["Inter", ...defaultTheme.fontFamily.sans],
-        mono: ["'Roboto Mono'", ...defaultTheme.fontFamily.mono],
+        serif: ['var(--font-serif)', ...defaultTheme.fontFamily.sans],
+        sans: ['var(--font-sans)', ...defaultTheme.fontFamily.sans],
+        mono: ['var(--font-mono)', ...defaultTheme.fontFamily.mono],
       },
       colors: {
         primary: colors.sky,
         gray: colors.neutral,
-      },
-    },
+      }
+    }
+    // typography: ({ theme }: { theme: any }) => ({
+    //   DEFAULT: {
+    //     css: {}
+    //   }
+    // })
   },
   plugins: [],
 };

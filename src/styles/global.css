@@ -3,23 +3,37 @@
 @tailwind utilities;
 
 @layer base {
-  @font-face {
-    font-family: "Inter";
-    src: url("/fonts/geist-variable.woff2") format("woff2");
-    font-display: swap;
+  :root {
+    --font-serif: "Merriweather";
+    --font-sans: "Merriweather Sans";
+    --font-mono: "Commit Mono";
   }
-  @font-face {
-    font-family: "Roboto Mono";
-    src: url("/fonts/geist-mono-variable.woff2") format("woff2");
-    font-display: swap;
-  }
-  html.dark .astro-code,
+  /* html.dark .astro-code,
   html.dark .astro-code span {
     color: var(--shiki-dark) !important;
     background-color: var(--shiki-dark-bg) !important;
     font-style: var(--shiki-dark-font-style) !important;
     font-weight: var(--shiki-dark-font-weight) !important;
     text-decoration: var(--shiki-dark-text-decoration) !important;
+  } */
+  svg[id^=mermaid] {
+    background-color: #ffffff;
+    border: 1px solid #909090;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    position: relative;
+    margin: auto;
+    display: block;
+  }
+  body {
+    font-weight: 300 !important;
+  }
+  h1,h2,h3,h4,h5,h6 {
+    font-family: var(--font-serif);
+    font-weight: 700 !important;
+  }
+  ::-webkit-scrollbar-corner {
+    background: rgba(0,0,0,0);
   }
 }
 
@@ -80,15 +94,4 @@
       @apply dark:bg-yellow-500/50 dark:text-white;
     }
   }
-}
-
-
-svg[id^=mermaid] {
-  background-color: #ffffff;
-  border: 1px solid #909090;
-  border-radius: 0.5rem;
-  padding: 1rem;
-  position: relative;
-  margin: auto;
-  display: block;
 }

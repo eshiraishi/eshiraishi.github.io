@@ -40,8 +40,10 @@ export default defineConfig({
     expressiveCode({
       themes: ['dark-plus', 'light-plus'],
       styleOverrides: {
-        uiFontFamily: "'Inter', sans-serif",
-        codeFontFamily: "'Roboto Mono', monospace",
+        uiFontFamily: "var(--font-sans), sans-serif",
+        codeFontFamily: "var(--font-mono), monospace",
+        uiFontSize: '16px',
+        codeFontSize: '16px'
       },
       removeUnusedThemes: true,
       useStyleReset: false,
