@@ -5,9 +5,8 @@ import { defineConfig } from "astro/config";
 import sitemap from "@astrojs/sitemap";
 
 import tailwind from "@astrojs/tailwind";
-import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections';
-import { pluginLineNumbers } from '@expressive-code/plugin-line-numbers';
 import expressiveCode from "astro-expressive-code";
+import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import rehypeKatex from "rehype-katex";
 import remarkMath from "remark-math";
 import remarkMermaid from 'remark-mermaidjs';
@@ -26,19 +25,13 @@ export default defineConfig({
       remarkRehype,
     ],
     rehypePlugins: [
-      rehypeKatex
+      rehypeKatex,
+      [rehypeAutolinkHeadings, { behavior: 'after' }],
     ],
-    shikiConfig: {
-      themes: {
-        light: "github-light",
-        dark: "material-theme-palenight",
-      },
-      wrap: true
-    }
   },
   integrations: [
     expressiveCode({
-      themes: ['dark-plus', 'light-plus'],
+      themes: ['kanagawa-dragon', 'one-light'],
       styleOverrides: {
         uiFontFamily: "var(--font-sans), sans-serif",
         codeFontFamily: "var(--font-mono), monospace",
@@ -49,10 +42,10 @@ export default defineConfig({
       useStyleReset: false,
       useThemedScrollbars: true,
       useThemedSelectionColors: true,
-      plugins: [pluginCollapsibleSections(), pluginLineNumbers()],
-      defaultProps: {
-        collapseStyle: 'collapsible-auto',
-      },
+      // plugins: []  ,
+      // defaultProps: {
+      // collapseStyle: 'collapsible-auto',
+      // },
     }),
     mdx(), sitemap(), tailwind()],
 });

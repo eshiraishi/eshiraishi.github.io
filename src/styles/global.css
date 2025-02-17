@@ -18,7 +18,6 @@
   } */
   svg[id^=mermaid] {
     background-color: #ffffff;
-    border: 1px solid #909090;
     border-radius: 0.5rem;
     padding: 1rem;
     position: relative;
@@ -55,16 +54,16 @@
       @apply my-4 font-medium dark:text-white;
     }
     :not(pre) > code {
-      @apply whitespace-nowrap rounded border bg-neutral-200/50 px-1 py-0.5 font-mono text-sm font-medium text-black dark:border-neutral-700 dark:bg-neutral-800/50 dark:text-white;
+      @apply whitespace-nowrap rounded border bg-stone-200/50 px-1 py-0.5 font-mono text-sm font-medium text-black dark:border-stone-700 dark:bg-stone-800/50 dark:text-white;
     }
     pre:has(code) {
-      @apply my-4 max-h-[600px] overflow-auto rounded-lg border p-4 font-mono text-sm font-medium dark:border-neutral-700;
+      @apply my-4 max-h-[600px] overflow-auto rounded-lg border p-4 font-mono text-sm font-medium dark:border-stone-700;
     }
     img {
-      @apply my-4 rounded-lg border dark:border-neutral-700;
+      @apply my-4 rounded-lg border dark:border-stone-700;
     }
     video {
-      @apply my-4 rounded-lg border dark:border-neutral-700;
+      @apply my-4 rounded-lg border dark:border-stone-700;
     }
     blockquote {
       @apply my-4 border-l-2 pl-4;
@@ -75,10 +74,10 @@
     table {
       @apply my-4 w-full table-auto border-collapse text-sm;
       th {
-        @apply border-b p-4 text-left font-medium dark:border-neutral-700;
+        @apply border-b p-4 text-left font-medium dark:border-stone-700;
       }
       td {
-        @apply border-b bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800;
+        @apply border-b bg-stone-50 p-4 dark:border-stone-700 dark:bg-stone-800;
       }
     }
     ol {
@@ -88,7 +87,7 @@
       @apply my-1 list-inside list-disc space-y-1 [&_ol]:pl-5 [&_ul]:pl-5;
     }
     kbd {
-      @apply rounded border border-b-2 bg-neutral-100 px-1 py-0.5 font-mono text-xs font-medium text-black dark:border-neutral-700 dark:bg-neutral-800 dark:text-white;
+      @apply rounded border border-b-2 bg-stone-100 px-1 py-0.5 font-mono text-xs font-medium text-black dark:border-stone-700 dark:bg-stone-800 dark:text-white;
     }
     mark {
       @apply dark:bg-yellow-500/50 dark:text-white;

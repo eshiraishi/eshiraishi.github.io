@@ -1,6 +1,6 @@
 <button
   id="theme-toggle"
-  class="inline-flex items-center rounded-md border p-1 transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-800 [&_svg]:text-neutral-500 [&_svg]:hover:text-neutral-900 [&_svg]:dark:hover:text-neutral-100"
+  class="inline-flex items-center rounded-md border p-1 transition-colors hover:bg-stone-50 dark:border-stone-700 dark:hover:bg-stone-800 [&_svg]:text-stone-500 [&_svg]:hover:text-stone-900 [&_svg]:dark:hover:text-stone-100"
   aria-label="Toggle theme"
 >
   <span class="sr-only">Toggle theme</span>
@@ -33,13 +33,13 @@
     const button = document.getElementById("theme-toggle");
 
     button?.addEventListener("click", () => {
-      document.documentElement.classList.toggle("dark");
       const root = document.documentElement;
       const dataTheme = root.getAttribute("data-theme");
       root.setAttribute(
         "data-theme",
-        dataTheme === "dark-plus" ? "light-plus" : "dark-plus",
+        dataTheme === "kanagawa-dragon" ? "one-light" : "kanagawa-dragon",
       );
+      document.documentElement.classList.toggle("dark");
     });
   };
 
