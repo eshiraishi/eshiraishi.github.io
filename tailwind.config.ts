@@ -13,8 +13,8 @@ const config: Config = {
         mono: ['var(--font-mono)', ...defaultTheme.fontFamily.mono],
       },
       colors: {
-        primary: colors.stone,
-        gray: colors.stone,
+        primary: colors.neutral,
+        neutral: colors.neutral,
       }
     }
     // typography: ({ theme }: { theme: any }) => ({

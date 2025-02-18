@@ -17,6 +17,8 @@
     "@astrojs/rss": "^4.0.11",
     "@astrojs/sitemap": "^3.2.1",
     "@astrojs/tailwind": "^5.1.5",
+    "@beoe/cache": "^0.1.0",
+    "@beoe/rehype-mermaid": "^0.3.0",
     "@expressive-code/plugin-collapsible-sections": "^0.40.1",
     "@expressive-code/plugin-line-numbers": "^0.40.1",
     "@fontsource-variable/merriweather-sans": "^5.1.1",
