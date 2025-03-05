@@ -1,5 +1,5 @@
 ---
-title: 🇧🇷 Explicando Transformers do zero
+title: 🇧🇷 Explicando Transformers
 description: "Atenção é realmente tudo que você precisa?"
 date: '2025-01-31'
 ---
@@ -64,7 +64,7 @@ Essa conclusão explica o nome do artigo: do ponto de vista da arquitetura do mo
 
 Para conseguirmos trabalhar com textos, é necessário definir uma representação numérica equivalente a um texto para que essa representação possa ser usada pelos Transformers. A abordagem que a maioria das técnicas usa para realizar esse processo é converter esses valores em tokens e embeddings.
 
-### tokens
+### Tokens
 
 Como textos são representados por um alfabeto finito e conhecido, é possível enumerar todos os caracteres desse alfabeto e criar uma função que os associa a uma representação numérica única. Essas representações numéricas são conhecidas como tokens, e a função como tokenizer.
 
@@ -135,7 +135,26 @@ $$
 $$
 
 ```python
-CÓDIGO AQUI
+from string import printable
+
+char_ids = {
+    '<bos>': 1,
+    '<eos>': 2,
+}
+
+char_ids.update({
+    char: index + 2
+    for index, char in enumerate(printable, 1)
+})
+
+
+def tokenize(chars: str, char_ids: dict[str,int]) -> list[int]:
+    tokens = [1]
+    tokens.extend(
+        char_ids[char]
+        for char in chars
+    )
+    return [*tokens, 2]
 ```
 
 ### Padding
@@ -198,10 +217,57 @@ De forma geral, o aumento de velocidade obtido pelo padding é grande o suficien
 As duas alternativas podem impactar a velocidade das operações dependendo do tipo de hardware usado. Em CPUs e GPUs, a opção 1 pode ser mais vantajosa por economizar memória, já que nesse caso a opção 2 não gera nenhum aumento de velocidade. Já em TPUs, operações sobre batches de tamanhos fixos podem ser mais rápidas que as mesmas operações em batches de tamanhos diferentes, logo a opção 2 pode ser mais vantajosa.
 
 ```python
-CÓDIGO AQUI
+char_ids = {
+    '<pad>': 0,
+    '<bos>': 1,
+    '<eos>': 2,
+}
+
+char_ids.update({
+    char: index + 3
+    for index, char in enumerate(printable)
+})
+
+
+def tokenize(chars: str, char_ids: dict[str, int]) -> list[int]:
+    tokens = [1]
+    tokens.extend(
+        char_ids[char]
+        for char in chars
+    )
+    return [*tokens, 2]
+
+def tokenize_and_pad(inputs: list[str]) -> torch.Tensor:
+    chars, *inputs = inputs
+
+    tokens = tokenize(chars, char_ids)
+    token_lists = [tokens]
+
+    token_count = len(tokens)
+    token_counts = [token_count]
+
+    max_length = token_count
+
+    for chars in inputs:
+        tokens = tokenize(chars)
+        token_lists.append(tokens)
+
+        token_count = len(tokens)
+        token_counts.append(token_count)
+
+        max_length = max(max_length, token_count)
+
+    for tokens, token_count in zip(token_lists, token_counts):
+        tokens.extend(
+            0
+            for _ in range(max_length - token_count)
+        )
+
+    tokens_tensor = torch.tensor(token_lists)
+    return tokens_tensor, token_counts
 ```
 
-Por curiosidade, o módulo `torch.nested` permite representar matrizes a partir de vetores de comprimentos variados. Porém, esse módulo ainda está em fase experimental, e usar esse recurso pode deixar as operações mais lentas que as outras alternativas.
+Por curiosidade, o módulo `torch.nested` permite representar matrizes a partir de uma lista de vetores de comprimentos variados. Porém, esse módulo ainda está em fase experimental, e usar esse recurso pode deixar as operações mais lentas que as outras alternativas.
 
 ### Truncação
 
@@ -340,20 +406,46 @@ Além de ser acelerável usando álgebra linear, essa forma de acesso aos embedd
 
 Além da performance, os vetores encontrados nesse espaço são densos, já que $d$, que costuma ser um valor na casa dos milhares, geralmente é muito menor do que $|T|$, que pode chegar às centenas de milhares de tokens no contexto de Large Language Models. Isso faz com que o modelo requira muito menos memória durante o seu uso e evita problemas causados pela dimensionalidade elevada presente ao treinar modelos usando One-Hot Encoding diretamente.
 
+Em PyTorch, esse componente está encapsulado na classe `torch.nn.Embedding`.
+
 ```python
-class Tokenizer(nn.Module):
+embed_dim = 512
+
+embedding = nn.Embedding(
+    num_embeddings=len(printable) + 1,
+    embedding_dim=embed_dim,
+)
+```
+
+### Token embeddings em PyTorch
+
+```python
+class TokenEmbedder(nn.Module):
     def __init__(self: Self, vocab: str, embed_dim: int) -> None:
         super().__init__()
         self.vocab = set(vocab)
         self.embed_dim = embed_dim
-        self.char_ids = {char: index + 1 for index, char in enumerate(self.vocab)}
+
+        self.char_ids = {
+            '<pad>': 0,
+            '<bos>': 1,
+            '<eos>': 2,
+        }
+
+        self.char_ids.update({
+            char: index + 3
+            for index, char in enumerate(self.vocab)
+        })
+
         self.embedding = nn.Embedding(
-            num_embeddings=len(self.vocab) + 1,
+            num_embeddings=len(self.vocab) + 3,
             embedding_dim=self.embed_dim,
         )
 
     def tokenize(self: Self, chars: str) -> list[int]:
-        return [self.char_ids[char] for char in chars]
+        tokens = [1]
+        tokens.extend(self.char_ids[char] for char in chars)
+        return [*tokens, 2]
 
     def forward(self: Self, inputs: list[str]) -> torch.Tensor:
         chars, *inputs = inputs
@@ -378,9 +470,9 @@ class Tokenizer(nn.Module):
         for tokens, token_count in zip(token_lists, token_counts):
             tokens.extend(0 for _ in range(max_length - token_count))
 
-        embedding_inputs = torch.tensor(token_lists)
-        embeddings = self.embedding(embedding_inputs)
-        return embeddings, token_counts
+    tokens_tensor = torch.tensor(token_lists)
+    embeddings = self.embedding(tokens_tensor)
+    return embeddings, token_counts
 ```
 
 ## Atenção
@@ -614,7 +706,7 @@ $$
 
 Por isso, embora queries, keys e values partam da mesma sequência inicialmente, é importante separar o seu papel em cada parte do mecanismo.
 
-### Mecanismos de atenção específicos
+### Mecanismos de atenção
 
 #### Dot-Product Attention (DPA)
 
@@ -680,6 +772,8 @@ $$
 Dessa forma, SDPA ainda é aplicado $h$ vezes, mas como os elementos possuem dimensões menores, cada uma é $\frac{1}{h}$ vezes mais rápida, o que torna a escalabilidade do SDPA e MHA igual.
 
 De forma prática, aplicar MHA ainda será mais lento que aplicar SDPA devido à projeção linear $W^O$. Porém, o tempo adicionado não aumenta em relação a nenhuma variável.
+
+##### MHA em PyTorch
 
 ```python
 class MultiheadAttention(nn.Module):
@@ -750,15 +844,15 @@ class MultiheadAttention(nn.Module):
         return projected_outputs
 ```
 
-## Positional Encoding
+## Positional Encoding (PE)
 
 Nenhum dos mecanismos de atenção explicados considera a posição dos elementos na sequência recebida na sequência gerada. Isso significa que alterar a ordem dos elementos não afeta o resultado, um efeito indesejado e que pode enviesar modelos durante o treinamento.
 
-Antes da aplicação de qualquer mecanismo de atenção, as posições dos elementos originais são representadas usando uma técnica de positional encoding, que gera uma sequência de embeddings onde cada elemento representa uma posição na sequência original de alguma forma.
+Antes da aplicação de qualquer mecanismo de atenção, as posições dos elementos originais são representadas usando uma técnica de PE, que gera uma sequência de embeddings onde cada elemento representa uma posição na sequência original de alguma forma.
 
 Esses embeddings serão combinados com a sequência recebida para alterar a sequência recebida de forma que cada elemento tenha sua posição codificada individualmente.
 
-A técnica de positional encoding introduzida na arquitetura dos Transformers é baseada na função a seguir:
+A técnica de PE introduzida na arquitetura dos Transformers é baseada na função a seguir:
 
 $$
     \text{PE}(i, j, p) =
@@ -779,7 +873,7 @@ Os embeddings gerados por $PE$ serão então somados à sequência recebida, e e
 
 Nos Transformers, a escolha dessa função foi feita por ser o equivalente a aplicar uma matriz de rotação nos elementos da sequência, onde o ângulo de rotação de um elemento é determinado pela sua posição.
 
-A técnica de positional encoding utilizada é relativa, ou seja, prioriza representar a posição de um elemento em relação aos seus vizinhos em relação a representar a ordem dos elementos de forma absoluta.
+A técnica de PE utilizada é relativa, ou seja, prioriza representar a posição de um elemento em relação aos seus vizinhos em relação a representar a ordem dos elementos de forma absoluta.
 
 Para ilustrar o cálculo de $PE$ em batch, a sequência de embedings que será somada com uma sequência recebida onde $t = 5$, $d = 4$ e $\theta = 10000$ será:
 
@@ -826,6 +920,8 @@ PE(i,j,p) =
 -0.7568 & -0.6536 & 0.0400 & 0.9992 \\
 \end{bmatrix}
 $$
+
+##### PE em PyTorch
 
 ```python
 class PositionalEncoder(nn.Module):
@@ -1023,6 +1119,8 @@ t      & 1.45   & -1.42  & 1.62   & \dots  & 2.06  & -0.23
 }_{\text{Atenção original}}
 $$
 
+#### Attention Mask em PyTorch
+
 ```python
 def get_attn_mask(size: int | tuple[int]) -> torch.Tensor:
     mask = torch.ones(size)
@@ -1064,7 +1162,7 @@ flowchart
     subgraph p[ ]
     shift(Shift)
     embedding(Embedding)
-    pose(Positional encoding)
+    pose(PE)
     tokenizer(Tokenizer)
     end
     
@@ -1104,6 +1202,8 @@ Na segunda iteração, as sequências serão:
 
 E assim por diante.
 
+#### Processamento de entrada em PyTorch
+
 ```python
 class InputProcessor(nn.Module):
     def __init__(
@@ -1121,9 +1221,9 @@ class InputProcessor(nn.Module):
         return encoded_tensors, token_counts
 ```
 
-### Transformer block
+### Transformer blocks
 
-O encoder e o decoder são baseados em Transformer blocks, que geram outra sequência de embeddings intermediária. Esses componentes funcionam da seguinte forma:
+O encoder e o decoder serão baseados em Transformer blocks, que geram outra sequência de embeddings intermediária. Esses componentes funcionam da seguinte forma:
 
 1. Queries, Keys e Values são transformados via MHA.
 2. A sequência transformada é somada com os Values.
@@ -1178,6 +1278,8 @@ A arquitetura das redes feed-forward será:
 3. Outra camada linear que reduz a dimensão dos elementos da sequência de volta para $d$.
 
 Onde $d_{ff}$ é um hiperparâmetro.
+
+#### Transformer blocks em PyTorch
 
 ```python
 @dataclass
@@ -1246,6 +1348,8 @@ flowchart
     EncoderBlockN --> outputN
 ```
 
+#### Encoder em Pytorch
+
 ```python
 class Encoder(nn.Module):
     def __init__(self: Self, n_layers: int, config: TransformerLayerConfig) -> None:
@@ -1279,6 +1383,8 @@ class Encoder(nn.Module):
 ```
 
 ### Decoder
+
+#### Decoder em PyTorch
 
 O decoder é responsável por combinar a sequência pós shift e a sequência do encoder em uma sequência final de embeddings.
 
@@ -1425,6 +1531,8 @@ Durante o treinamento, os tokens essa sequência serão comparados com os tokens
 
 Após o treinamento, além de realizar todas as iterações necessárias com o modelo autoregressivo, é necessário converter os tokens gerados para seus valores textuais equivalentes e concatená-los.
 
+#### Processamento de saída em PyTorch
+
 ```python
 class OutputProcessor(nn.Module):
     def __init__(self: Self, embed_dim: int, vocab: str) -> None:
@@ -1462,6 +1570,8 @@ Com todos os componentes definidos, está completa a implementação da arquitet
 
 Ainda falta o treinamento e o algoritmo para usar o modelo autoregressivo.
 
+### Implementação completa em PyTorch
+
 ```python
 class Transformer(nn.Module):
     def __init__(
@@ -1487,7 +1597,7 @@ class Transformer(nn.Module):
         self.in_vocab = set(in_vocab)
         self.out_vocab = set(out_vocab)
 
-        self.tokenizer = Tokenizer(
+        self.tokenizer = TokenEmbedder(
             embed_dim=self.embed_dim,
             vocab=self.in_vocab,
         )

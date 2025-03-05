@@ -4,9 +4,9 @@
 
 @layer base {
   :root {
-    --font-serif: "Hanken Grotesk Variable";
-    --font-sans: "Hanken Grotesk Variable";
-    --font-mono: "Commit Mono";
+    --font-serif: "Inter Variable";
+    --font-sans: "Inter Variable";
+    --font-mono: "Roboto Mono Variable";
   }
 
   /* html.dark .astro-code,
@@ -22,11 +22,12 @@
     margin: 0 auto;
   }
 
+
   body {
     font-weight: 300 !important;
   }
 
-  .icon,
+  /* .icon,
   h1,
   h2,
   h3,
@@ -34,8 +35,8 @@
   h5,
   h6 {
     font-family: var(--font-serif);
-    font-weight: 700 !important;
-  }
+    font-weight: 600 !important;
+  } */
 
   ::-webkit-scrollbar-corner {
     background: rgba(0, 0, 0, 0);
@@ -67,19 +68,19 @@
     }
 
     :not(pre)>code {
-      @apply whitespace-nowrap rounded border bg-neutral-200/50 px-1 py-0.5 font-mono text-sm font-medium text-black dark:border-neutral-700 dark:bg-neutral-800/50 dark:text-white;
+      @apply whitespace-nowrap rounded border bg-neutral-200/50 px-1 py-0.5 font-mono text-sm font-medium text-black dark:border-neutral-600 dark:bg-neutral-800/50 dark:text-white;
     }
 
     pre:has(code) {
-      @apply my-4 max-h-[600px] overflow-auto rounded-lg border p-4 font-mono text-sm font-medium dark:border-neutral-700;
+      @apply my-4 max-h-[600px] overflow-auto rounded-lg border p-4 font-mono text-sm font-medium dark:border-neutral-600;
     }
 
     img {
-      @apply my-4 rounded-lg border dark:border-neutral-700;
+      @apply my-4 rounded-lg border dark:border-neutral-600;
     }
 
     video {
-      @apply my-4 rounded-lg border dark:border-neutral-700;
+      @apply my-4 rounded-lg border dark:border-neutral-600;
     }
 
     blockquote {
@@ -94,11 +95,11 @@
       @apply my-4 w-full table-auto border-collapse text-sm;
 
       th {
-        @apply border-b p-4 text-left font-medium dark:border-neutral-700;
+        @apply border-b p-4 text-left font-medium dark:border-neutral-600;
       }
 
       td {
-        @apply border-b bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800;
+        @apply border-b bg-neutral-50 p-4 dark:border-neutral-600 dark:bg-neutral-800;
       }
     }
 
@@ -110,8 +111,16 @@
       @apply my-1 list-inside list-disc space-y-1 [&_ol]:pl-5 [&_ul]:pl-5;
     }
 
+    ol,
+    ul {
+      p {
+        margin: 0 !important;
+        display: inline;
+      }
+    }
+
     kbd {
-      @apply rounded border border-b-2 bg-neutral-100 px-1 py-0.5 font-mono text-xs font-medium text-black dark:border-neutral-700 dark:bg-neutral-800 dark:text-white;
+      @apply rounded border border-b-2 bg-neutral-100 px-1 py-0.5 font-mono text-xs font-medium text-black dark:border-neutral-600 dark:bg-neutral-800 dark:text-white;
     }
 
     mark {
