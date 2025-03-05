@@ -6,7 +6,6 @@ import sitemap from "@astrojs/sitemap";
 
 import tailwind from "@astrojs/tailwind";
 import { getCache } from "@beoe/cache";
-import rehypeD2 from "@beoe/rehype-d2";
 import rehypeMermaid from "@beoe/rehype-mermaid";
 import expressiveCode from "astro-expressive-code";
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
@@ -34,7 +33,6 @@ export default defineConfig({
         mermaidConfig: { theme: 'neutral' },
         cache,
       }],
-      rehypeD2,
       rehypeKatex,
       [rehypeAutolinkHeadings, { behavior: 'after' }],
     ],

@@ -1566,9 +1566,9 @@ class OutputProcessor(nn.Module):
 
 ## Conclusão
 
-Com todos os componentes definidos, está completa a implementação da arquitetura Transformer. No exemplo abaixo está um exemplo de como usar todos os componentes juntos e como executar o modelo.
+Com todos os componentes definidos, está completa a implementação da arquitetura Transformer. No exemplo abaixo está uma implementação que os une e executa o modelo, além de um exemplo de uso.
 
-Ainda falta o treinamento e o algoritmo para usar o modelo autoregressivo.
+Ainda faltam o treinamento e o algoritmo para usar o modelo autoregressivo.
 
 ### Implementação completa em PyTorch
 
