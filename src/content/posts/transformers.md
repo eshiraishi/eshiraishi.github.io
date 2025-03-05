@@ -117,7 +117,7 @@ $$
     \texttt{g} & \texttt{a} & \texttt{t} & \texttt{o}
 \end{array} \\
 \downarrow \\
-\begin{array}{cccc}
+\begin{array}{cccccc}
     \texttt{<bos>} & \texttt{g} & \texttt{a} & \texttt{t} & \texttt{o}  & \texttt{<eos>}
 \end{array} \\
 \downarrow \\
@@ -129,7 +129,7 @@ $$
 Os tokens `<bos>` e `<eos>` também podem ser usados para separar a sequência recebida da sequência gerada, o que será útil no treinamento dos Transformers futuramente. Por exemplo, se o modelo recebeu o texto "cachorro" e gerou o texto "dog", essas sequências pode ser descritas como sendo uma sequência só:
 
 $$
-\begin{array}{cccc}
+\begin{array}{cccccc}
 \texttt{<bos>} & \texttt{c} & \texttt{a} & \texttt{c} & \texttt{h} & \texttt{o} & \texttt{r} & \texttt{r} & \texttt{o} & \texttt{<eos>} & \texttt{<bos>} & \texttt{d} & \texttt{o} & \texttt{g} & \texttt{<eos>}
 \end{array}
 $$
@@ -189,20 +189,34 @@ Por fim, existem algumas formas de determinar $t$, o número de elementos que ca
 Por exemplo, um lote de textos transformado em tokens e usando padding seguindo a opção 1 seria feito da seguinte forma:
 
 $$
-\text{gato} \\
-\text{elefante} \\
-\text{peixe} \\
-\text{pássaro} \\
-\text{cão} \\
-\downarrow  \\
+\begin{array}{c}
+    \text{gato} \\
+    \text{elefante} \\
+    \text{peixe} \\
+    \text{pássaro} \\
+    \text{cão}
+\begin{array}{c}
+$$
+
+$$
+\downarrow
+$$
+
+$$
 \begin{array}{cccccccc}
     \texttt{<bos>} & \texttt{ g } & \texttt{ a } & \texttt{ t } & \texttt{ o } & \texttt{<eos>} & \texttt{<pad>} & \texttt{<pad>} & \texttt{<pad>} & \texttt{<pad>} \\
     \texttt{<bos>} & \texttt{e} & \texttt{l} & \texttt{e} & \texttt{f} & \texttt{a} & \texttt{n} & \texttt{t} & \texttt{e}  & \texttt{<eos>} \\
     \texttt{<bos>} & \texttt{p} & \texttt{e} & \texttt{i} & \texttt{x} & \texttt{e}  & \texttt{<eos>} & \texttt{<pad>} & \texttt{<pad>} & \texttt{<pad>} \\
     \texttt{<bos>} & \texttt{p} & \texttt{á} & \texttt{s} & \texttt{s} & \texttt{a} & \texttt{r} & \texttt{o}  & \texttt{<eos>} & \texttt{<pad>} \\
-    \texttt{<bos>} & \texttt{c} & \texttt{ã} & \texttt{o} & \texttt{<eos>} & \texttt{<pad>} & \texttt{<pad>} & \texttt{<pad>} & \texttt{<pad>} & \texttt{<pad>} \\
-\end{array} \\
-\downarrow  \\
+    \texttt{<bos>} & \texttt{c} & \texttt{ã} & \texttt{o} & \texttt{<eos>} & \texttt{<pad>} & \texttt{<pad>} & \texttt{<pad>} & \texttt{<pad>} & \texttt{<pad>}
+\end{array}
+$$
+
+$$
+\downarrow
+$$
+
+$$
 \begin{bmatrix}
    1 &  7  &  1  & 20 & 15 &  2 &  0 &  0 &  0 &  0 \\
    1 &  5  & 12  &  5 &  6 &  1 & 14 & 20 &  5  &  2\\
@@ -286,39 +300,44 @@ Embeddings são representações do espaço de uma variável (por exemplo, os in
 Independentemente da técnica usada para determinar os embeddings para cada elemento, o batch de sequências recebidas será transformado de uma matriz de dimensão $b \times t$ para cada um tensor de dimensão $b \times t \times d$.
 
 $$
-\begin{bmatrix}
-    1   & 14    & \dots  & 10 & 2 \\
-    1   & 25    & \dots  & 0 & 2 \\
-    \vdots & \vdots  & \ddots & \vdots & \vdots \\
-    1   & 5    & \dots & 0 & 2
-    \end{bmatrix} \\
-\\ ~ \\
-\downarrow \\
-\\ ~ \\
-\begin{bmatrix}
     \begin{bmatrix}
-    0.23   & 1.45    & \dots  & 2.67 \\
-    3.14   & 4.56    & \dots  & 5.78 \\
-    \vdots & \vdots  & \ddots & \vdots \\
-    1.76   & 0.65    & \dots  & 0.13 \\
-    6.89 & 7.01 & \dots & 8.23 \\
-    \end{bmatrix} \\ ~ \\
-    \begin{bmatrix}
-    0.23   & 1.45    & \dots  & 2.67 \\
-    9.34 & 0.12 & \dots & 1.34 \\
-    \vdots & \vdots  & \ddots & \vdots \\
-    1.49   & 5.59    & \dots  & 0.33 \\
-    6.89 & 7.01 & \dots & 8.23 \\
-    \end{bmatrix} \\ ~ \\
-    \vdots \\ ~ \\
-    \begin{bmatrix}
-    0.23   & 1.45    & \dots  & 2.67 \\
-    5.79 & 6.80 & \dots & 7.91 \\
-    \vdots & \vdots  & \ddots & \vdots \\
-    1.49   & 5.59    & \dots  & 0.33 \\
-    6.89 & 7.01 & \dots & 8.23 \\
+        1   & 14    & \dots  & 10 & 2 \\
+        1   & 25    & \dots  & 0 & 2 \\
+        \vdots & \vdots  & \ddots & \vdots & \vdots \\
+        1   & 5    & \dots & 0 & 2
     \end{bmatrix}
-\end{bmatrix}
+$$
+
+$$
+    \downarrow
+$$
+
+$$
+    \begin{bmatrix}
+        \begin{bmatrix}
+            0.23   & 1.45    & \dots  & 2.67 \\
+            3.14   & 4.56    & \dots  & 5.78 \\
+            \vdots & \vdots  & \ddots & \vdots \\
+            1.76   & 0.65    & \dots  & 0.13 \\
+            6.89 & 7.01 & \dots & 8.23 \\
+        \end{bmatrix} \\
+        \quad \\
+        \begin{bmatrix}
+            0.23   & 1.45    & \dots  & 2.67 \\
+            9.34   & 0.12    & \dots  & 1.34 \\
+            \vdots & \vdots  & \ddots & \vdots \\
+            1.49   & 5.59    & \dots  & 0.33 \\
+            6.89   & 7.01    & \dots  & 8.23 \\
+        \end{bmatrix} \\
+        \vdots \\
+        \begin{bmatrix}
+            0.23   & 1.45    & \dots  & 2.67 \\
+            5.79 & 6.80 & \dots & 7.91 \\
+            \vdots & \vdots  & \ddots & \vdots \\
+            1.49   & 5.59    & \dots  & 0.33 \\
+            6.89 & 7.01 & \dots & 8.23 \\
+        \end{bmatrix}
+    \end{bmatrix}
 $$
 
 Usando uma das formas mais simples de se transformar tokens em embeddings de forma eficiente, primeiro é necessário aplicar one-hot encoding sobre cada elemento, transformando-os vetores esparsos (que possui grande dimensionalidade mas muitos valores nulos).
@@ -326,20 +345,28 @@ Usando uma das formas mais simples de se transformar tokens em embeddings de for
 Se $|T|$ é o tamanho do vocabulário, a representação do texto "baba" usando One-Hot Encoding será:
 
 $$
-\begin{array}{cccc}
-\texttt{<bos>} & \texttt{b} & \texttt{a} & \texttt{b} & \texttt{a} & \texttt{<eos>} \\
-\end{array}
-\\~\\
-\downarrow
-\\~\\
-\begin{bmatrix}
-  1 & 4 & 3 & 4 & 3 & 2 \\
-\end{bmatrix}
-\\~\\
-\downarrow
-\\~\\
-\begin{array}{c|cccc}
-      & 0 & 1 & 2 & 3 & 4 & \dots & |T| \\
+    \begin{array}{cccccccccc}
+        \texttt{<bos>} & \texttt{b} & \texttt{a} & \texttt{b} & \texttt{a} & \texttt{<eos>}
+    \end{array}
+$$
+
+$$
+    \downarrow
+$$
+
+$$
+    \begin{bmatrix}
+        1 & 4 & 3 & 4 & 3 & 2 \\
+    \end{bmatrix}
+$$
+
+$$
+    \downarrow
+$$
+
+$$
+\begin{array}{c|cccccc}
+    & 0 & 1 & 2 & 3 & 4 & \dots & |T| \\
     \hline
     1 & 0 & 1 & 0 & 0 & 0 & \dots & 0 \\
     4 & 0 & 0 & 0 & 0 & 1 & \dots & 0 \\
@@ -357,49 +384,57 @@ Logo, ao multiplicar a sequência inteira após One-Hot Encoding, de dimensões 
 No exemplo, vamos considerar que o embedding de cada token possui sempre o mesmo valor após essa transformação. Nesse caso, é possível concatenar todos os $|T|$ embeddings possíveis em ordem para criar uma matriz de consulta, e a combinação dessas operações pode representar o processo de transformação da sequência em embeddings.
 
 $$
-\underbrace{
-\begin{array}{c|cccc}
-      & 0 & 1 & 2 & 3 & 4 & \dots & |T| \\
-    \hline
-    1 & 0 & 1 & 0 & 0 & 0 & \dots & 0 \\
-    4 & 0 & 0 & 0 & 0 & 1 & \dots & 0 \\
-    3 & 0 & 0 & 0 & 1 & 0 & \dots & 0 \\
-    4 & 0 & 0 & 0 & 0 & 1 & \dots & 0 \\
-    3 & 0 & 0 & 0 & 1 & 0 & \dots & 0 \\
-    2 & 0 & 0 & 1 & 0 & 0 & \dots & 0
-\end{array}
-}_{\text{One-Hot Encoding}}
-\\ ~ \\
-\times
-\\ ~ \\
-\underbrace{
-\begin{array}{c|cccc}
-      & 1 & 2 & \dots & d \\
-    \hline
-    0  & 0.1 & 0.2 & \dots & 0.6 \\
-    1  & 0.7 & 0.8 & \dots & 0.3 \\
-    2  & 0.4 & 0.5 & \dots & 0.9 \\
-    3  & 0.9 & 0.1 & \dots & 0.5 \\
-    4  & 0.3 & 0.9 & \dots & 0.1 \\
-    \vdots & \vdots & \vdots & \ddots & \vdots \\
-    |T| & 0.2 & 0.4 & \dots & 0.1
-\end{array}
-}_{\text{Matriz de consulta}}
-\\~\\
-\downarrow
-\\~\\
-\underbrace{
-\begin{array}{c|cccc}
-      & 1 & 2 & \dots & d \\
-    \hline
-    1  & 0.7 & 0.8 & \dots & 0.3 \\
-    4  & 0.3 & 0.9 & \dots & 0.1 \\
-    3  & 0.9 & 0.1 & \dots & 0.5 \\
-    4  & 0.3 & 0.9 & \dots & 0.1 \\
-    3  & 0.9 & 0.1 & \dots & 0.5 \\
-    2  & 0.4 & 0.5 & \dots & 0.9 \\
-\end{array}
-}_{\text{Embeddings}}
+    \underbrace{
+        \begin{array}{c|cccccc}
+            & 0 & 1 & 2 & 3 & 4 & \dots & |T| \\
+            \hline
+            1 & 0 & 1 & 0 & 0 & 0 & \dots & 0 \\
+            4 & 0 & 0 & 0 & 0 & 1 & \dots & 0 \\
+            3 & 0 & 0 & 0 & 1 & 0 & \dots & 0 \\
+            4 & 0 & 0 & 0 & 0 & 1 & \dots & 0 \\
+            3 & 0 & 0 & 0 & 1 & 0 & \dots & 0 \\
+            2 & 0 & 0 & 1 & 0 & 0 & \dots & 0
+        \end{array}
+    }_{\text{One-Hot Encoding}}
+$$
+
+$$
+    \times
+$$
+
+$$
+    \underbrace{
+        \begin{array}{c|cccc}
+            & 1 & 2 & \dots & d \\
+            \hline
+            0      & 0.1    & 0.2    & \dots  & 0.6 \\
+            1      & 0.7    & 0.8    & \dots  & 0.3 \\
+            2      & 0.4    & 0.5    & \dots  & 0.9 \\
+            3      & 0.9    & 0.1    & \dots  & 0.5 \\
+            4      & 0.3    & 0.9    & \dots  & 0.1 \\
+            \vdots & \vdots & \vdots & \ddots & \vdots \\
+            |T|    & 0.2    & 0.4    & \dots  & 0.1
+        \end{array}
+    }_{\text{Matriz de consulta}}
+$$
+
+$$
+    \downarrow
+$$
+
+$$
+    \underbrace{
+        \begin{array}{c|cccc}
+            & 1 & 2 & \dots & d \\
+            \hline
+            1  & 0.7 & 0.8 & \dots & 0.3 \\
+            4  & 0.3 & 0.9 & \dots & 0.1 \\
+            3  & 0.9 & 0.1 & \dots & 0.5 \\
+            4  & 0.3 & 0.9 & \dots & 0.1 \\
+            3  & 0.9 & 0.1 & \dots & 0.5 \\
+            2  & 0.4 & 0.5 & \dots & 0.9 \\
+        \end{array}
+    }_{\text{Embeddings}}
 $$
 
 Além de ser acelerável usando álgebra linear, essa forma de acesso aos embeddings permite que os valores dos embeddings possam ser otimizados durante o treinamento do modelo para melhorar a sua performance. Para isso, basta tratar a matriz de consulta como se fossem os pesos de uma camada linear em uma rede neural feed-forward, e otimizar o seu valor a partir da função de perda do modelo através de backpropagation. Assim, é possível encontrar um espaço ótimo para representar os tokens para o conjunto de dados de treinamento, sendo necessário definir apenas o valor de $d$.
@@ -411,10 +446,12 @@ Em PyTorch, esse componente está encapsulado na classe `torch.nn.Embedding`.
 ```python
 embed_dim = 512
 
-embedding = nn.Embedding(
+embedder = nn.Embedding(
     num_embeddings=len(printable) + 1,
     embedding_dim=embed_dim,
 )
+
+embedder(42)
 ```
 
 ### Token embeddings em PyTorch
@@ -490,58 +527,67 @@ Por exemplo, considere o texto a seguir:
 Por simplicidade, ignore os tokens especiais e suponha que cada palavra é representada por um embedding (pelo processo abstraído por $\text{Emb}(X)$), transformando o texto na sequência a seguir:
 
 $$
-\begin{array}{ccccccccc}
-\text{João }&\text{pensou: }&\text{O }&\text{trem } &\text{estava }&\text{cheio, }&\text{mas }&\text{ele }&\cdots
-\\ ~ \\
-\downarrow & \downarrow & \downarrow & \downarrow & \downarrow & \downarrow & \downarrow & \downarrow
-\\ ~ \\
-64 & 23 & 28 & 91 & 12 & 44 & 57 & 72
-\\ ~ \\
-\downarrow & \downarrow & \downarrow & \downarrow & \downarrow & \downarrow & \downarrow & \downarrow
-\\ ~ \\
-0.02 & 0.68  & 0.46  & 1.49  & 0.6   & 1.36 & 0.7  & 0.38 \\
- 0.12  & 1.05 & 1.7  & 1.59 & 0.88  & 0.3  & 1.85  & 0.94          \\
- 0.13 & 1.57  & 0.75 & 0.69  & 0.7   & 1.75 & 0.7  & 0.63          \\
- \cdots & \cdots & \cdots & \cdots & \cdots & \cdots & \cdots & \cdots & \\
- 0.8  & 0.34 & 0.84  & 0.34 & 0.67 & 0.53  & 0.49 & 0.5
-\end{array}
+    \begin{array}{ccccccccc}
+        \text{João } & \text{pensou: } & \text{O }  & \text{trem } & \text{estava } & \text{cheio, } & \text{mas } & \text{ele } & \cdots \\
+        \quad         \\
+        \downarrow   & \downarrow      & \downarrow & \downarrow   & \downarrow     & \downarrow     & \downarrow  & \downarrow   \\
+        \quad         \\
+        64           & 23              & 28         & 91           & 12             & 44             & 57          & 72           \\
+        \quad         \\
+        \downarrow   & \downarrow      & \downarrow & \downarrow   & \downarrow     & \downarrow     & \downarrow  & \downarrow   \\
+        \quad         \\
+        0.02         & 0.68            & 0.46       & 1.49         & 0.6            & 1.36           & 0.7         & 0.38         \\
+        0.12         & 1.05            & 1.7        & 1.59         & 0.88           & 0.3            & 1.85        & 0.94         \\
+        0.13         & 1.57            & 0.75       & 0.69         & 0.7            & 1.75           & 0.7         & 0.63         \\
+        \cdots       & \cdots          & \cdots     & \cdots       & \cdots         & \cdots         & \cdots      & \cdots      &        \\
+        0.8          & 0.34            & 0.84       & 0.34         & 0.67           & 0.53           & 0.49        & 0.5
+    \end{array}
 $$
 
 Então, um mecanismo de atenção recebe essa sequência e gera outra de mesmo comprimento, onde o embedding que representa a palavra "ele" será composto de embeddings mais próximos do trecho que compõe a palavra "João" do que da palavra "ônibus":
 
 $$
-\underbrace{
-\begin{array}{ccccccccc}
-\text{João pensou: o trem estava cheio, mas ele...}
-\end{array}
-}_{X}
-\\ ~ \\
-\downarrow
-\\ ~ \\
-\underbrace{
- \begin{bmatrix}
-  0.02   & 0.68   & 0.46   & 1.49   & 0.6    & 1.36   & 0.7    & 0.38   & \cdots \\
-  0.12   & 1.05   & 1.7    & 1.59   & 0.88   & 0.3    & 1.85   & 0.94   & \cdots \\
-  0.13   & 1.57   & 0.75   & 0.69   & 0.7    & 1.75   & 0.7    & 0.63   & \cdots \\
-  \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \ddots \\
-  0.8    & 0.34   & 0.84   & 0.34   & 0.67   & 0.53   & 0.49   & 0.5    & \cdots
- \end{bmatrix}
- }_{\text{Emb}(X)}
-\\ ~ \\
-\downarrow
-\\ ~ \\
-\underbrace{
- \begin{bmatrix}
-  0.02   & 0.68   & 0.46   & 1.49   & 0.6    & 1.36   & 0.7    & 0.05   & \cdots \\
-  0.12   & 1.05   & 1.7    & 1.59   & 0.88   & 0.3    & 1.85   & 0.08   & \cdots \\
-  0.13   & 1.57   & 0.75   & 0.69   & 0.7    & 1.75   & 0.7    & 0.16   & \cdots \\
-  \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \ddots \\
-  0.8    & 0.34   & 0.84   & 0.34   & 0.67   & 0.53   & 0.49   & 0.11   & \cdots
- \end{bmatrix}
- }_{\text{Atn}(X)}
-\\ ~ \\
+    \underbrace{
+        \begin{array}{ccccccccc}
+            \text{João pensou: o trem estava cheio, mas ele...}
+        \end{array}
+    }_{X}
+$$
 
-\text{Atn} \circ \text{Emb } (\text{ele}) \approx \text{Atn} \circ \text{Emb } (\text{João})
+$$
+    \downarrow
+$$
+
+$$
+    \underbrace{
+        \begin{bmatrix}
+            0.02   & 0.68   & 0.46   & 1.49   & 0.6    & 1.36   & 0.7    & 0.38   & \cdots & 1.23   \\
+            0.12   & 1.05   & 1.7    & 1.59   & 0.88   & 0.3    & 1.85   & 0.94   & \cdots & 0.11   \\
+            0.13   & 1.57   & 0.75   & 0.69   & 0.7    & 1.75   & 0.7    & 0.63   & \cdots & 1.04   \\
+            \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \ddots & \vdots \\
+            0.8    & 0.34   & 0.84   & 0.34   & 0.67   & 0.53   & 0.49   & 0.5    & \cdots & 0.09
+        \end{bmatrix}
+    }_{\text{Emb}(X)}
+$$
+
+$$
+    \downarrow
+$$
+
+$$
+\underbrace{
+    \begin{bmatrix}
+        0.02   & 0.68   & 0.46   & 1.49   & 0.6    & 1.36   & 0.7    & 0.05   & \cdots 1.23   \\
+        0.12   & 1.05   & 1.7    & 1.59   & 0.88   & 0.3    & 1.85   & 0.08   & \cdots 0.11   \\
+        0.13   & 1.57   & 0.75   & 0.69   & 0.7    & 1.75   & 0.7    & 0.16   & \cdots 1.04   \\
+        \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \ddots \vdots \\
+        0.8    & 0.34   & 0.84   & 0.34   & 0.67   & 0.53   & 0.49   & 0.11   & \cdots 0.09
+    \end{bmatrix}
+}_{\text{Atn}(X)}
+$$
+
+$$
+    \text{Atn} \circ \text{Emb } (\text{ele}) \approx \text{Atn} \circ \text{Emb } (\text{João})
 $$
 
 ### Self-Attention
@@ -623,85 +669,97 @@ Essas frações serão os scores de atenção e são uma sequência normalizada,
 Os scores precisam ser normalizados para que a atenção que pode ser distribuída seja finita e o mecanismo funcione corretamente. Então, Se o score de um elemento for relativamente maior, o score de pelo menos um dos outros elementos será relativamnnte menor de forma proporcional para manter essa propriedade.
 
 $$
-\text{Atn}(\text{Ele}) = 0.9 \cdot \text{Emb} (\text{João}) + 0.01 \cdot \text{Emb} (\text{pensou: }) + \cdots
+    \text{Atn}(\text{Ele}) = 0.9 \cdot \text{Emb} (\text{João}) + 0.01 \cdot \text{Emb} (\text{pensou: }) + \cdots
+$$
+
+$$
+    \underbrace{
+        \begin{array}{c|cccc}
+            & 1 & 2 & \dots & d \\
+            \hline
+            1  & 0.7 & 0.8 & \dots & 0.3 \\
+            2  & 0.3 & 0.2 & \dots & 0.2 \\
+            \vdots & \vdots & \vdots & \ddots & \vdots \\
+            t  & 0.2 & 0.4 & \dots & 0.1
+        \end{array}
+    }_{V}
+$$
+
+$$
+    \times
 $$
 
 $$
 \underbrace{
-\begin{array}{c|cccc}
-      & 1 & 2 & \dots & d \\
-    \hline
-    1  & 0.7 & 0.8 & \dots & 0.3 \\
-    2  & 0.3 & 0.2 & \dots & 0.2 \\
-    \vdots & \vdots & \vdots & \ddots & \vdots \\
-    t  & 0.2 & 0.4 & \dots & 0.1
-\end{array}
-}_{V}
-\\ ~ \\
-\times
-\\ ~ \\
-\underbrace{
-\begin{array}{c|cccc}
-      & 1 & 2 & \dots & t \\
-    \hline
-    1  & 0.5 & 0.5 & \dots & 0.0 \\
-    2  & 0.2 & 0.3 & \dots & 0.4 \\
-    \vdots & \vdots & \vdots & \ddots & \vdots \\
-    t  & 0.1 & 0.2 & \dots & 0.5
-\end{array}
+    \begin{array}{c|cccc}
+        & 1 & 2 & \dots & t \\
+        \hline
+        1  & 0.5 & 0.5 & \dots & 0.0 \\
+        2  & 0.2 & 0.3 & \dots & 0.4 \\
+        \vdots & \vdots & \vdots & \ddots & \vdots \\
+        t  & 0.1 & 0.2 & \dots & 0.5
+    \end{array}
 }_{\text{Scores de atenção}}
-\\ ~ \\
-\downarrow
-\\ ~ \\
-\underbrace{
-\begin{array}{c|cccc}
-      & 1 & 2 & \dots & d \\
-    \hline
-    1  & 0.4 & 0.3 & \dots & 0.8 \\
-    2  & 0.9 & 0.1 & \dots & 0.1 \\
-    \vdots & \vdots & \vdots & \ddots & \vdots \\
-    t  & 0.2 & 0.5 & \dots & 0.3
-\end{array}
-}_{\text{Atn}(X)}
+$$
+
+$$
+    \downarrow
+$$
+
+$$
+    \underbrace{
+        \begin{array}{c|cccc}
+            & 1 & 2 & \dots & d \\
+            \hline
+            1  & 0.4 & 0.3 & \dots & 0.8 \\
+            2  & 0.9 & 0.1 & \dots & 0.1 \\
+            \vdots & \vdots & \vdots & \ddots & \vdots \\
+            t  & 0.2 & 0.5 & \dots & 0.3
+        \end{array}
+    }_{\text{Atn}(X)}
 $$
 
 Como nos Transformers será necessário transformar cada elemento da sequência recebida, o mecanismo também poderá ser acelerado ao ser realizado em batch, fazendo com que as queries também sejam iguais à sequência recebida.
 
 $$
-\underbrace{
-\begin{array}{c|cccc}
-      & 1 & 2 & \dots & d \\
-    \hline
-    1  & 0.7 & 0.8 & \dots & 0.3 \\
-    2  & 0.3 & 0.2 & \dots & 0.2 \\
-    \vdots & \vdots & \vdots & \ddots & \vdots \\
-    t  & 0.2 & 0.4 & \dots & 0.1
-\end{array}
-}_{\text{Q}}
-\qquad
-\underbrace{
-\begin{array}{c|cccc}
-      & 1 & 2 & \dots & d \\
-    \hline
-    1  & 0.7 & 0.8 & \dots & 0.3 \\
-    2  & 0.3 & 0.2 & \dots & 0.2 \\
-    \vdots & \vdots & \vdots & \ddots & \vdots \\
-    t  & 0.2 & 0.4 & \dots & 0.1
-\end{array}
-}_{\text{K}}
-\\ ~ \\
-\downarrow
-\\ ~ \\
-\underbrace{
-\begin{array}{c|cccc}
-      & 1 & 2 & \dots & t \\
-    \hline
-    1  & 0.5 & 0.5 & \dots & 0.0 \\
-    2  & 0.2 & 0.3 & \dots & 0.4 \\
-    \vdots & \vdots & \vdots & \ddots & \vdots \\
-    t  & 0.1 & 0.2 & \dots & 0.5
-\end{array}
-}_{\text{Scores de atenção}}
+    \underbrace{
+        \begin{array}{c|cccc}
+            & 1 & 2 & \dots & d \\
+            \hline
+            1  & 0.7 & 0.8 & \dots & 0.3 \\
+            2  & 0.3 & 0.2 & \dots & 0.2 \\
+            \vdots & \vdots & \vdots & \ddots & \vdots \\
+            t  & 0.2 & 0.4 & \dots & 0.1
+        \end{array}
+    }_{\text{Q}}
+    \qquad
+    \underbrace{
+        \begin{array}{c|cccc}
+            & 1 & 2 & \dots & d \\
+            \hline
+            1  & 0.7 & 0.8 & \dots & 0.3 \\
+            2  & 0.3 & 0.2 & \dots & 0.2 \\
+            \vdots & \vdots & \vdots & \ddots & \vdots \\
+            t  & 0.2 & 0.4 & \dots & 0.1
+        \end{array}
+    }_{\text{K}}
+$$
+
+$$
+    \downarrow
+$$
+
+$$
+    \underbrace{
+    \begin{array}{c|cccc}
+        & 1 & 2 & \dots & t \\
+        \hline
+        1  & 0.5 & 0.5 & \dots & 0.0 \\
+        2  & 0.2 & 0.3 & \dots & 0.4 \\
+        \vdots & \vdots & \vdots & \ddots & \vdots \\
+        t  & 0.1 & 0.2 & \dots & 0.5
+    \end{array}
+    }_{\text{Scores de atenção}}
 $$
 
 Por isso, embora queries, keys e values partam da mesma sequência inicialmente, é importante separar o seu papel em cada parte do mecanismo.
@@ -857,8 +915,8 @@ A técnica de PE introduzida na arquitetura dos Transformers é baseada na funç
 $$
     \text{PE}(i, j, p) =
     \begin{cases}
-    \sin \dfrac{p}{\theta^{\frac{2i}{d}}} & \text{se }j \text{ é par}, \\ ~ \\
-    \cos \dfrac{p}{\theta^{\frac{2i}{d}}} & \text{se }j \text{ é ímpar}.
+        \sin \dfrac{p}{\theta^{\frac{2i}{d}}} & \text{se }j \text{ é par}, \\
+        \cos \dfrac{p}{\theta^{\frac{2i}{d}}} & \text{se }j \text{ é ímpar}.
     \end{cases}
 $$
 
@@ -878,50 +936,50 @@ A técnica de PE utilizada é relativa, ou seja, prioriza representar a posiçã
 Para ilustrar o cálculo de $PE$ em batch, a sequência de embedings que será somada com uma sequência recebida onde $t = 5$, $d = 4$ e $\theta = 10000$ será:
 
 $$
-i =
-\begin{bmatrix}
-0 & 0 & 1 & 1 \\
-0 & 0 & 1 & 1 \\
-0 & 0 & 1 & 1 \\
-0 & 0 & 1 & 1 \\
-0 & 0 & 1 & 1 \\
-\end{bmatrix}
+    i =
+    \begin{bmatrix}
+        0 & 0 & 1 & 1 \\
+        0 & 0 & 1 & 1 \\
+        0 & 0 & 1 & 1 \\
+        0 & 0 & 1 & 1 \\
+        0 & 0 & 1 & 1
+    \end{bmatrix}
 $$
 
 $$
-j =
-\begin{bmatrix}
-0 & 1 & 2 & 3 \\
-0 & 1 & 2 & 3 \\
-0 & 1 & 2 & 3 \\
-0 & 1 & 2 & 3 \\
-0 & 1 & 2 & 3 \\
-\end{bmatrix}
+    j =
+    \begin{bmatrix}
+        0 & 1 & 2 & 3 \\
+        0 & 1 & 2 & 3 \\
+        0 & 1 & 2 & 3 \\
+        0 & 1 & 2 & 3 \\
+        0 & 1 & 2 & 3
+    \end{bmatrix}
 $$
 
 $$
-p =
-\begin{bmatrix}
-0 & 0 & 0 & 0 \\
-1 & 1 & 1 & 1 \\
-2 & 2 & 2 & 2 \\
-3 & 3 & 3 & 3 \\
-4 & 4 & 4 & 4 \\
-\end{bmatrix}
+    p =
+    \begin{bmatrix}
+        0 & 0 & 0 & 0 \\
+        1 & 1 & 1 & 1 \\
+        2 & 2 & 2 & 2 \\
+        3 & 3 & 3 & 3 \\
+        4 & 4 & 4 & 4
+    \end{bmatrix}
 $$
 
 $$
-PE(i,j,p) =
-\begin{bmatrix}
-0.0000 & 1.0000 & 0.0000 & 1.0000 \\
-0.8415 & 0.5403 & 0.0100 & 0.9999 \\
-0.9093 & -0.4161 & 0.0200 & 0.9998 \\
-0.1411 & -0.9899 & 0.0300 & 0.9996 \\
--0.7568 & -0.6536 & 0.0400 & 0.9992 \\
-\end{bmatrix}
+    PE(i,j,p) =
+    \begin{bmatrix}
+        0.0000 & 1.0000 & 0.0000 & 1.0000 \\
+        0.8415 & 0.5403 & 0.0100 & 0.9999 \\
+        0.9093 & -0.4161 & 0.0200 & 0.9998 \\
+        0.1411 & -0.9899 & 0.0300 & 0.9996 \\
+        -0.7568 & -0.6536 & 0.0400 & 0.9992 \\
+    \end{bmatrix}
 $$
 
-##### PE em PyTorch
+### PE em PyTorch
 
 ```python
 class PositionalEncoder(nn.Module):
@@ -989,19 +1047,24 @@ $$
   5 & \texttt{  h  } & \texttt{  o  } & \texttt{  r  } & \texttt{  r  } & \texttt{  o  } & \texttt{<eos>} & \texttt{<bos>} & \texttt{  d  } & \texttt{  o  } & \texttt{  g  } \\
  \end{array}
  }_{\text{Sequência original}}
-\\ ~ \\
+$$
+
+$$
 \downarrow
-\\ ~ \\
+$$
+
+$$
 \underbrace{
-\begin{array}{c|cccccccccc}
-    & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\\hline
- 1 & \texttt{  c  } & \texttt{  a  } & \texttt{  c  } & \texttt{  h  } & \texttt{  o  } & \texttt{  r  } & \texttt{  r  } & \texttt{  o  } & \texttt{<eos>} & \texttt{<bos>} \\
- 2 & \texttt{  a  } & \texttt{  c  } & \texttt{  h  } & \texttt{  o  } & \texttt{  r  } & \texttt{  r  } & \texttt{  o  } & \texttt{<eos>} & \texttt{<bos>} & \texttt{  d  } \\
- 3 & \texttt{  c  } & \texttt{  h  } & \texttt{  o  } & \texttt{  r  } & \texttt{  r  } & \texttt{  o  } & \texttt{<eos>} & \texttt{<bos>} & \texttt{  d  } & \texttt{  o  } \\
- 4 & \texttt{  h  } & \texttt{  o  } & \texttt{  r  } & \texttt{  r  } & \texttt{  o  } & \texttt{<eos>} & \texttt{<bos>} & \texttt{  d  } & \texttt{  o  } & \texttt{  g  } \\
- 5 & \texttt{  o  } & \texttt{  r  } & \texttt{  r  } & \texttt{  o  } & \texttt{<eos>} & \texttt{<bos>} & \texttt{  d  } & \texttt{  o  } & \texttt{  g  } & \texttt{<eos>}
-\end{array}
-}_{\text{Sequência após o \textit{shift}}}
+    \begin{array}{c|cccccccccc}
+        & 0            & 1            & 2            & 3            & 4              & 5              & 6              & 7              & 8              & 9              \\
+        \hline
+        1 & \texttt{ c } & \texttt{ a } & \texttt{ c } & \texttt{ h } & \texttt{ o }   & \texttt{ r }   & \texttt{ r }   & \texttt{ o }   & \texttt{<eos>} & \texttt{<bos>} \\
+        2 & \texttt{ a } & \texttt{ c } & \texttt{ h } & \texttt{ o } & \texttt{ r }   & \texttt{ r }   & \texttt{ o }   & \texttt{<eos>} & \texttt{<bos>} & \texttt{ d }   \\
+        3 & \texttt{ c } & \texttt{ h } & \texttt{ o } & \texttt{ r } & \texttt{ r }   & \texttt{ o }   & \texttt{<eos>} & \texttt{<bos>} & \texttt{ d }   & \texttt{ o }   \\
+        4 & \texttt{ h } & \texttt{ o } & \texttt{ r } & \texttt{ r } & \texttt{ o }   & \texttt{<eos>} & \texttt{<bos>} & \texttt{ d }   & \texttt{ o }   & \texttt{ g }   \\
+        5 & \texttt{ o } & \texttt{ r } & \texttt{ r } & \texttt{ o } & \texttt{<eos>} & \texttt{<bos>} & \texttt{ d }   & \texttt{ o }   & \texttt{ g }   & \texttt{<eos>}
+    \end{array}
+}_{\text{Sequência após o shift}}
 $$
 
 Note que o primeiro shift sempre terá o mesmo resultado: mover o token `<bos>` do início para o final do texto. Esse padrão será útil no treinamento dos Transformers futuramente.
@@ -1021,102 +1084,115 @@ Essa limitação é feita nos Transformers aplicando uma attention mask, que anu
 A aplicação da attention mask consiste em somar $-\infty$ aos elementos da matriz triangular superior dos scores de atenção. Dessa forma, esses elementos terão valor 0 após a aplicação da Softmax.
 
 $$
-  \text{SDPA-Mask}(Q,K,V,M) = \text{Softmax}\left(\frac{Q^TK}{\sqrt{d_{in}}}+M\right)V
+    \text{SDPA-Mask}(Q,K,V,M) = \text{Softmax}\left(\frac{Q^TK}{\sqrt{d_{in}}}+M\right)V
 $$
 
 $$
-\underbrace{
-\begin{array}{c|ccccc}
-       & 1      & 2      & 3      & \dots  & t-1    & t      \\
-\hline
-1      & 6.32   & -1.12  & 1.32   & \dots  & -2.16  & 1.92   \\
-2      & -1.81  & 0.96   & 0.89   & \dots  & 0.03   & 1.76   \\
-3      & -1.81  & 0.06   & -2.27  & \dots  & 1.01   & -1.32  \\
-\vdots & \vdots & \vdots & \vdots & \ddots & \vdots & \vdots \\
-t-1    & -0.11  & 1.55   & -0.18  & \dots  & 0.95   & 0.95   \\
-t      & 1.45   & -1.42  & 1.62   & \dots  & 2.06  & -0.23
-\end{array}
-}_{\text{Atenção original}}
-\\ ~ \\
-+
-\\ ~ \\
-\underbrace{
-\begin{array}{c|ccccc}
-    & 1      & 2          & 3        & \dots  & t-1      & t        \\
-\hline
-1        & 0      & -\infty  & -\infty  & \dots  & -\infty  & -\infty  \\
-2        & 0      & 0        & -\infty  & \dots  & -\infty  & -\infty  \\
-3        & 0      & 0        & 0        & \dots  & -\infty  & -\infty  \\
-\vdots   & \vdots & \vdots   & \vdots   & \ddots & \vdots   & \vdots   \\
-t-1      & 0      & 0        & 0        & \dots  & 0        & -\infty  \\
-t        & 0      & 0        & 0        & \dots  & 0        & 0
-\end{array}
-}_{\text{Máscara de atenção}}
-\\ ~ \\
-\downarrow
-\\ ~ \\
-\underbrace{
-\begin{array}{c|ccccc}
-    & 1      & 2      & 3      & \dots  & t-1    & t      \\
-\hline
-1      & 6.32   & -\infty & -\infty    & \dots  & -\infty  & -\infty  \\
-2      & -1.81  & 0.96    & -\infty    & \dots  & -\infty  & -\infty  \\
-3      & -1.81  & 0.06    & -2.27      & \dots  & -\infty  & -\infty  \\
-\vdots & \vdots & \vdots  & \vdots     & \ddots & \vdots   & \vdots   \\
-t-1    & -0.11  & 1.55    & -0.18      & \dots  & 0.95     & -\infty  \\
-t      & 1.45   & -1.42   & 1.62       & \dots  & 2.06     & -0.23
-\end{array}
-}_{\text{Atenção mascarada}}
+    \underbrace{
+    \begin{array}{c|ccccc}
+        & 1      & 2      & 3      & \dots  & t-1    & t      \\
+    \hline
+    1      & 6.32   & -1.12  & 1.32   & \dots  & -2.16  & 1.92   \\
+    2      & -1.81  & 0.96   & 0.89   & \dots  & 0.03   & 1.76   \\
+    3      & -1.81  & 0.06   & -2.27  & \dots  & 1.01   & -1.32  \\
+    \vdots & \vdots & \vdots & \vdots & \ddots & \vdots & \vdots \\
+    t-1    & -0.11  & 1.55   & -0.18  & \dots  & 0.95   & 0.95   \\
+    t      & 1.45   & -1.42  & 1.62   & \dots  & 2.06  & -0.23
+    \end{array}
+    }_{\text{Atenção original}}
+$$
+
+$$
+    +
+$$
+
+$$
+    \underbrace{
+        \begin{array}{c|ccccc}
+            & 1      & 2          & 3        & \dots  & t-1      & t        \\
+        \hline
+        1        & 0      & -\infty  & -\infty  & \dots  & -\infty  & -\infty  \\
+        2        & 0      & 0        & -\infty  & \dots  & -\infty  & -\infty  \\
+        3        & 0      & 0        & 0        & \dots  & -\infty  & -\infty  \\
+        \vdots   & \vdots & \vdots   & \vdots   & \ddots & \vdots   & \vdots   \\
+        t-1      & 0      & 0        & 0        & \dots  & 0        & -\infty  \\
+        t        & 0      & 0        & 0        & \dots  & 0        & 0
+        \end{array}
+    }_{\text{Máscara de atenção}}
+$$
+
+$$
+    \downarrow
+$$
+
+$$
+    \underbrace{
+        \begin{array}{c|ccccc}
+            & 1      & 2      & 3      & \dots  & t-1    & t      \\
+        \hline
+        1      & 6.32   & -\infty & -\infty    & \dots  & -\infty  & -\infty  \\
+        2      & -1.81  & 0.96    & -\infty    & \dots  & -\infty  & -\infty  \\
+        3      & -1.81  & 0.06    & -2.27      & \dots  & -\infty  & -\infty  \\
+        \vdots & \vdots & \vdots  & \vdots     & \ddots & \vdots   & \vdots   \\
+        t-1    & -0.11  & 1.55    & -0.18      & \dots  & 0.95     & -\infty  \\
+        t      & 1.45   & -1.42   & 1.62       & \dots  & 2.06     & -0.23
+        \end{array}
+    }_{\text{Atenção mascarada}}
 $$
 
 Existem casos onde esse vazamento não será um problema, e nesse caso, a attention mask aplicada será apenas um tensor nulo.
 
 $$
-\underbrace{
-\begin{array}{c|ccccc}
-       & 1      & 2      & 3      & \dots  & t-1    & t      \\
-\hline
-1      & 6.32   & -1.12  & 1.32   & \dots  & -2.16  & 1.92   \\
-2      & -1.81  & 0.96   & 0.89   & \dots  & 0.03   & 1.76   \\
-3      & -1.81  & 0.06   & -2.27  & \dots  & 1.01   & -1.32  \\
-\vdots & \vdots & \vdots & \vdots & \ddots & \vdots & \vdots \\
-t-1    & -0.11  & 1.55   & -0.18  & \dots  & 0.95   & 0.95   \\
-t      & 1.45   & -1.42  & 1.62   & \dots  & 2.06  & -0.23
-\end{array}
-}_{\text{Atenção original}}
+    \underbrace{
+        \begin{array}{c|ccccc}
+            & 1      & 2      & 3      & \dots  & t-1    & t      \\
+        \hline
+        1      & 6.32   & -1.12  & 1.32   & \dots  & -2.16  & 1.92   \\
+        2      & -1.81  & 0.96   & 0.89   & \dots  & 0.03   & 1.76   \\
+        3      & -1.81  & 0.06   & -2.27  & \dots  & 1.01   & -1.32  \\
+        \vdots & \vdots & \vdots & \vdots & \ddots & \vdots & \vdots \\
+        t-1    & -0.11  & 1.55   & -0.18  & \dots  & 0.95   & 0.95   \\
+        t      & 1.45   & -1.42  & 1.62   & \dots  & 2.06  & -0.23
+        \end{array}
+    }_{\text{Atenção original}}
 $$
-$$
-+
-$$
-$$
-\underbrace{
-\begin{array}{c|ccccc}
-    & 1      & 2          & 3        & \dots  & t-1      & t        \\
-\hline
-1        & 0      & 0        & 0        & \dots  & 0        & 0        \\
-2        & 0      & 0        & 0        & \dots  & 0        & 0        \\
-3        & 0      & 0        & 0        & \dots  & 0        & 0        \\
-\vdots   & \vdots & \vdots   & \vdots   & \ddots & \vdots   & \vdots   \\
-t-1      & 0      & 0        & 0        & \dots  & 0        & 0        \\
-t        & 0      & 0        & 0        & \dots  & 0        & 0
-\end{array}
-}_{\text{Máscara de atenção}}
 
-\\ ~ \\
-\downarrow
-\\ ~ \\
-\underbrace{
-\begin{array}{c|ccccc}
-       & 1      & 2      & 3      & \dots  & t-1    & t      \\
-\hline
-1      & 6.32   & -1.12  & 1.32   & \dots  & -2.16  & 1.92   \\
-2      & -1.81  & 0.96   & 0.89   & \dots  & 0.03   & 1.76   \\
-3      & -1.81  & 0.06   & -2.27  & \dots  & 1.01   & -1.32  \\
-\vdots & \vdots & \vdots & \vdots & \ddots & \vdots & \vdots \\
-t-1    & -0.11  & 1.55   & -0.18  & \dots  & 0.95   & 0.95   \\
-t      & 1.45   & -1.42  & 1.62   & \dots  & 2.06  & -0.23
-\end{array}
-}_{\text{Atenção original}}
+$$
+    +
+$$
+
+$$
+    \underbrace{
+        \begin{array}{c|ccccc}
+                   & 1      & 2      & 3      & \dots  & t-1    & t      \\
+            \hline
+            1      & 0      & 0      & 0      & \dots  & 0      & 0      \\
+            2      & 0      & 0      & 0      & \dots  & 0      & 0      \\
+            3      & 0      & 0      & 0      & \dots  & 0      & 0      \\
+            \vdots & \vdots & \vdots & \vdots & \ddots & \vdots & \vdots \\
+            t-1    & 0      & 0      & 0      & \dots  & 0      & 0      \\
+            t      & 0      & 0      & 0      & \dots  & 0      & 0
+        \end{array}
+    }_{\text{Máscara de atenção}}
+$$
+
+$$
+    \downarrow
+$$
+
+$$
+    \underbrace{
+        \begin{array}{c|ccccc}
+            & 1      & 2      & 3      & \dots  & t-1    & t      \\
+        \hline
+        1      & 6.32   & -1.12  & 1.32   & \dots  & -2.16  & 1.92   \\
+        2      & -1.81  & 0.96   & 0.89   & \dots  & 0.03   & 1.76   \\
+        3      & -1.81  & 0.06   & -2.27  & \dots  & 1.01   & -1.32  \\
+        \vdots & \vdots & \vdots & \vdots & \ddots & \vdots & \vdots \\
+        t-1    & -0.11  & 1.55   & -0.18  & \dots  & 0.95   & 0.95   \\
+        t      & 1.45   & -1.42  & 1.62   & \dots  & 2.06  & -0.23
+        \end{array}
+    }_{\text{Atenção original}}
 $$
 
 #### Attention Mask em PyTorch

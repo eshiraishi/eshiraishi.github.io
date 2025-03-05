@@ -48,6 +48,11 @@
 
 @layer components {
   article {
+    table {
+      max-width: 62.5%;
+      margin: 0 auto;
+    }
+
     p {
       @apply my-4 leading-relaxed;
     }
