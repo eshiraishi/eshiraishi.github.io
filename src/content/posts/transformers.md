@@ -1,38 +1,74 @@
 ---
-title: 🇧🇷 Transformers do zero em PyTorch
+title: 🇧🇷 Explicando Transformers do zero
 description: "Attention is all you need"
 date: '2025-01-31'
 ---
 
-Nesse post, vou explicar como a arquitetura *transformer*, introduzida no artigo *"Attention is All You Need"*, funciona, assumindo o mínimo possível de pré-requisitos. Além disso, vou escrever uma versão da arquitetura do zero usando *PyTorch*.
+Em 2017, a Google Brain lançou o artigo "Attention is All you Need", que introduziu para o mundo o Transformer, uma arquitetura para redes neurais para transdução de sequências baseada em atenção que permitiu a criação de modelos que superaram todos os outros modelos anteriores em tradução entre idiomas.
 
-Infelizmente, se eu não assumir absolutamente nenhum pré-requisito, o conteúdo ficará extenso demais para ser feito de uma vez (embora talvez possa fazer algo parecido caso tenham interesse). Por isso, vou assumir que você já entende:
+Anos depois, essa arquitetura deu origem a muitas alternativas que atingiram o Estado da Arte múltiplas em outras aplicações, em especial na criação de modelos de linguagem, que popularizaram fortemente o uso de IA Generativa para muitas aplicações de processamento de linguagem natural. No momento de escrita desse post, são variações do Transformer como os Generative Pretrained Transformers (GPTs) que estão sendo usadas por trás de inteligências artificiais avançadas, como ChatGPT, Claude e Gemini, mostrando o potencial dessa arquitetura e o seu legado na história da inteligência artificial.
 
-* Como funcionam operações matriciais (como produto interno, produto matricial, transposição de matrizes, etc.)
-* Como funcionam redes neurais *feed-forward*
-* Conceitos fundamentais do PyTorch (como tensores, módulos, *autograd*, otimizadores, etc.)
+Para ajudar a entender o que os Transformers têm de especial, esse post vai explicar como funcionam os Transformers, através de uma implementação de exemplo construída do zero em Python usando PyTorch, e assumindo poucos pré-requisitos.
 
-## Contexto
+Embora já existam muitas implementações de Transformers disponíveis na internet, durante o momento de escrita desse post, não existiam muitos artigos explicando o tópico em Português de forma didática, o que motivou a escrita.
 
-Transformers são aplicações que se destacam em transdução de sequências, que são situações onde é necessário criar um modelo que consegue receber uma sequência de elementos de tamanho arbitrário e gerar outra sequência de elementos de tamanho arbitrário. Essas duas sequências não precisam ter o mesmo comprimento e os elementos das duas sequências podem pertencer a conjuntos diferentes.
+Infelizmente, se esse post não assumir absolutamente nenhum pré-requisito, o conteúdo ficará extenso demais para ser feito de uma vez (embora talvez seja possível escrever outros posts com os pré-requisitos no futuro). Por isso, para entender tudo que será explicado, é importante entender os conteúdos a seguir:
 
-Embora existam diversas áreas do conhecimento que possam usar transdução de sequências, vamos focar em aplicações voltadas à geração de linguagem natural, ou seja, onde a sequência recebida representa um texto e a sequência gerada também representa um texto.
+* Como funcionam operações matriciais como produto interno, produto matricial, transposição de matrizes, etc.
+* Como funcionam os componentes de redes neurais *feed-forward*
+* Como programar em Python ao nível de criar classes e objetos e interagir com bibliotecas terceiras
+* Como usar os componentes básicos do PyTorch, como tensores, dispositivos, módulos, *autograd*, otimizadores, etc.
+* Porque realizar operações em lote usando operações matriciais podem ser muito mais rápido que realizá-las individualmente.
 
-Embora esses textos possam ser de domínios diferentes, como em um modelo de tradução entre idiomas, onde os elementos (letras) da sequência recebida (texto) pertencem a um vocabulário (o do idioma original), e os elementos (letras) da sequência gerada (texto traduzido) pertencem a outro vocabulário (o do idioma alvo). Porém, a aplicação mais notável dos *transformers* no momento de escrita desse post é em modelagem de linguagens, onde dada uma sequência de elementos (texto), um modelo gera os próximos elementos da sequência até entender que ela chegou ao fim, completando o texto original.
+## Objetivo
 
-Modelos de linguagem são o que alimentam as inteligências artificiais conversacionais que tiveram uma explosão em popularidade a partir de 2022 com o lançamento de produtos como o ChatGPT, que são baseados em variações da arquitetura *transformer* e mostram o poder desse tipo de aplicação e arquitetura quando usados em grande escala.
+De forma geral, Transformers podem ser usados para modelar aplicações de transdução de sequências, que são aplicações onde é necessário gerar uma sequência de elementos a partir de outra. Isso faz com que muitas aplicações possam ser modeladas como uma transdução de sequências, como tradução automática, geração textual, sumarização de textos e síntese de moléculas.
 
-Muitas das convenções que serão descritas tem como foco principal garantir a eficiência dos modelos gerados, tanto do ponto de vista de performance computacional como do ajuste dos modelos, e por ser um campo experimental, e muitas das conclusões e consensos tomados na criação de arquiteturas foram tomadas por experiência empírica.
+De forma mais completa, uma função de transdução de sequências $M(s)$ relaciona uma sequência ordenada $s = <s_1,s_2,\cdots,s_{n}>$, composta de elementos do conjunto enumerável $S$ a outra sequência $t = <t_1,t_2,\cdots,t_{m}>$, composta de elementos do conjunto enumerável $T$.
+
+Para facilitar a explicação sobre o funcionamento dos Transformers, além da notação formal, serão usados exemplos de uma aplicação específica. Dada a importância dos Transformers para o progresso de inteligências artificiais como os Large Language Models, os exemplos desse post serão baseados no contexto da criação de um modelo de linguagem.
+
+De forma geral, a ideia de um modelo de linguagem é determinar as próximas letras de um texto a partir dos seus elementos anteriores, assim como nos corretores automáticos usados nos teclados digitais de smartphones, por exemplo.
+
+Adaptando a notação anterior, um modelo de linguagem $M(s)$ relaciona um texto $s = <s_1,s_2,\cdots,s_{n}>$, composto de letras do alfabeto $S$ a outro texto $s' = <s'_1,s'_2,\cdots,s'_{m}>$, também composto de letras do alfabeto $S$. Note que $S$ e $T$ serem iguais é uma especificidade de aplicações como modelos de linguagem. Em tradução automática, por exemplo, os textos podem estar em idiomas diferentes (logo os alfabetos podem ser diferentes).
+
+### Observação
+
+Além de criar um modelo de linguagem de forma geral, um grande desafio na criação de redes neurais é minimizar o tempo de inferência desses modelos. Embora seja possível implementar um Transformer usando apenas estruturas como variáveis, listas e laços de repetição, esse tipo de implementação se torna lento demais para treinar e usar na prática pelo grande número de computações que precisam ser realizadas de forma ineficiente. Portanto, é necessário considerar técnicas de programação paralela desde o início da implementação do modelo.
+
+Em geral, a forma mais prática de implementar paralelismo em redes neurais é aproveitar a capacidade dos dispositivos modernos de realizar operações matemáticas sobre vetores, matrizes e tensores em paralelo de forma muito eficiente. Portanto, mudando a representação dos dados durante a execução das operações, é possível gerar algoritmos eficientes de forma simples, embora isso exija que os algoritmos sejam definidos levando em consideração dados multidimensionais desde a sua concepção.
+
+### Um pouco de história
+
+Criar modelos eficientes para transdução de sequências foi um problema em aberto por muitos anos para a comunidade científica, onde o desafio era resolver problemas comuns ao treino de arquiteturas alternativas aos Transformers.
+
+Técnicas baseadas em redes neurais recorrentes possuiam a melhor performance em aplicações como tradução textual, como foi o caso da arquitetura proposta pela Google para o Google Tradutor em 2014 no influente artigo "Sequence to Sequence Learning with Neural Networks"). Embora explicar esse tipo de arquitetura esteja fora do escopo desse post, existiam problemas comuns ao processo de treinamento de redes neurais recorrentes que encorajaram o desenvolvimento de alternativas:
+
+1. A sua natureza recursiva pode causar problemas de gradient vanishing, efeito que ocorre quando os valores dos gradientes gerados via *backpropagation* são pequenos demais para que o modelo consiga convergir para o mínimo global até o final do treinamento, praticamente parando antes do valor da função de perda se tornar próximo do mínimo global.
+
+2. A ordem sequencial das operações envolvidas nesse tipo de modelo pode tornar a inferência muito lentas, o que pode tornar o treinamento e uso posterior do modelo inviável.
+
+3. A incapacidade do modelo de entender o significado de uma palavra em uma frase com base no seu contexto pode comprometer o texto gerado.
+
+Esses problemas eram críticos para o uso desses modelos em muitas aplicações, o que incentivou a pesquisa sobre a criação de arquiteturas alternativos que convergissem mais rapidamente e em modelos com melhor performance. Em especial, a criação de modelos capazes de resignificar palavras com base no seu contexto para resolver parte desses problemas levou ao estudo de mecanismos de atenção, que têm justamente esse objetivo.
+
+Assim como grande parte da pesquisa em redes neurais, muitas das decisões e convenções que serão usadas são baseadas no que levou aos melhores resultados nos experimentos conduzidos. Porém, no caso dos Transformers, também existem escolhas tomadas com o objetivo de garantir que os algoritmos são eficientes computacionalmente em treino e inferência e não sofram dos mesmos problemas de convergência que as alternativas.
+
+Nesse sentido, o grande diferencial dos Transformers é o fato de serem baseados apenas em redes neurais feed-forward e mecanismos de atenção, o que leva a modelos capazes de resolver os problemas mencionados anteriormente em diversas aplicações e atingir a melhor performance até então em transdução de sequências no processo.
+
+Essa conclusão explica o nome do artigo: do ponto de vista da arquitetura do modelo, redes neurais recorrentes não são necessárias para criar modelos eficientes, apenas mecanismos de atenção, ou seja, "Attention is All you Need".
 
 ## Representação dos dados
 
-Modelos preditivos nada mais são do que algoritmos que podem ser adaptados para conjuntos de dados numéricos usando técnicas de otimização, e *transformers* não são diferentes. Portanto, para conseguir receber e gerar dados textuais, é necessário criar uma representação numérica para esses dados.
+Para conseguirmos trabalhar com textos, é necessário definir uma representação numérica equivalente a um texto para que essa representação possa ser usada pelos Transformers. A abordagem que a maioria das técnicas usa para realizar esse processo é converter esses valores em tokens e embeddings.
 
 ### *Tokens*
 
-Como textos são representados por um vocabulário finito e conhecido, é possível enumerar todos os elementos que compõem um vocabulário de forma a criar uma função que associa elementos do vocabulário às suas representações numéricas. Essas representações numéricas são conhecidas como *tokens*, a função, como *tokenizer*, e no contexto do modelo, o vocabulário é o conjunto de representações numéricas dos elementos do vocabulário original.
+Como textos são representados por um alfabeto finito e conhecido, é possível enumerar todos os caracteres desse alfabeto e criar uma função que os associa a uma representação numérica única. Essas representações numéricas são conhecidas como tokens, e a função como tokenizer.
 
-Porém, ainda é necessário definir esse vocabulário original. Para definir um vocabulário simples, é possível usar um subconjunto dos caracteres que podem ser representados em um computador moderno, como os caracteres que compõem as tabelas *ASCII* e *Unicode*. Porém, isso não é uma restrição. Grandes Modelos de Linguagem usados para IAs Generativas e conversacionais frequentemente usam vocabulários compostos de sequências de elementos de um subconjunto dos caracteres representáveis, gerando funções que podem mapear centenas de milhares de *tokens*, que são escolhidos usando algoritmos especializados para maximizar a performance desses modelos.
+Além de enumerar caracteres individuais, é possível enumerar sequências de caracteres, formando palavras ou n-gramas (sequências ordenadas de n caracteres), gerando tokenizers com ainda mais tokens. Essa é uma prática realizada muito frequentemente em modelos de linguagem, com o objetivo de melhorar a performance desses modelos de forma geral. usando algortimos como Byte Pair Encoding, WordPiece e SentencePiece, é possível criar tokenizers com centenas de milhares de tokens.
+
+Porém, como o modelo de linguagem assume que o texto já passou pelo tokenizer previamente, a escolha do método de tokenização não afeta a arquitetura de nenhuma forma. Por isso, para simplificar a explicação, usaremos um tokenizer simples composto apenas pelos caracteres imprimíveis da tabela ASCII, disponível no objeto `printable` do módulo `string` em Python.
 
 | Letra   | Token   |
 |---------|---------|
@@ -45,29 +81,70 @@ Porém, ainda é necessário definir esse vocabulário original. Para definir um
 | `.`     | `28`    |
 | `,`     | `29`    |
 
-Para fins didáticos, esse post não vai mostrar como realizar esse tipo de tarefa e vamos usar um vocabulário pequeno composto apenas de um subconjunto dos caracteres que podem ser representados na tabela Unicode. Porém, o conceito é o mesmo, mudando apenas a escala no treinamento do modelo de linguagem.
+Uma sequência de tokens gerada a partir de um texto pode ser representanda usando um vetor com os valores de cada token em ordem. Concatenando esses vetores como linhas, é possível representar um batch de textos usando uma matriz, que será a dimensão esperada pelo modelo para maximizar a sua eficiência computacional.
 
 $$
 \begin{array}{cccc}
-    \text{g} & \text{a} & \text{t} & \text{o}
-\end{array}
-\rightarrow
+    \texttt{g} & \texttt{a} & \texttt{t} & \texttt{o}
+\end{array} \\
+\downarrow \\
 \begin{bmatrix}
     7  &  1  & 20 & 15
 \end{bmatrix}
 $$
 
-### Processamento em escala
+Além disso, o tokenizer adiciona dois tokens especiais à sequência. O primeiro token, `<bos>` (beginning of sentence), representa o início do texto, e o segundo token, `<eos>` (end of sentence), representa o final do texto.
 
-Um grande desafio no uso de redes neurais complexas é minimzar o tempo de inferência. É possível implementar um transformer usando apenas estruturas como variáveis, listas e laços de repetição em Python puro, porém, esse tipo de implementação ingênua é lento demais para ser treinado e usado na prática pelo grande número de computações que precisam ser realizadas na inferência. Portanto, é necessário considerar técnicas de programação paralela desde o início da implementação do modelo.
+Nos exemplos, `<bos>` e `<eos>` sempre serão representados numericamente por `1` e `2`, respectivamente, logo, as representações numéricas mencionadas anteriormente começam a partir de `3`.
 
-Em geral, a forma mais prática de implementar paralelismo em redes neurais é aproveitar a capacidade dos dispositivos como placas de vídeo de realizar operações matemáticas sobre dados tensoriais (como vetores e matrizes) em paralelo de forma muito mais eficiente que processadores. Portanto, mudando a representação dos dados, é possível gerar algoritmos muito mais eficientes.
+| Letra       | Token   |
+|-------------|---------|
+| `<bos>`     | `1`     |
+| `<eos>`     | `2`     |
+| `a`         | `3`     |
+| `b`         | `4`     |
+| `c`         | `5`     |
+| ...         | ...     |
+| `z`         | `28`    |
+| `␣`         | `29`    |
+| `.`         | `30`    |
+| `,`         | `31`    |
 
-Uma sequência de *tokens* singular gerada a partir de um texto pode ser representanda usando um vetor (tensor unidimensional) com os valores de cada *token* em ordem. Concatenando esses vetores como linhas, é possível representar um lote (*batch*) de textos usando uma matriz (tensor bidimensional), que será a unidade mínima esperada pelo modelo para maximizar a eficiência da computação dos valores.
+$$
+\begin{array}{cccc}
+    \texttt{g} & \texttt{a} & \texttt{t} & \texttt{o}
+\end{array} \\
+\downarrow \\
+\begin{array}{cccc}
+    \texttt{<bos>} & \texttt{g} & \texttt{a} & \texttt{t} & \texttt{o}  & \texttt{<eos>}
+\end{array} \\
+\downarrow \\
+\begin{bmatrix}
+    1 & 9  &  3  & 22 & 17 & 2
+\end{bmatrix}
+$$
 
-Mas nesse caso, é necessário encontrar uma forma de lidar com textos de comprimentos diferentes em um mesmo lote. É possível representar matrizes com linhas de tamanhos diferentes em PyTorch usando o módulo `torch.nested` (que ainda está em fase experimental), mas a forma mais comum de lidar com essa situação é realizar o preenchimento (*padding*) do tensor. Isso implica em adicionar um *token* especial ao *tokenizer* chamado de *padding token*, que não tem significado real no vocabulário e é usado apenas para preencher o tensor bidimensional, e adicionar elementos às sequências com esse valor até todas as linhas possuírem o tamanho desejado, que também é arbitrário. As duas formas mais comuns de realizar *padding* são adicionar elementos até que todas as linhas até que tenham o mesmo tamanho da maior (*max padding*) ou determinar um tamanho máximo fixo (*constant padding*), e essa decisão também é um consenso que depende da aplicação.
+Os tokens `<bos>` e `<eos>` também podem ser usados para separar a sequência recebida da sequência gerada, o que será útil no treinamento dos Transformers futuramente. Por exemplo, se o modelo recebeu o texto "cachorro" e gerou o texto "dog", essas sequências pode ser descritas como sendo uma sequência só:
 
-Esse post usará o elemento 0 como *pad token* e a técnica de *max padding* para realizar o preenchimento.
+$$
+\begin{array}{cccc}
+\texttt{<bos>} & \texttt{c} & \texttt{a} & \texttt{c} & \texttt{h} & \texttt{o} & \texttt{r} & \texttt{r} & \texttt{o} & \texttt{<eos>} & \texttt{<bos>} & \texttt{d} & \texttt{o} & \texttt{g} & \texttt{<eos>}
+\end{array}
+$$
+
+```python
+CÓDIGO AQUI
+```
+
+### Padding
+
+Como introduzido anteriormente, uma forma de desenvolver modelos rápidos de forma simples é maximizar o número de operações realizadas em batch usando operações tensoriais.
+
+Um texto após ser transformado em sequência de tokens pode ser representado como um vetor, e ao realizar essa transformação em todos os textos de um lote e concatená-los, é possível criar uma matriz, que representa um lote de textos e permite a aceleração de operações tensoriais nas próximas etapas. Porém, concatenar esses vetores para criar uma matriz assume que todos os elementos do lote possuem o mesmo comprimento, mas como os textos originais podem ter comprimentos diferentes, essa premissa não é sempre válida.
+
+Uma forma de garantir que todos os vetores de um batch sempre terão o mesmo comprimento é realizar padding nos vetores, processo onde tokens especiais são adicionados repetidamente a cada sequência até que todas tenham $n$ elementos.
+
+Esse token especial é denominado padding token, representado por `<pad>` e nos exemplos, sempre será representado numericamente por `0`. Também assuma que todos um batch sempre tem $b$ elementos.
 
 | Letra   | Token   |
 |---------|---------|
@@ -83,139 +160,183 @@ Esse post usará o elemento 0 como *pad token* e a técnica de *max padding* par
 | `.`     | `30`    |
 | `,`     | `31`    |
 
-<!-- ```txt
-+---+---+---+---+                    +----+----+----+----+----+----+----+----+
-| g | a | t | o |                    |  7 |  1 | 20 | 15 |  0 |  0 |  0 |  0 |
-+---+---+---+---+---+---+---+---+    +----+----+----+----+----+----+----+----+
-| e | l | e | f | a | n | t | e |    |  5 | 12 |  5 |  6 |  1 | 14 | 20 |  5 |
-+---+---+---+---+---+---+---+---+    +----+----+----+----+----+----+----+----+
-| p | e | i | x | e |             -> | 16 |  5 |  9 | 24 |  5 |  0 |  0 |  0 |
-+---+---+---+---+---+---+---+        +----+----+----+----+----+----+----+----+
-| p | á | s | s | a | r | o |        | 16 | 27 | 19 | 19 |  1 | 18 | 15 |  0 |
-+---+---+---+---+---+---+---+        +----+----+----+----+----+----+----+----+
-| c | ã | o |                        |  3 | 28 | 15 |  0 |  0 |  0 |  0 |  0 |
-+---+---+---+                        +----+----+----+----+----+----+----+----+
-``` -->
+Por fim, existem algumas formas de determinar $t$, o número de elementos que cada sequência terá após o padding:
+
+1. Definir $t$ como sendo o comprimento da maior sequência do batch.
+2. Definir $t$ como sendo um valor constante e arbitrário.
+
+Por exemplo, um lote de textos transformado em tokens e usando padding seguindo a opção 1 seria feito da seguinte forma:
 
 $$
+\text{gato} \\
+\text{elefante} \\
+\text{peixe} \\
+\text{pássaro} \\
+\text{cão} \\
+\downarrow  \\
 \begin{array}{cccccccc}
-    \text{g} & \text{a} & \text{t} & \text{o} & \text{ } & \text{ } & \text{ } & \text{ } \\
-    \text{e} & \text{l} & \text{e} & \text{f} & \text{a} & \text{n} & \text{t} & \text{e} \\
-    \text{p} & \text{e} & \text{i} & \text{x} & \text{e} & \text{ } & \text{ } & \text{ } \\
-    \text{p} & \text{á} & \text{s} & \text{s} & \text{a} & \text{r} & \text{o} & \text{ } \\
-    \text{c} & \text{ã} & \text{o} & \text{ } & \text{ } & \text{ } & \text{ } & \text{ }
-\end{array}
-\rightarrow
+    \texttt{<bos>} & \texttt{ g } & \texttt{ a } & \texttt{ t } & \texttt{ o } & \texttt{<eos>} & \texttt{<pad>} & \texttt{<pad>} & \texttt{<pad>} & \texttt{<pad>} \\
+    \texttt{<bos>} & \texttt{e} & \texttt{l} & \texttt{e} & \texttt{f} & \texttt{a} & \texttt{n} & \texttt{t} & \texttt{e}  & \texttt{<eos>} \\
+    \texttt{<bos>} & \texttt{p} & \texttt{e} & \texttt{i} & \texttt{x} & \texttt{e}  & \texttt{<eos>} & \texttt{<pad>} & \texttt{<pad>} & \texttt{<pad>} \\
+    \texttt{<bos>} & \texttt{p} & \texttt{á} & \texttt{s} & \texttt{s} & \texttt{a} & \texttt{r} & \texttt{o}  & \texttt{<eos>} & \texttt{<pad>} \\
+    \texttt{<bos>} & \texttt{c} & \texttt{ã} & \texttt{o} & \texttt{<eos>} & \texttt{<pad>} & \texttt{<pad>} & \texttt{<pad>} & \texttt{<pad>} & \texttt{<pad>} \\
+\end{array} \\
+\downarrow  \\
 \begin{bmatrix}
-    7  &  1  & 20 & 15 &  0 &  0 &  0 &  0 \\
-    5  & 12  &  5 &  6 &  1 & 14 & 20 &  5 \\
-   16  &  5  &  9 & 24 &  5 &  0 &  0 &  0 \\
-   16  & 27  & 19 & 19 &  1 & 18 & 15 &  0 \\
-    3  & 28  & 15 &  0 &  0 &  0 &  0 &  0
+   1 &  7  &  1  & 20 & 15 &  2 &  0 &  0 &  0 &  0 \\
+   1 &  5  & 12  &  5 &  6 &  1 & 14 & 20 &  5  &  2\\
+   1 & 16  &  5  &  9 & 24 &  5  &  2 &  0 &  0 &  0 \\
+   1 & 16  & 27  & 19 & 19 &  1 & 18 & 15  &  2 &  0 \\
+   1 &  3  & 28  & 15  &  2 &  0 &  0 &  0 &  0 &  0
 \end{bmatrix}
 $$
 
-Embora essa técnica pareça ser ineficiente, e ela pode ser em certos cenários, como caso o tamanho máximo escolhido seja inadequado, de forma geral, o ganho de performance com a adição desses elementos para preencher a matriz ainda é superior ao gasto adicional em memória, que é o principal limitante para o treino e inferência desses modelos do ponto de vista computacional.
+De forma geral, o aumento de velocidade obtido pelo padding é grande o suficiente para justificar o uso adicional de memória, já que o tempo gasto é frequentemente um limitante maior que a memória gasta por tipo de rede neural durante o treinamento e inferência.
 
-Por último, por convenção, vamos assumir que os lotes sempre têm o mesmo número de frases, $b$.
+As duas alternativas podem impactar a velocidade das operações dependendo do tipo de hardware usado. Em CPUs e GPUs, a opção 1 pode ser mais vantajosa por economizar memória, já que nesse caso a opção 2 não gera nenhum aumento de velocidade. Já em TPUs, operações sobre batches de tamanhos fixos podem ser mais rápidas que as mesmas operações em batches de tamanhos diferentes, logo a opção 2 pode ser mais vantajosa.
+
+```python
+CÓDIGO AQUI
+```
+
+Por curiosidade, o módulo `torch.nested` permite representar matrizes a partir de vetores de comprimentos variados. Porém, esse módulo ainda está em fase experimental, e usar esse recurso pode deixar as operações mais lentas que as outras alternativas.
+
+### Truncação
+
+Mesmo ao escolher a opção 1, também é comum definir um tamanho máximo que as sequências podem ter, e caso uma sequência tenha originalmente mais tokens que esse limite, ela será truncada, fazendo com seus últimos elementos sejam descartados.
+
+Em ambos os casos, o valor de $t$ geralmente é escolhido com base na memória disponível ou determinando empiricamente o valor para o comprimento de uma sequência onde, em média, os modelos sendo treinados não conseguem considerar toda a sequência recebida durante a geração.
 
 ### *Embeddings*
 
-Além da representação numérica dos *tokens*, usaremos *token embeddings*, representações vetoriais de cada *token*. Essa representação torna uma matriz de lote de textos em um tensor tridimensional, onde cada elemento (matriz) do tensor representa uma palavra, e cada linha desse elemento é o *token embedding* de uma palavra.
+A representação numérica dos tokens é uma forma simples de converter caracteres para valores numéricos. Porém, usá-la diretamente como espaço de representação dos elementos da sequência recebida durante o treinamento de modelos pode criar vieses indesejados durante o treinamento.
 
-Portanto, agora a dimensão esperada para os dados recebidos é um tensor de $b$ lotes, cada um com $t$ tokens de dimensão $d$.
+Esse viés ocorre porque usar a representação numérica literal fará com que o modelo trate elementos com o token $n$ como sendo valores menores que elementos com o token $n+1$, já que ambos são inteiros. Embora essa relação não seja verdadeira, é possível que o modelo encontre padrões que não existem nos conjunto de dados de treinamento, dificultando o processo. Ao transformar esses valores em vetores de dimensão $t$, se o espaço for adequado, essa relação de ordem não estará presente.
 
-De forma ingênua, é possível criar um vetor esparso (ou seja, possuem grande dimensionalidade e muitos valores como 0) representando o *token*. Essa técnica é conhecida como *one-hot encoding*, e foi historicamente muito usada em diversas aplicações.
+Embeddings são representações do espaço de uma variável (por exemplo, os inteiros para a representação numérica dos tokens) em outro espaço. Em aprendizado de máquina, esse espaço geralmente possui $d$ dimensões, onde $d$ é um hiperparâmetro diferente das dimensões do espaço original e tanto $d$ quanto o espaço são escolhidos com o objetivo de representar os valores originais de outra forma que auxilie o treinamento de modelos.
 
-<!-- ```txt
-                                              1   2   ...   26
-                                            +---+---+-----+---+
-+---+---+---+---+    +---+---+---+---+    2 | 1 | 0 | ... | 0 |
-| b | a | b | a | -> | 2 | 1 | 2 | 1 | -> 1 | 0 | 1 | ... | 0 |
-+---+---+---+---+    +---+---+---+---+    2 | 1 | 0 | ... | 0 |
-                                          1 | 0 | 1 | ... | 0 |
-                                            +---+---+-----+---+
-``` -->
+Independentemente da técnica usada para determinar os embeddings para cada elemento, o batch de sequências recebidas será transformado de uma matriz de dimensão $b \times t$ para cada um tensor de dimensão $b \times t \times d$.
 
 $$
-\underbrace{
-\begin{array}{cccc}
-b & a & b & a \\
-\end{array}
-}_{\text{Original Sequence}}
-\quad \to \quad
-\underbrace{
 \begin{bmatrix}
-  2 & 1 & 2 & 1 \\
+    1   & 14    & \dots  & 10 & 2 \\
+    1   & 25    & \dots  & 0 & 2 \\
+    \vdots & \vdots  & \ddots & \vdots & \vdots \\
+    1   & 5    & \dots & 0 & 2
+    \end{bmatrix} \\
+\\ ~ \\
+\downarrow \\
+\\ ~ \\
+\begin{bmatrix}
+    \begin{bmatrix}
+    0.23   & 1.45    & \dots  & 2.67 \\
+    3.14   & 4.56    & \dots  & 5.78 \\
+    \vdots & \vdots  & \ddots & \vdots \\
+    1.76   & 0.65    & \dots  & 0.13 \\
+    6.89 & 7.01 & \dots & 8.23 \\
+    \end{bmatrix} \\ ~ \\
+    \begin{bmatrix}
+    0.23   & 1.45    & \dots  & 2.67 \\
+    9.34 & 0.12 & \dots & 1.34 \\
+    \vdots & \vdots  & \ddots & \vdots \\
+    1.49   & 5.59    & \dots  & 0.33 \\
+    6.89 & 7.01 & \dots & 8.23 \\
+    \end{bmatrix} \\ ~ \\
+    \vdots \\ ~ \\
+    \begin{bmatrix}
+    0.23   & 1.45    & \dots  & 2.67 \\
+    5.79 & 6.80 & \dots & 7.91 \\
+    \vdots & \vdots  & \ddots & \vdots \\
+    1.49   & 5.59    & \dots  & 0.33 \\
+    6.89 & 7.01 & \dots & 8.23 \\
+    \end{bmatrix}
 \end{bmatrix}
-}_{\text{Encoded Sequence}}
-\quad \to \quad
+$$
+
+Usando uma das formas mais simples de se transformar tokens em embeddings de forma eficiente, primeiro é necessário aplicar one-hot encoding sobre cada elemento, transformando-os vetores esparsos (que possui grande dimensionalidade mas muitos valores nulos).
+
+Se $|T|$ é o tamanho do vocabulário, a representação do texto "baba" usando One-Hot Encoding será:
+
+$$
+\begin{array}{cccc}
+\texttt{<bos>} & \texttt{b} & \texttt{a} & \texttt{b} & \texttt{a} & \texttt{<eos>} \\
+\end{array}
+\\~\\
+\downarrow
+\\~\\
+\begin{bmatrix}
+  1 & 4 & 3 & 4 & 3 & 2 \\
+\end{bmatrix}
+\\~\\
+\downarrow
+\\~\\
+\begin{array}{c|cccc}
+      & 0 & 1 & 2 & 3 & 4 & \dots & |T| \\
+    \hline
+    1 & 0 & 1 & 0 & 0 & 0 & \dots & 0 \\
+    4 & 0 & 0 & 0 & 0 & 1 & \dots & 0 \\
+    3 & 0 & 0 & 0 & 1 & 0 & \dots & 0 \\
+    4 & 0 & 0 & 0 & 0 & 1 & \dots & 0 \\
+    3 & 0 & 0 & 0 & 1 & 0 & \dots & 0 \\
+    2 & 0 & 0 & 1 & 0 & 0 & \dots & 0
+\end{array}
+$$
+
+One-Hot Encoding é usado por permitir acessar elementos individuais de uma matriz a partir de um batch de índices, que no caso, será a sequência recebida. Isso ocorre porque ao multiplicar uma das linhas da sequência após One-Hot Encoding, de dimensões $1 \times |T|$, por uma matriz de dimensões $|T| \times d$, o resultado será a $m$-ésima linha dessa matriz. Essa matriz é denominada matriz de consulta, já que esse comportamento é similar a acessar uma tabela de consulta, ou acessar os elementos de uma lista ou array através de índices.
+
+Logo, ao multiplicar a sequência inteira após One-Hot Encoding, de dimensões $t \times d$, pela matriz de consulta, o resultado será as suas linhas concatenadas de acordo com a ordem dos tokens da sequência recebida.
+
+No exemplo, vamos considerar que o embedding de cada token possui sempre o mesmo valor após essa transformação. Nesse caso, é possível concatenar todos os $|T|$ embeddings possíveis em ordem para criar uma matriz de consulta, e a combinação dessas operações pode representar o processo de transformação da sequência em embeddings.
+
+$$
 \underbrace{
 \begin{array}{c|cccc}
-      & 1 & 2 & \dots & 26 \\
+      & 0 & 1 & 2 & 3 & 4 & \dots & |T| \\
     \hline
-    2 & 1 & 0 & \dots & 0 \\
-    1 & 0 & 1 & \dots & 0 \\
-    2 & 1 & 0 & \dots & 0 \\
-    1 & 0 & 1 & \dots & 0
+    1 & 0 & 1 & 0 & 0 & 0 & \dots & 0 \\
+    4 & 0 & 0 & 0 & 0 & 1 & \dots & 0 \\
+    3 & 0 & 0 & 0 & 1 & 0 & \dots & 0 \\
+    4 & 0 & 0 & 0 & 0 & 1 & \dots & 0 \\
+    3 & 0 & 0 & 0 & 1 & 0 & \dots & 0 \\
+    2 & 0 & 0 & 1 & 0 & 0 & \dots & 0
 \end{array}
-}_{\text{Permutation Matrix}}
-$$
-
-Porém, os *token embeddings* usados nesse post serão densos (ou seja, possuem dimensionalidade menor em relação a vetores esparsos e poucos valores serão zero) e de tamanho fixo. Esses valores são obtidos usando uma camada linear, que será um parâmetro treinável da rede neural. É possível imaginar esse parâmetro como uma matriz onde cada linha representa o valor de um *token embedding* na ordem do vocabulário, assim, multiplicando essa matriz pela representação do *token* usando *one-hot encoding*, é posível obter o valor do *token embedding* diretamente como se fosse um dicionário.
-
-<!-- ```txt
-    1   2   ...   26            1     2    ...    d             1     2    ...    d      
-  +---+---+-----+---+        +-----+-----+-----+-----+       +-----+-----+-----+-----+
-2 | 1 | 0 | ... | 0 |      1 | 0.1 | 0.2 | ... | 0.6 |     2 | 0.7 | 0.8 | ... | 0.3 |
-1 | 0 | 1 | ... | 0 |  x   2 | 0.7 | 0.8 | ... | 0.3 |  =  1 | 0.1 | 0.2 | ... | 0.6 |
-2 | 1 | 0 | ... | 0 |      3 | 0.4 | 0.5 | ... | 0.9 |     2 | 0.7 | 0.8 | ... | 0.3 |
-1 | 0 | 1 | ... | 0 |      4 | 0.9 | 0.1 | ... | 0.5 |     1 | 0.1 | 0.2 | ... | 0.6 |
-  +---+---+-----+---+    ... | 0.5 | 0.3 | ... | 0.8 |       +-----+-----+-----+-----+
-                          26 | 0.2 | 0.4 | ... | 0.1 |                                                  
-                             +-----+-----+-----+-----+                                                  
-``` -->
-
-$$
-\underbrace{
-    \begin{array}{c|cccc}
-      & 1 & 2 & \dots & 26 \\
-    \hline
-    2 & 1 & 0 & \dots & 0 \\
-    1 & 0 & 1 & \dots & 0 \\
-    2 & 1 & 0 & \dots & 0 \\
-    1 & 0 & 1 & \dots & 0
-\end{array}
-}_{\text{Permutation Matrix}}
+}_{\text{One-Hot Encoding}}
+\\ ~ \\
 \times
+\\ ~ \\
 \underbrace{
 \begin{array}{c|cccc}
       & 1 & 2 & \dots & d \\
     \hline
-    1  & 0.1 & 0.2 & \dots & 0.6 \\
-    2  & 0.7 & 0.8 & \dots & 0.3 \\
-    3  & 0.4 & 0.5 & \dots & 0.9 \\
-    4  & 0.9 & 0.1 & \dots & 0.5 \\
+    0  & 0.1 & 0.2 & \dots & 0.6 \\
+    1  & 0.7 & 0.8 & \dots & 0.3 \\
+    2  & 0.4 & 0.5 & \dots & 0.9 \\
+    3  & 0.9 & 0.1 & \dots & 0.5 \\
+    4  & 0.3 & 0.9 & \dots & 0.1 \\
     \vdots & \vdots & \vdots & \ddots & \vdots \\
-    26 & 0.2 & 0.4 & \dots & 0.1
+    |T| & 0.2 & 0.4 & \dots & 0.1
 \end{array}
-}_{\text{Data Matrix}}
-=
+}_{\text{Matriz de consulta}}
+\\~\\
+\downarrow
+\\~\\
 \underbrace{
 \begin{array}{c|cccc}
       & 1 & 2 & \dots & d \\
     \hline
-    2 & 0.7 & 0.8 & \dots & 0.3 \\
-    1 & 0.1 & 0.2 & \dots & 0.6 \\
-    2 & 0.7 & 0.8 & \dots & 0.3 \\
-    1 & 0.1 & 0.2 & \dots & 0.6
+    1  & 0.7 & 0.8 & \dots & 0.3 \\
+    4  & 0.3 & 0.9 & \dots & 0.1 \\
+    3  & 0.9 & 0.1 & \dots & 0.5 \\
+    4  & 0.3 & 0.9 & \dots & 0.1 \\
+    3  & 0.9 & 0.1 & \dots & 0.5 \\
+    2  & 0.4 & 0.5 & \dots & 0.9 \\
 \end{array}
-}_{\text{Reordered Data Matrix}}
+}_{\text{Embeddings}}
 $$
 
-A maior vantagem de usar essa técnica é permitir a otimização dos valores de cada *token embedding* como parâmetros do modelo, de forma a otimizar a sua performance (veremos mais para a frente como isso é feito). Além disso, esses vetores possuem tamanho fixo, que frequentemente é menor que o tamanho do vocabulário, aumentando a velocidade de aprendizado do modelo durante o treinamento. Além disso, veremos que isso pode ser usado para permitir que a arquitetura possa receber frases de qualquer tamanho.
+Além de ser acelerável usando álgebra linear, essa forma de acesso aos embeddings permite que os valores dos embeddings possam ser otimizados durante o treinamento do modelo para melhorar a sua performance. Para isso, basta tratar a matriz de consulta como se fossem os pesos de uma camada linear em uma rede neural feed-forward, e otimizar o seu valor a partir da função de perda do modelo através de backpropagation. Assim, é possível encontrar um espaço ótimo para representar os tokens para o conjunto de dados de treinamento, sendo necessário definir apenas o valor de $d$.
 
-O uso de *embeddings* densos introduz o primeiro hiperparâmetro de um *transformer*: a dimensão $d$ dos *token embeddings*. No código, esse valor será referenciado como `embed_dim`.
+Além da performance, os vetores encontrados nesse espaço são densos, já que $d$, que costuma ser um valor na casa dos milhares, geralmente é muito menor do que $|T|$, que pode chegar às centenas de milhares de tokens no contexto de Large Language Models. Isso faz com que o modelo requira muito menos memória durante o seu uso e evita problemas causados pela dimensionalidade elevada presente ao treinar modelos usando One-Hot Encoding diretamente.
 
 ```python
 class Tokenizer(nn.Module):
@@ -260,36 +381,156 @@ class Tokenizer(nn.Module):
         return embeddings, token_counts
 ```
 
-## O que é atenção?
+## Atenção
 
-No contexto de redes neurais para transdução de sequências, atenção se refere à capacidade do modelo de gerar um novo vetor para cada vetor original de forma que os novos vetores sejam mais representativos pelo seu contexto na frase. No caso dos *transformers*, essa combinação é feita a partir de uma média ponderada de todos os vetores originais, onde o peso de cada vetor é o valor predito pelo mecanismo de atenção.
+No contexto de redes neurais para transdução de sequências, o uso de atenção, de forma geral, se refere à capacidade do modelo de entender o contexto de cada elemento da sequência ao gerar um novo valor para cada elemento recebido.
 
-Imagine a seguinte frase:
+Nesse processo, os scores de atenção são gerados, uma sequência intermediária representando a intensidade com que cada elemento recebido deve ser utilizado para gerar os novos elementos individualmente. Ao combinar os scores de atenção com os elementos originais, a sequência gerada é obtida.
 
-> Então, João se lembrou: O ônibus estava cheio, mas ele conseguiu uma cadeira livre.
+O uso de mecanismos de atenção dessa forma permite que modelos compreendam o contexto onde cada palavra está inserida usando menos operações, o que acelera treinamentos e pode otimizar os modelos (por evitar que não entendam textos ambíguos sem considerar o contexto).
 
-Considere que cada palavra representa um *token*. Nesse caso, o mecanismo de atenção permite alterar o valor do *token embedding* do *token* "ele" para seja mais próximo do valor de "João" do que de "ônibus", preservando o contexto da frase no valor de cada *embedding* individual. Isso é importante porque permite que as próximas possam fazer transformações nos dados sem ter que levar todo o texto em consideração, que de forma geral significa poder fazer predições que levam o contexto do texto em consideração de forma mais rápida que as alternativas.
+Por exemplo, considere o texto a seguir:
 
-A atenção total que pode ser prestada entre os *embeddings* é finita, ou seja, é descrita como um vetor de valores entre 0 e 1 cuja soma é 1. Logo, se um *embedding* recebe atenção a mais, os outros receberão a menos de alguma forma.
+> João pensou: O trem estava cheio, mas ele conseguiu uma cadeira livre.
 
-## *Queries, Keys, Values*
+Por simplicidade, ignore os tokens especiais e suponha que cada palavra é representada por um embedding (pelo processo abstraído por $\text{Emb}(X)$), transformando o texto na sequência a seguir:
 
-No contexto dos mecanismos de atenção, os *token embeddings* possuem nomes diferentes dependendo do seu papel. Fazendo uma analogia com um dicionário em Python, onde dado um conjunto de chaves que são associadas a outros valores, é possível encontrar o valor associado ao valor de uma variável de consulta no dicionário comparando essa variável a partir das chaves e retornando o valor dessa chave. Um mecanismo de atenção é similar, porém ao invés de retornar apenas um valor associado a uma chave, dado uma variável de consulta, é obtido uma fração de cada valor no dicionário a partir da comparação com as chaves.
+$$
+\begin{array}{ccccccccc}
+\text{João }&\text{pensou: }&\text{O }&\text{trem } &\text{estava }&\text{cheio, }&\text{mas }&\text{ele }&\cdots
+\\ ~ \\
+\downarrow & \downarrow & \downarrow & \downarrow & \downarrow & \downarrow & \downarrow & \downarrow
+\\ ~ \\
+64 & 23 & 28 & 91 & 12 & 44 & 57 & 72
+\\ ~ \\
+\downarrow & \downarrow & \downarrow & \downarrow & \downarrow & \downarrow & \downarrow & \downarrow
+\\ ~ \\
+0.02 & 0.68  & 0.46  & 1.49  & 0.6   & 1.36 & 0.7  & 0.38 \\
+ 0.12  & 1.05 & 1.7  & 1.59 & 0.88  & 0.3  & 1.85  & 0.94          \\
+ 0.13 & 1.57  & 0.75 & 0.69  & 0.7   & 1.75 & 0.7  & 0.63          \\
+ \cdots & \cdots & \cdots & \cdots & \cdots & \cdots & \cdots & \cdots & \\
+ 0.8  & 0.34 & 0.84  & 0.34 & 0.67 & 0.53  & 0.49 & 0.5
+\end{array}
+$$
 
-Essa analogia tem mais valor histórico que figurativo para explicar o funcionamento de um mecanismo de atenção, mas gera a nomenclatura original para as variáveis envolvidas. Para um conjunto de *embeddings* representando uma sequência, o *embedding* que terá seu novo valor gerado é a consulta (*query*), os *embeddings* que serão comparados com a *query* para gerar a atenção serão as chaves do dicionário (*keys*), e os valores que serão multiplicados pela atenção serão os valores do dicionário (*values*).
+Então, um mecanismo de atenção recebe essa sequência e gera outra de mesmo comprimento, onde o embedding que representa a palavra "ele" será composto de embeddings mais próximos do trecho que compõe a palavra "João" do que da palavra "ônibus":
 
-A analogia acima usa apenas um *embedding* por vez, mas como falamos anteriormente, é importante realizar o máximo de operações em lote que forem possíveis para maximizar a performance do modelo. Então, visualizando de forma matricial, se para cada um dos $b$ lotes recebidos, os *tokens* de um texto são representados como uma matriz de $t$ *embeddings* de dimensão $d$, a atenção em um *transformer* será representada como um tensor com $b$ lotes de matrizes $t \times t$, onde cada linha representa a atenção que um *embedding* deve considerar nos *values* gerados:
+$$
+\underbrace{
+\begin{array}{ccccccccc}
+\text{João pensou: o trem estava cheio, mas ele...}
+\end{array}
+}_{X}
+\\ ~ \\
+\downarrow
+\\ ~ \\
+\underbrace{
+ \begin{bmatrix}
+  0.02   & 0.68   & 0.46   & 1.49   & 0.6    & 1.36   & 0.7    & 0.38   & \cdots \\
+  0.12   & 1.05   & 1.7    & 1.59   & 0.88   & 0.3    & 1.85   & 0.94   & \cdots \\
+  0.13   & 1.57   & 0.75   & 0.69   & 0.7    & 1.75   & 0.7    & 0.63   & \cdots \\
+  \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \ddots \\
+  0.8    & 0.34   & 0.84   & 0.34   & 0.67   & 0.53   & 0.49   & 0.5    & \cdots
+ \end{bmatrix}
+ }_{\text{Emb}(X)}
+\\ ~ \\
+\downarrow
+\\ ~ \\
+\underbrace{
+ \begin{bmatrix}
+  0.02   & 0.68   & 0.46   & 1.49   & 0.6    & 1.36   & 0.7    & 0.05   & \cdots \\
+  0.12   & 1.05   & 1.7    & 1.59   & 0.88   & 0.3    & 1.85   & 0.08   & \cdots \\
+  0.13   & 1.57   & 0.75   & 0.69   & 0.7    & 1.75   & 0.7    & 0.16   & \cdots \\
+  \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \vdots & \ddots \\
+  0.8    & 0.34   & 0.84   & 0.34   & 0.67   & 0.53   & 0.49   & 0.11   & \cdots
+ \end{bmatrix}
+ }_{\text{Atn}(X)}
+\\ ~ \\
 
-<!-- ```txt
+\text{Atn} \circ \text{Emb } (\text{ele}) \approx \text{Atn} \circ \text{Emb } (\text{João})
+$$
 
-       1     2    ...    d             1     2     ...     t              1     2    ...    d   
-    +-----+-----+-----+-----+       +-----+-----+-------+-----+        +-----+-----+-----+-----+
-  1 | 0.7 | 0.8 | ... | 0.3 |     1 | 0.5 | 0.5 |  ...  | 0.0 |      1 | 0.4 | 0.3 | ... | 0.8 |
-  2 | 0.3 | 0.2 | ... | 0.2 |  x  2 | 0.2 | 0.3 |  ...  | 0.4 | ->   2 | 0.9 | 0.1 | ... | 0.1 |
-... | 0.1 | 0.9 | ... | 0.5 |   ... | ... | ... |  ...  | ... |    ... | 0.8 | 0.7 | ... | 0.4 |
-  t | 0.2 | 0.4 | ... | 0.1 |     t | 0.1 | 0.2 |  ...  | 0.5 |      t | 0.2 | 0.5 | ... | 0.3 |
-    +-----+-----+-----+-----+       +-----+-----+-------+-----+        +-----+-----+-----+-----+
-``` -->
+### Self-Attention
+
+Todos os mecanismos que serão usados na arquitetura dos Transformers são baseados apenas em combinar os elementos da sequência recebida entre si para determinar a atenção para cada elemento.
+
+Porém, nem todos os mecanismos funcionam dessa forma. Outros dependem de recursos externos para determinar a atenção, como outras variáveis ou modelos. Por isso, é dito que os mecanismos explicados usam Self-Attention, o que significa que assumem que a atenção para cada elemento pode ser determinada corretamente sem a necessidade de usar outros recursos externos.
+
+### Queries, Keys, Values
+
+Para justificar teoricamente o funcionamento desses mecanismos através de uma explicação usando analogias, os termos dessas operações, que embora no primeiro momento serão numericamente iguais, receberão nomes diferentes.
+
+De forma reducionista, um mecanismo de atenção funciona de forma similar a um dicionário em Python, onde chaves (keys ou $K$) são associadas a valores (values ou $V$) e é possível recuperar um valor posteriormente a partir da sua chave, denominada consulta (query ou $Q$). A analogia é que no contexto do mecanismo, quem exerce esses papéis são:
+
+* Query: Um elemento da sequência recebida, como a palavra "ele".
+* Keys: Serão todos os elementos originais da sequência recebida
+* Value: Será algum elemento da sequência recebida.
+  * Caso seja necessário entender algum contexto, será um elemento que melhor representa a query, como a palavra "João" no caso da palavra "ele".
+  * Caso contrário, será a própria query.
+
+O exemplo a seguir ilustra essa analogia:
+
+```python
+sequence = keys = values = [
+    'João',
+    'pensou',
+    'O',
+    'trem',
+    'estava',
+    'cheio',
+    'mas',
+    'ele',
+    ...
+]
+
+mechanism = AttentionMechanism(keys, values)
+query = 'ele'
+
+assert mechanism[query] == 'João'
+```
+
+Uma das grandes diferenças entre as duas estruturas é que retornar apenas um elemento para cada query pode não ser o suficiente para representar o contexto corretamente em situações mais ambíguas. Por exemplo:
+
+> Vi João e Maria ontem. Eles estavam juntos.
+
+Nesse caso, a palavra "Eles" não pode ser compreendida corretamente usando apenas um value. Por isso, um mecanismo de atenção não retornará apenas um valor, e sim uma fração do quanto cada um dos values possíveis deve ser considerado:
+
+```python
+sequence = keys = values = [
+    'João',
+    'pensou',
+    'O',
+    'trem',
+    'estava',
+    'cheio',
+    'mas',
+    'ele',
+    ...
+]
+
+mechanism = AttentionMechanism(keys, values)
+query = 'ele'
+
+assert mechanism[query] == {
+    'João': 0.9,
+    'pensou': 0.01,
+    'O': 0.01,
+    'trem': 0.01,
+    'estava': 0.01,
+    'cheio': 0.01,
+    'mas': 0.01,
+    'ele': 0.01,
+    ...
+}
+```
+
+Essas frações serão os scores de atenção e são uma sequência normalizada, ou seja, a soma de todos os elementos é 1. Como os scores são normalizados e nos Transformers as sequências recebidas serão representadas por embeddings, é possível aplicar uma média ponderada usando os scores para gerar um novo elemento, que será a sequência gerada pelo mecanismo de atenção.
+
+Os scores precisam ser normalizados para que a atenção que pode ser distribuída seja finita e o mecanismo funcione corretamente. Então, Se o score de um elemento for relativamente maior, o score de pelo menos um dos outros elementos será relativamnnte menor de forma proporcional para manter essa propriedade.
+
+$$
+\text{Atn}(\text{Ele}) = 0.9 \cdot \text{Emb} (\text{João}) + 0.01 \cdot \text{Emb} (\text{pensou: }) + \cdots
+$$
 
 $$
 \underbrace{
@@ -301,8 +542,10 @@ $$
     \vdots & \vdots & \vdots & \ddots & \vdots \\
     t  & 0.2 & 0.4 & \dots & 0.1
 \end{array}
-}_{\text{Feature Matrix}}
+}_{V}
+\\ ~ \\
 \times
+\\ ~ \\
 \underbrace{
 \begin{array}{c|cccc}
       & 1 & 2 & \dots & t \\
@@ -312,8 +555,10 @@ $$
     \vdots & \vdots & \vdots & \ddots & \vdots \\
     t  & 0.1 & 0.2 & \dots & 0.5
 \end{array}
-}_{\text{Transformation Matrix}}
-\rightarrow
+}_{\text{Scores de atenção}}
+\\ ~ \\
+\downarrow
+\\ ~ \\
 \underbrace{
 \begin{array}{c|cccc}
       & 1 & 2 & \dots & d \\
@@ -323,66 +568,116 @@ $$
     \vdots & \vdots & \vdots & \ddots & \vdots \\
     t  & 0.2 & 0.5 & \dots & 0.3
 \end{array}
-}_{\text{Transformed Feature Matrix}}
+}_{\text{Atn}(X)}
 $$
 
-Note que dessa forma é possível calcular os valores novos de todos os *embeddings* simultaneamente.
-
-A forma como a atenção é calculada para cada *token* é determinada pelo mecanismo de atenção. O mecanismo usado originalmente nos *transformers* é conhecido como *Multihead Attention*, que é uma variação do *Scaled Dot-Product Attention*, que é uma variação do *Dot-Product Attention* que é um tipo de *Self-Attention*.
-
-*Self-Attention* é um termo que tem mais valor histórico que prático atualmente, mas significa que os vetores de atenção não são gerados por nenhum modelo paramétrico externo ao *transformer*: Os *embeddings* originais são usados tanto para determinar quanta atenção deve ser prestada em cada *embedding* no valor final quanto para gerar os valores dos novos *embeddings*.
-
-## *Scaled Dot-Product Attention*
-
-No caso do mecanismo de *Dot-Product Attention*, a atenção prestada é feita a partir do produto interno (*dot product*) dos *token embeddings*. O modelo toma a premissa de que cada *embedding* deve prestar atenção em outro *embedding* de forma diretamente proporcional ao produto interno deles. Pensando de forma matricial, a atenção pode ser calculada como:
+Como nos Transformers será necessário transformar cada elemento da sequência recebida, o mecanismo também poderá ser acelerado ao ser realizado em batch, fazendo com que as queries também sejam iguais à sequência recebida.
 
 $$
-  \text{DPA}(Q,K,V) = Q^TKV
+\underbrace{
+\begin{array}{c|cccc}
+      & 1 & 2 & \dots & d \\
+    \hline
+    1  & 0.7 & 0.8 & \dots & 0.3 \\
+    2  & 0.3 & 0.2 & \dots & 0.2 \\
+    \vdots & \vdots & \vdots & \ddots & \vdots \\
+    t  & 0.2 & 0.4 & \dots & 0.1
+\end{array}
+}_{\text{Q}}
+\qquad
+\underbrace{
+\begin{array}{c|cccc}
+      & 1 & 2 & \dots & d \\
+    \hline
+    1  & 0.7 & 0.8 & \dots & 0.3 \\
+    2  & 0.3 & 0.2 & \dots & 0.2 \\
+    \vdots & \vdots & \vdots & \ddots & \vdots \\
+    t  & 0.2 & 0.4 & \dots & 0.1
+\end{array}
+}_{\text{K}}
+\\ ~ \\
+\downarrow
+\\ ~ \\
+\underbrace{
+\begin{array}{c|cccc}
+      & 1 & 2 & \dots & t \\
+    \hline
+    1  & 0.5 & 0.5 & \dots & 0.0 \\
+    2  & 0.2 & 0.3 & \dots & 0.4 \\
+    \vdots & \vdots & \vdots & \ddots & \vdots \\
+    t  & 0.1 & 0.2 & \dots & 0.5
+\end{array}
+}_{\text{Scores de atenção}}
 $$
 
-Note que dessa forma é possível calcular a atenção de todos os *embeddings* entre si e os seus valores novos simultaneamente.
+Por isso, embora queries, keys e values partam da mesma sequência inicialmente, é importante separar o seu papel em cada parte do mecanismo.
 
-Porém, existe um problema nesse processo. Embora a atenção entre cada par de *embeddings* esteja sempre entre 0 e 1, o produto interno de dois vetores está entre $-\infty$ e $\infty$, o que permite o mecanismo prestar atenção infinita entre todos os valores, o que pode atrapalhar o treinamento do modelo. Para normalizar os *embeddings*, a atenção é normalizada usando a função *softmax*, que faz com que os valores de cada linha sejam normalizados entre 0 e 1 preservando a proporção dos valores originais.
+### Mecanismos de atenção específicos
+
+#### Dot-Product Attention (DPA)
+
+Nesse mecanismo, os scores de atenção para cada elemento são determinados a partir do produto interno entre queries e keys.
+
+$$
+  \text{Scores-DPA}(Q,K) = Q^TK
+$$
+
+Calculando a nova sequência em batch, o DPA poderá ser definido como:
+
+$$
+  \text{DPA}(Q,K,V) = \text{Scores-DPA}(Q,K) \cdot V = Q^TKV
+$$
+
+Porém, o produto interno de dois vetores não está contido entre 0 e 1, e sim entre $-\infty$ e $\infty$. Dessa forma, o mecanismo poderá atribuir atenção infinitamente entre todos os elementos, o que pode enviesar o modelo e inviabilizar o uso do mecanismo. Para corrigir isso e normalizar a atenção, é aplicada uma função *softmax* sobre os scores:
 
 $$
   \text{DPA}(Q,K,V) = \text{Softmax}(Q^TK)V
 $$
 
-Na implementação original dos *transformers*, o mecanismo usado é uma variação do *Scaled Dot-Product Attention*, que é diferente do *Dot-Product Attention* em apenas uma coisa:
+#### Scaled Dot-Product Attention (SDPA)
+
+Essa variação do DPA adiciona um termo de normalização sobre os scores para estabilizar os gradientes gerados pelo mecanismo durante a etapa de backpropagation:
 
 $$
-  \text{SDPA}(Q,K,V) = \text{Softmax}\left(\frac{Q^TK}{\sqrt{d_{in}}}\right)V
+  \text{SDPA}(Q,K,V) = \text{Softmax}\left(\frac{Q^TK}{\sqrt{d}}\right)V
 $$
 
-Onde $d$ é a dimensão dos *embeddings*. Essa normalização dos valores tem origem empírica, onde foi observado que realizar processos de normalização como esses evita que redes neurais sejam treinadas incorretamente por causa da magnitude dos elementos da matriz de atenção antes da função *softmax*.
+A origem da normalização por $\sqrt{d}$ é empírica. Antes dos Transformers, já se observava experimentalmente que normalizar a variância do gradiente gerado por camadas ocultas evita problemas de gradient vanishing e neurônios mortos durante o treinamento de modelos, característica que foi adaptada para a arquitetura posteriormente.
 
-## Projeções lineares
+#### Projeções lineares
 
-Um dos segredos do *transformer* para tornar o mecanismo de atenção mais eficiente é projetar linearmente as *Queries*, *Keys* e *Values*. Isso significa multiplicar cada um desses valores por uma matriz de parâmetros treináveis (denominadas $W^Q$, $W^K$ e $W^V$). Isso faz com que os valores das *Queries*, *Keys* e *Values* sejam diferentes entre si, e durante o treino, os valores dessas matrizes de parâmetros sejam otimizados para maximizar como o *transformer* converte os *embeddings* originais em novos *embeddings* que representam melhor o valor de cada *token* no contexto onde estão inseridos.
+Uma das formas com que os Transformers tornam o SDPA mais eficiente é projetar linearmente as queries, keys e values para espaços diferentes, multiplicando-as por matrizes de parâmetros treináveis (denotadas como $W^Q$, $W^K$ e $W^V$). Isso faz com que os valores das queries, keys e values se tornem diferentes entre si, e durante o treino, esses parâmetros sejam otimizados para otimizar a forma como o *transformer* converte os *embeddings* originais em novos *embeddings* que representam melhor o valor de cada *token* no contexto onde estão inseridos.
 
 $$
   \text{SDPA-Transformer}(Q,K,V) =  SDPA(QW^Q, KW^K,VW^V)
 $$
 
-## *Multihead Attention*
+#### Multihead Attention (MHA)
 
-O verdadeiro mecanismo utilizado originalmente nos *transformers é conhecido como *Multihead Attention*, que consiste em aplicar *Scaled Dot-Product Attention* $h$ vezes sobre os *embeddings* para combinar os resultados dessas aplicações. O valor $h$ (ou o número de cabeças) é um hiperparâmetro do modelo.
+Essa variação do SDPA consiste em aplicar o mecanismo $h$ vezes sobre os *embeddings* para combinar os resultados dessas aplicações, onde o número de cabeças $h$ é um hiperparâmetro do modelo.
 
-Como não é possível prestar atenção em todos os elementos simultaneamente, o objetivo desse mecanismo é permitir que um *embedding* possa ser gerado prestando atenção em partes diferentes dos outros valores ao mesmo tempo. É como se o modelo tivesse vários pares de olhos independentes e conseguisse ler várias partes de um texto ao mesmo tempo, e ainda conseguisse entender o que está acontecendo.
+Como os scores no SDPA são normalizados, não é possível prestar atenção em todos os elementos simultaneamente. O objetivo do uso de MHA é fazer com que cada SDPA foque em um tipo de padrão diferente no representar do contexto para criar um modelo melhor durante o treinamento.
 
-O maior problema de usar esse mecanismo da forma descrita acima é que a atenção precisa ser calculada $h$ vezes, então se torna $h$ vezes mais lenta, e um dos objetivos dos *transformers* é ter modelos que podem fazer predições rapidamente. Por isso, é usado um truque para manter o tempo desse algoritmo constante em relação ao número de cabeças:
+Usando uma analogia, MHA seria o equivalente a ler um texto $h$ vezes, permitindo prestar atenção em partes diferentes do texto a cada vez para entender melhor o contexto de cada palavra. A diferença é que cada leitura é feita simultaneamente no mecanismo.
 
-1. Dividir as *Queries*, *Keys* e *Values* em $h$ pedaços individuais (ou aplicar $h$ projeções lineares diferentes nas *Queries*, *Keys* e *Values*), fazendo com que as dimensões do tensor passem de $b \times t \times d_{in}$ para $b \times t \times h \times \frac{h}{d_{in}}$.
-2. Reordenar a ordem dos elementos das *Queries*, *Keys* e *Values*, fazendo com que as dimensões do tensor passem de $b \times t \times h \times \frac{h}{d_{in}}$ para $b \times h \times t \times \frac{h}{d_{in}}$.
-3. Aplicar *Scaled Dot Product-Attention* nos *embeddings* recebidos, usando projeções diferentes para cada cabeça.
-4. Concatenar os *embeddings* de cada cabeça e retornar a ordem original dos elementos, fazendo com que o tensor volte a ter dimensões $b \times t \times d_{in}$.
-5. Aplicar uma projeção linear $W^O$ nos *embeddings* concatenados.
+Embora esse mecanismo seja eficaz em otimizar modelos, se for implementado da forma literal, é necessário calcular SDPA $h$ vezes, tornando o MHA $h$ vezes mais lento, algo que não é desejado, já que um dos dos objetivos dos Transformers é criar modelos eficientes computacionalmente. Por isso, é usado o algoritmo alternativo a seguir para fazer com que a escalabilidade do mecanismo não seja afetada pelo número de cabeças:
+
+1. Dividir as queries, keys e values em $h$ trechos contíguos, transformando as dimensões do batch de $b \times t \times d$ para $b \times t \times h \times \frac{h}{d}$.
+2. Reordenar a ordem dos elementos das queries, keys e values, transformando as dimensões do batch de $b \times t \times h \times \frac{h}{d}$ para $b \times h \times t \times \frac{h}{d}$.
+3. Aplicar SDPA no batch $h$ vezes, usando projeção diferentes para cada cabeça.
+4. Concatenar os *embeddings* de cada cabeça.
+5. Restaurar a ordem dos elementos no batch gerado, restaurando as dimensões para $b \times t \times d$.
+6. Aplicar uma projeção linear $W^O$ nos *embeddings* concatenados.
+
+Após a etapa 3, o algoritmo pode ser descrito pela equação a seguir:
 
 $$
-  MHA(Q,K,V) = \left(\Big \Vert^h_{i=1} SDPA(QW^Q_i, KW^K_i,VW^V_i) \right) W^O
+  \text{MHA}(Q,K,V) = \left(\Big \Vert^h_{i=1} \text{SDPA}(QW^Q_i, KW^K_i,VW^V_i) \right) W^O
 $$
 
-Dessa forma, apesar da atenção precisar ser calculada $h$ vezes, cada cálculo é $\frac{1}{h}$ vezes mais rápido que o original, o que leva o mesmo tempo que aplicar *Scaled Dot-Product Attention*. No final, aplicar *Multihead Attention* ainda vai ser mais lento que aplicar *Scaled Dot-Product Attention*, porque o novo mecanismo ainda precisa realizar a projeção linear $W^O$, mas o tempo adicional não aumenta com relação a $h$. Essa diferença é ainda maior se uma projeção linear a base de multiplicações de matrizes for feita para cada cabeça, caso em que a diferença aumenta com relação a $h$. Porém, se a projeção for feita dividindo os valores originais manipulando os elementos da matriz (como veremos no código em PyTorch), essa etapa tem tempo constante e pode ser omitida.
+Dessa forma, SDPA ainda é aplicado $h$ vezes, mas como os elementos possuem dimensões menores, cada uma é $\frac{1}{h}$ vezes mais rápida, o que torna a escalabilidade do SDPA e MHA igual.
+
+De forma prática, aplicar MHA ainda será mais lento que aplicar SDPA devido à projeção linear $W^O$. Porém, o tempo adicionado não aumenta em relação a nenhuma variável.
 
 ```python
 class MultiheadAttention(nn.Module):
@@ -453,32 +748,38 @@ class MultiheadAttention(nn.Module):
         return projected_outputs
 ```
 
-## *Positional encoding*
+## Positional Encoding
 
-Uma falha na definição dos mecanismos de atenção da forma com que foram mostrados é que nenhuma das operações envolvidas nos mecanismos leva em consideração a posição dos elementos na sequência para a criação dos novos elementos gerados pelo mecanismo. Isso significa que permutações na ordem dos elementos não afetam o resultado, o que é um efeito indesejado e que pode atrapalhar o processo de treino do modelo. Durante o treinamento, o *transformer* deve aprender a projetar os elementos originais de forma que preserve o seu contexto na frase, mas se a posição não for levada em consideração, é difícil que o modelo consiga remover ambiguidades de forma efetiva.
+Nenhum dos mecanismos de atenção explicados considera a posição dos elementos na sequência recebida na sequência gerada. Isso significa que alterar a ordem dos elementos não afeta o resultado, um efeito indesejado e que pode enviesar modelos durante o treinamento.
 
-Para mitigar esse problema, antes da aplicação de qualquer mecanismo de atenção, os elementos originais passam por um processo de codificação posicional (*Posicional Encoding*), que tem como objetivo alterar os valores de cada elemento para representar sua posição na sequência original. Como essa codificação altera os valores dos elementos, alterará seus produtos internos e por consequência, a atenção prestada pelo modelo em cada elemento.
+Antes da aplicação de qualquer mecanismo de atenção, as posições dos elementos originais são representadas usando uma técnica de positional encoding, que gera uma sequência de embeddings onde cada elemento representa uma posição na sequência original de alguma forma.
 
-A forma com que essa codificação é realizada na implementação original segue a função a seguir:
+Esses embeddings serão combinados com a sequência recebida para alterar a sequência recebida de forma que cada elemento tenha sua posição codificada individualmente.
+
+A técnica de positional encoding introduzida na arquitetura dos Transformers é baseada na função a seguir:
 
 $$
     \text{PE}(i, j, p) =
     \begin{cases}
-    \sin \dfrac{p}{\theta^{\frac{2i}{d_{in}}}} & \text{se }j \text{ é par}, \\ ~ \\
-    \cos \dfrac{p}{\theta^{\frac{2i}{d_{in}}}} & \text{se }j \text{ é ímpar}.
+    \sin \dfrac{p}{\theta^{\frac{2i}{d}}} & \text{se }j \text{ é par}, \\ ~ \\
+    \cos \dfrac{p}{\theta^{\frac{2i}{d}}} & \text{se }j \text{ é ímpar}.
     \end{cases}
 $$
 
 Onde:
 
-* $p$ é a posição de um elemento na sequência (ou linha da matriz atual).
-* $j$ é a posição de um item em um elemento da sequência (ou coluna da linha atual)
-* $0 \leq i < \frac{d}{2}$, e seu valor aumenta em um a cada dois itens consecutivos de um elemento da sequência.
+* $p$ é a posição de um elemento na sequência recebida.
+* $j$ é a posição de um item em um elemento da sequência recebida.
+* $0 \leq i < \frac{d}{2}$, e $i$ é incrementado a cada dois itens consecutivos em um elemento da sequência recebida.
 * $\theta$ é um hiperparâmetro.
 
-Embora a explicação a seguir envolva conceitos externos a esse post, essa função é usada porque é o equivalente a aplicar uma matriz de rotação nos elementos da sequência, onde o ângulo de rotação de um elemento é determinado pela sua posição. Isso significa que a codificação posicional é relativa, ou seja, prioriza representar a posição de um elemento em relação aos seus vizinhos mais do que representar a ordem dos elementos de forma absoluta.
+Os embeddings gerados por $PE$ serão então somados à sequência recebida, e essa sequência poderá ser usada pelos mecanismos de atenção.
 
-De forma matricial, os valores de $PE$ para uma sequência com 5 elementos com $d = 4$ e $\theta = 10000$  podem ser visualizados da seguinte forma:
+Nos Transformers, a escolha dessa função foi feita por ser o equivalente a aplicar uma matriz de rotação nos elementos da sequência, onde o ângulo de rotação de um elemento é determinado pela sua posição.
+
+A técnica de positional encoding utilizada é relativa, ou seja, prioriza representar a posição de um elemento em relação aos seus vizinhos em relação a representar a ordem dos elementos de forma absoluta.
+
+Para ilustrar o cálculo de $PE$ em batch, a sequência de embedings que será somada com uma sequência recebida onde $t = 5$, $d = 4$ e $\theta = 10000$ será:
 
 $$
 i =
@@ -490,6 +791,7 @@ i =
 0 & 0 & 1 & 1 \\
 \end{bmatrix}
 $$
+
 $$
 j =
 \begin{bmatrix}
@@ -500,6 +802,7 @@ j =
 0 & 1 & 2 & 3 \\
 \end{bmatrix}
 $$
+
 $$
 p =
 \begin{bmatrix}
@@ -521,8 +824,6 @@ PE(i,j,p) =
 -0.7568 & -0.6536 & 0.0400 & 0.9992 \\
 \end{bmatrix}
 $$
-
-Por fim, $PE(i,j,p)$ é somado ao lote de sequências, e esse resultado será o valor usado pelo modelo como entrada.
 
 ```python
 class PositionalEncoder(nn.Module):
@@ -560,65 +861,66 @@ class PositionalEncoder(nn.Module):
         return inputs + encodings
 ```
 
-## Transdução autoregressiva de sequências
+## Modelos autoregressivos
 
-Antes de falar de como um *transformer* funciona, é importante entender como podemos fazer transdução de sequências a partir de outra sequência de elementos de forma geral para simplificar a explicação do funcionamento. Além disso, é importante entender o que significa fazer essa tarefa de forma autoregressiva, característica desse tipo de modelo.
+Transformers são modelos que realizam transdução de sequências de forma autoregressiva, característica que dita como todos os componentes serão combinados.
 
-Vamos voltar para o caso em que estamos criando um modelo que recebe um texto e gera outro. Como vimos anteriormente, o modelo recebe $b$ sequências de $t$ elementos, representando os textos recebidos. Do ponto de vista de uma sequência, o resultado é outra sequência de $t$ elementos, que representa a mesma sequência recebida sem o primeiro *token* e com um novo *token*, decidido pelo modelo, ao final. O processo de remover o primeiro *token* da sequência recebida e adicionar o próximo *token* da sequência esperada será denominado *shift*.
+Quando um modelo de transdução de sequências recebe uma sequência, se esse modelo for autoregressivos, então ele será treinado para alterar essa sequência realizando um processo denominado shift, onde:
 
-Esse processo é o equivalente a gerar o próximo *token* do texto recebido. Se essa sequência gerada for usada como a sequência recebida do modelo novamente, será gerado mais um novo *token*, e o processo é repetido até que o modelo gere o *token* especial de fim de sequência. esse processo é o que torna o modelo autoregressivo, ou seja, as predições do modelo também são usadas como seus dados recebidos até que o modelo chegue em certo critério de parada, que no caso é o *token* especial.
+* O primeiro elemento será descartado.
+* Todos os elementos serão deslocados uma posição para trás.
+* Um novo elemento, gerado pelo modelo, preencherá a última posição.
 
-O exemplo a seguir ilustra como um modelo faria a tradução da palavra "cachorro" em Português para a palavra "dog" em Inglês. As colunas representam os valores das sequências em cada posição, e as linhas, as iterações do algoritmo:
+O último elemento gerado pelo modelo será o primeiro elemento da sequência gerada. Então, essa sequência pós shift será a nova sequência recebida, e o resultado será um novo elemento para a sequência gerada, e assim por diante, até atingir um critério de parada.
 
-$$
-\underbrace{
-\begin{array}{c|cccccccccc}
-    & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\\hline
- 1 & \text{<bos>} & \text{c} & \text{a} & \text{c} & \text{h} & \text{o} & \text{r} & \text{r} & \text{o} & \text{<eos>} \\
- 2 & \text{c} & \text{a} & \text{c} & \text{h} & \text{o} & \text{r} & \text{r} & \text{o} & \text{<eos>} & \text{<bos>} \\
- 3 & \text{a} & \text{c} & \text{h} & \text{o} & \text{r} & \text{r} & \text{o} & \text{<eos>} & \text{<bos>} & \text{d} \\
- 4 & \text{c} & \text{h} & \text{o} & \text{r} & \text{r} & \text{o} & \text{<eos>} & \text{<bos>} & \text{d} & \text{o} \\
- 5 & \text{h} & \text{o} & \text{r} & \text{r} & \text{o} & \text{<eos>} & \text{<bos>} & \text{d} & \text{o} & \text{g} \\
-\end{array}
-}_{\text{Sequência original}}
-$$
+Entre os critérios de parada, é possível:
 
-$$
-\rightarrow
-$$
+1. Definir um número máximo de iterações
+2. Encerrar o algoritmo quando o último elemento gerado for igual a um valor especial (como o token `<eos>`).
+
+O exemplo a seguir ilustra como a tradução autoregressiva "cachorro" em Português para a palavra "dog" em Inglês. Para isso, os tokens especiais separam o texto recebido do texto gerado, que será representado como `<bos>cachorro<eos><bos>dog<eos>`.
 
 $$
 \underbrace{
+ \begin{array}{c|cccccccccc}
+    & 0              & 1              & 2              & 3              & 4              & 5              & 6              & 7              & 8              & 9              \\\hline
+  1 & \texttt{<bos>} & \texttt{  c  } & \texttt{  a  } & \texttt{  c  } & \texttt{  h  } & \texttt{  o  } & \texttt{  r  } & \texttt{  r  } & \texttt{  o  } & \texttt{<eos>} \\
+  2 & \texttt{  c  } & \texttt{  a  } & \texttt{  c  } & \texttt{  h  } & \texttt{  o  } & \texttt{  r  } & \texttt{  r  } & \texttt{  o  } & \texttt{<eos>} & \texttt{<bos>} \\
+  3 & \texttt{  a  } & \texttt{  c  } & \texttt{  h  } & \texttt{  o  } & \texttt{  r  } & \texttt{  r  } & \texttt{  o  } & \texttt{<eos>} & \texttt{<bos>} & \texttt{  d  } \\
+  4 & \texttt{  c  } & \texttt{  h  } & \texttt{  o  } & \texttt{  r  } & \texttt{  r  } & \texttt{  o  } & \texttt{<eos>} & \texttt{<bos>} & \texttt{  d  } & \texttt{  o  } \\
+  5 & \texttt{  h  } & \texttt{  o  } & \texttt{  r  } & \texttt{  r  } & \texttt{  o  } & \texttt{<eos>} & \texttt{<bos>} & \texttt{  d  } & \texttt{  o  } & \texttt{  g  } \\
+ \end{array}
+ }_{\text{Sequência original}}
+\\ ~ \\
+\downarrow
+\\ ~ \\
+\underbrace{
 \begin{array}{c|cccccccccc}
     & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\\hline
- 1 & \text{c} & \text{a} & \text{c} & \text{h} & \text{o} & \text{r} & \text{r} & \text{o} & \text{<eos>} & \text{<bos>} \\
- 2 & \text{a} & \text{c} & \text{h} & \text{o} & \text{r} & \text{r} & \text{o} & \text{<eos>} & \text{<bos>} & \text{d} \\
- 3 & \text{c} & \text{h} & \text{o} & \text{r} & \text{r} & \text{o} & \text{<eos>} & \text{<bos>} & \text{d} & \text{o} \\
- 4 & \text{h} & \text{o} & \text{r} & \text{r} & \text{o} & \text{<eos>} & \text{<bos>} & \text{d} & \text{o} & \text{g} \\
- 5 & \text{o} & \text{r} & \text{r} & \text{o} & \text{<eos>} & \text{<bos>} & \text{d} & \text{o} & \text{g} & \text{<eos>} \\
+ 1 & \texttt{  c  } & \texttt{  a  } & \texttt{  c  } & \texttt{  h  } & \texttt{  o  } & \texttt{  r  } & \texttt{  r  } & \texttt{  o  } & \texttt{<eos>} & \texttt{<bos>} \\
+ 2 & \texttt{  a  } & \texttt{  c  } & \texttt{  h  } & \texttt{  o  } & \texttt{  r  } & \texttt{  r  } & \texttt{  o  } & \texttt{<eos>} & \texttt{<bos>} & \texttt{  d  } \\
+ 3 & \texttt{  c  } & \texttt{  h  } & \texttt{  o  } & \texttt{  r  } & \texttt{  r  } & \texttt{  o  } & \texttt{<eos>} & \texttt{<bos>} & \texttt{  d  } & \texttt{  o  } \\
+ 4 & \texttt{  h  } & \texttt{  o  } & \texttt{  r  } & \texttt{  r  } & \texttt{  o  } & \texttt{<eos>} & \texttt{<bos>} & \texttt{  d  } & \texttt{  o  } & \texttt{  g  } \\
+ 5 & \texttt{  o  } & \texttt{  r  } & \texttt{  r  } & \texttt{  o  } & \texttt{<eos>} & \texttt{<bos>} & \texttt{  d  } & \texttt{  o  } & \texttt{  g  } & \texttt{<eos>}
 \end{array}
 }_{\text{Sequência após o \textit{shift}}}
 $$
 
-Note que o primeiro *shift* sempre terá o mesmo resultado: remover o *token* `<bos>` e o adicionar ao final da sequência, porque isso será importante na implementação da arquitetura. Além disso, como a concatenação dos *tokens* gerados dessa forma a cada iteração representam a sequência gerada, o tamanho dessa sequência é indepentedente do tamanho da sequência recebida, logo é possível gerar qualquer sequência de tamanho arbitrário.
+Note que o primeiro shift sempre terá o mesmo resultado: mover o token `<bos>` do início para o final do texto. Esse padrão será útil no treinamento dos Transformers futuramente.
 
-### Máscara de atenção
+Além disso, note que o tamanho da sequência gerada é igual ao número de shifts realizados, valor independente do tamanho da sequência recebida. Logo, é possível gerar sequências de qualquer tamanho usando modelos autoregressivos.
 
-A descrição do algoritmo acima é bem mais antiga que os *transformers*, e por mais que um algoritmo faça sentido teoricamente ao assumir que o modelo irá acertar o processo, ainda é necessário criar um modelo capaz de realizar a predição no formato proposto corretamente. E no caso de transdução de sequências, é possível argumentar que modelos que consigam predizer elementos da forma correta ainda é um desafio em diversas aplicações, mesmo com arquiteturas modernas como as usadas nos *Large Language Models*.
+### Attention mask
 
-Um problema encontrado em outras arquiteturas para a mesma tarefa é garantir convergência para o mínimo global durante o treinamento. Por exemplo, arquiteturas baseadas em redes neurais recorrentes (*RNNs*) podem ter problemas no treinamento envolvendo desaparecimento de gradientes (*gradient vanishing*), efeito que acontece quando os valores dos gradientes gerados pelo processo de *backpropagation* são pequenos demais para que o modelo consiga convergir até o final de treinamento, fazendo com que o treinamento praticamente pare antes do valor da função de perda se tornar próximo do mínimo global. Já outras arquiteturas baseadas em *sequence-to-sequence learning* resolvem esse problema, mas podem se tornar muito lentas durante a inferência pela sua natureza sequencial.
+Todos os mecanismos de atenção explicados usam todos os elementos da sequência recebida para gerar um novo elemento. Logo, o i-ésimo elemento da sequência gerada será baseado no i+1-ésimo elemento, no i+2-ésimo elemento e assim por diante. Durante o treinamento, essa característica pode enviesar o modelo.
 
-Um dos objetivos de realizar operações em paralelo sobre todos os elementos da sequência nos mecanismos de atenção estudados é evitar esses dois problemas simultaneamente, e os autores mostram que é possível realizar isso usando basicamente apenas mecanismos de atenção, ou seja, outros mecanismos não são necessários, **atenção é tudo que você precisa (*Attention is all you need*)**.
+Esse viés ocorre porque a função de perda será calculada comparando a sequência pós shift e a sequência gerada, ou seja, para todos os elementos exceto o último, a perda será baseada em comparar se o i-ésimo elemento da sequência gerada se tornou igual ao i+1-ésimo elemento da sequência recebida. Portanto, se o i+1-ésimo elemento puder ser considerado durante a geração, o modelo sempre usará apenas esse valor.
 
-Mas, durante o treinamento desses modelos, para que o modelo consiga aprender a predizer o próximo elemento da sequência correntamente, é necessário limitar o seu conhecimento sobre os valores da sequência para que a sequência gerada pelo mecanismo de atenção seja gerada corretamente.
+Esse padrão é um vazamento de dados, e se não for corrigido, o modelo possui alto potencial de não conseguir gerar o último elemento corretamente. Por isso, é necessário limitar o acesso do modelo aos elementos posteriores durante a geração para que consiga identificar os padrões de atenção corretamente durante o treinamento.
 
-Perceba que os mecanismos de atenção mostrados até aqui consideram todos os elementos de uma sequência na geração dos novos elementos o que significa que o i-ésimo elemento da sequência gerada considerará o i+1-ésimo elemento, e também o i+2-ésimo e assim por diante. A consequência disso é que isso afetará o processo de *backpropagation*, já que como durante o treinamento, a perda será calculada a partir do resultado de cada iteração do algoritmo de autoregressão mostrado acima (que será a mesma sequência, mas sem o primeiro elemento recebido e com um novo elemento gerado por último).
+Essa limitação é feita nos Transformers aplicando uma attention mask, que anula parte dos scores de forma que um novo elemento não será gerado usando elementos posteriores.
 
-Considere agora como a perda será calculada nesse caso. Para todos os elementos exceto o último, os elementos da sequência gerada pelo mecanismo de atenção já estavam na sequência original, e foram apenas deslocados uma posição à esquerda. Portanto, quando os parâmetros treináveis do mecanismo de atenção forem atualizados, eles convergirão de forma que irá perceber esse processo e apenas deslocar os valores dos elementos para a esquerda em uma posição, o que pode facilmente inviabilizar a convergência do modelo durante o treinamento.
-
-Portanto, é necessário usar uma forma de limitar o conhecimento do modelo durante a atenção para que o i-ésimo elemento da sequência gerada não seja escolhido considerando o valor dos próximos valores na sequência original, mesmo que esse seja o objetivo do modelo durante o treinamento. A forma com que isso é feito é aplicando uma máscara de atenção (*attention mask*), que anula os valores posteriores a um elemento na sequência para cada elemento no tensor de atenção.
-
-A forma com que implementaremos a aplicação da matriz de atenção é transformar esses valores em $-\infty$ antes de aplicar a função *softmax* somando um tensor onde cada elemento é uma matriz triangular superior da seguinte forma:
+A aplicação da attention mask consiste em somar $-\infty$ aos elementos da matriz triangular superior dos scores de atenção. Dessa forma, esses elementos terão valor 0 após a aplicação da Softmax.
 
 $$
   \text{SDPA-Mask}(Q,K,V,M) = \text{Softmax}\left(\frac{Q^TK}{\sqrt{d_{in}}}+M\right)V
@@ -637,11 +939,9 @@ t-1    & -0.11  & 1.55   & -0.18  & \dots  & 0.95   & 0.95   \\
 t      & 1.45   & -1.42  & 1.62   & \dots  & 2.06  & -0.23
 \end{array}
 }_{\text{Atenção original}}
-$$
-$$
+\\ ~ \\
 +
-$$
-$$
+\\ ~ \\
 \underbrace{
 \begin{array}{c|ccccc}
     & 1      & 2          & 3        & \dots  & t-1      & t        \\
@@ -654,11 +954,9 @@ t-1      & 0      & 0        & 0        & \dots  & 0        & -\infty  \\
 t        & 0      & 0        & 0        & \dots  & 0        & 0
 \end{array}
 }_{\text{Máscara de atenção}}
-$$
-$$
-=
-$$
-$$
+\\ ~ \\
+\downarrow
+\\ ~ \\
 \underbrace{
 \begin{array}{c|ccccc}
     & 1      & 2      & 3      & \dots  & t-1    & t      \\
@@ -673,9 +971,7 @@ t      & 1.45   & -1.42   & 1.62       & \dots  & 2.06     & -0.23
 }_{\text{Atenção mascarada}}
 $$
 
-A máscara é aplicada antes da função *softmax* porque como $-\infty$ é o menor valor real possível, esses elementos se tornarão zero após a normalização, enquanto que a soma dos demais elementos será igual a 1, fazendo com que a atenção ignore completamente esses elementos.
-
-Veremos ainda que apesar dessa limitação criada para garantir funcionamento do modelo durante o algoritmo de autoregressão, existem casos na arquitetura onde não há problemas em não usar uma máscara de atenção, e nesse caso, a máscara usada será apenas um tensor nulo, assim, a aplicação da máscara nula não surtirá nenhum efeito no resultado final.
+Existem casos onde esse vazamento não será um problema, e nesse caso, a attention mask aplicada será apenas um tensor nulo.
 
 $$
 \underbrace{
@@ -707,11 +1003,10 @@ t-1      & 0      & 0        & 0        & \dots  & 0        & 0        \\
 t        & 0      & 0        & 0        & \dots  & 0        & 0
 \end{array}
 }_{\text{Máscara de atenção}}
-$$
-$$
-=
-$$
-$$
+
+\\ ~ \\
+\downarrow
+\\ ~ \\
 \underbrace{
 \begin{array}{c|ccccc}
        & 1      & 2      & 3      & \dots  & t-1    & t      \\
@@ -734,41 +1029,78 @@ def get_attn_mask(size: int | tuple[int]) -> torch.Tensor:
     return mask
 ```
 
-## Montando um *transformer*
+## Transformers
+
+A arquitetura dos Transformers original é composta dos componentes apresentados na seguinte ordem:
 
 ```mermaid
 flowchart
-    input(Sequência recebida) --> inputProcessing(Processamento de entrada)
-    inputProcessing --> encoder("`Codificador (*Encoder*)`") --> decoder("`Decodificador (*Decoder*)`") --> outputProcessing(Processamento de saída)
+    direction TB
+    input(Sequência recebida)
+    inputProcessing(Processamento de entrada)
+    encoder("Encoder") 
+    decoder("Decoder")
+    outputProcessing(Processamento de saída)
+    conditional{"`eos?`"}
+    input --> inputProcessing -.-> encoder -.-> decoder -.-> outputProcessing
     inputProcessing --> decoder
-    outputProcessing --> output(Sequência gerada)
+    outputProcessing --> conditional -- Não --> inputProcessing
+    conditional -- Sim --> output(Saída)
 ```
 
-Agora que os conceitos principais da arquitetura foram apresentados, podemos visualizar como o modelo funciona.
-
-Os *transformers* originalmente são compostos de operações similares que são aplicadas de forma sequencial sobre um lote de sequências, uma escolha que, como a maioria delas até aqui, tem como objetivo aumentar a eficiência computacional do modelo durante treino e inferência. É possível visualizar um *transformer* como sendo composto dos seguintes componentes:
+Para ilustrar o funcionamento de cada componente da arquitetura, considere que o modelo sendo descrito é um modelo de linguagem. Nesse caso, as sequências recebidas sempre usarão o formato `<bos><sequência recebida><eos><bos><sequência gerada><eos>`.
 
 ### Processamento de entrada
 
+O processamento de entrada seguirá o processo apresentado, de criação de token embeddings a partir de um texto, em ordem.
+
 ```mermaid
 flowchart
-    encoder(*Encoder*)
+    lastToken(Último elemento gerado)
     input(Sequência recebida)
-    tokenizing(*Tokenizing*)
-    shift(*Shifting*)
-    pose("*Positional Encoding*")
-    embedding("*Embedding*")
-    decoder(*Decoder*)
-    input --> tokenizing --> embedding --> pose -- Sequência recebida --> encoder
-    tokenizing --> shift --> embedding
-    pose --  Sequência com *shift* --> decoder
+    
+    subgraph p[ ]
+    shift(Shift)
+    embedding(Embedding)
+    pose(Positional encoding)
+    tokenizer(Tokenizer)
+    end
+    
+    encoder(Encoder)
+    decoder(Decoder)
+
+    input ~~~ lastToken
+
+    input -.-> tokenizer
+    input & lastToken --> shift --> tokenizer
+
+    tokenizer -.-> embedding
+    tokenizer --> embedding
+
+    embedding -.-> pose
+    embedding --> pose
+
+    pose -.-> encoder
+    pose --> decoder
+
+    decoder --> lastToken
 ```
 
-Todos os componentes do processamento de entrada já foram introduzidos antes:
+A partir do texto, duas sequências serão geradas. A primeira, que será a entrada do encoder, parte da sequência recebida, e a segunda, que será a entrada do decoder, parte da sequência recebida pós shift.
 
-1. Uma sequência tem seus elementos convertidos para *tokens*
-2. Os *tokens* são convertidos em *token embeddings*
-3. *Positional Encoding* é aplicado sobre os *token embeddings*, gerando o lote de sequências que será usado pelo modelo como entrada de fato.
+Usar o resultado do shift é possível porque na primeira iteração, o resultado do shift é previsível, e nas próximas iterações, o resultado da última iteração será a sequência pós shift.
+
+Por exemplo, se o único texto recebido for `cachorro` e o gerado for `dog`, na primeira iteração, e as sequências serão:
+
+* Entrada do encoder: `<bos>cachorro<eos>`
+* Entrada do decoder: `cachorro<eos><bos>`
+
+Na segunda iteração, as sequências serão:
+
+* Entrada do encoder: `cachorro<eos><bos>`
+* Entrada do decoder: `cachorro<eos><bos>d`
+
+E assim por diante.
 
 ```python
 class InputProcessor(nn.Module):
@@ -787,23 +1119,32 @@ class InputProcessor(nn.Module):
         return encoded_tensors, token_counts
 ```
 
-### Camada de *Transformer*
+### Transformer block
+
+O encoder e o decoder são baseados em Transformer blocks, que geram outra sequência de embeddings intermediária. Esses componentes funcionam da seguinte forma:
+
+1. Queries, Keys e Values são transformados via MHA.
+2. A sequência transformada é somada com os Values.
+3. A soma é normalizada via LayerNorm.
+4. A soma normalizada é transformada uma sequência intermediária por uma rede neural feed-forward.
+5. A sequência gerada é somada com a soma normalizada.
+6. A segunda soma é normalizada via LayerNorm.
 
 ```mermaid
 flowchart
-    Key(*Keys*)
-    Mask(Máscara nula)    
-    Query(*Queries*)
-    Value(*Values*)
-    Sum1(Soma)
-    Sum2(Soma)
-    MHA(*Multihead Attention*)
-    LayerNorm1(*LayerNorm*)
-    LayerNorm2(*LayerNorm*)
-    Linear1(Camada linear)
-    Linear2(Camada linear)
+    Key(Keys)
+    Mask(Máscara de atenção)    
+    Query(Queries)
+    Value(Values)
+    Sum1("`\+`")
+    Sum2("`\+`")
+    MHA(MHA)
+    LayerNorm1(LayerNorm)
+    LayerNorm2(LayerNorm)
+    Linear1(Linear)
+    Linear2(Linear)
     ReLU(ReLU)
-    output(Sequência gerada)
+    output(Saída)
     Mask --> MHA
     Query --> MHA
     Key --> MHA
@@ -820,21 +1161,21 @@ flowchart
     Value --> Sum1
 ```
 
-Antes de falar sobre o *encoder* e *decoder*, vamos ver as camadas de *transformer*, que são uma operação que acontece em ambos os componentes. Essas camadas operam da seguinte forma:
+As etapas 2 e 5, onde o resultado de uma camada é somado com sua entrada, são conhecidas como conexões residuais, uma técnica introduzida com a arquitetura ResNet que tem como objetivo tornar a curva da função de perda mais suave. A suavização faz com que existam menos mínimos locais na função e a perda se aproxime do mínimo global em menos passos durante o treinamento.
 
-1. As *Queries*, *Keys* e *Values* passam por um mecanismo de *Multihead Attention*, gerando uma sequência de elementos com valores atualizados para representar melhor os seus contextos na sequência.
-2. A sequência gerada é somada aos *Values* originais, em uma operação denominada conexão residual.
-3. A sequência resultante tem seus valores normalizados através de uma operação denominada *LayerNorm*.
-4. A sequência normalizada passa por uma rede neural *feed-forward* composta por:
-    1. Uma camada linear que aumenta a dimensão dos elementos da sequência para $d_{ff}$.
-    2. Uma função de ativação ReLU.
-    3. Outra camada linear que reduz a dimensão dos elementos da sequência de volta para $d_{in}$.
-5. A sequência gerada é somada ao resultado do *LayerNorm* anterior em uma nova conexão residual.
-6. A sequência resultante tem seus valores normalizados através de uma nova *LayerNorm*.
+As camadas LayerNorm são treinadas para normalizar os resultados de camadas ocultas com base na sua distribuição para estabilizar a variância do gradiente gerado pela camada anterior.
 
-Conexões residuais são muito comuns em redes neurais desde a sua proposição na arquitetura *ResNet*, que demostrou empiricamente que essa operação torna a função de custo mais suave (ou seja, com menos mínimos locais) e faz com que o custo do modelo se aproxime do mínimo global mais rapidamente durante o treinamento. Essa propriedade se mostrou verdadeira em muitos casos, incluindo os *transformers*. O mesmo motivo leva à aplicação da *LayerNorm*, que nesse caso, normaliza os valores dos gradientes no processo de *backpropagation*.
+A rede feed-forward usada no passo 4 é treinada para gerar uma sequência de embeddings em algum espaço.
 
-A ideia de aplicar uma rede neural *feed-forward* em um bloco de *transformer* é que durante o treino, essa rede aprenda durante o treinamento a converter cada elemento da sequência em elementos da outra sequência que estamos tentando gerar. Porém, não entenda que isso significa que as duas sequências vão ter sempre o mesmo tamanho, porque veremos que ainda é possível gerar sequências de tamanho diferente dessa forma.
+Os blocos sempre estarão em um componentes intermediários do modelo. Isso faz com que, durante o treinamento, o espaço desses embeddings seja escolhido de forma que otimize o modelo, assim como o espaço dos token embeddings.
+
+A arquitetura das redes feed-forward será:
+
+1. Uma camada linear, que aumenta a dimensão dos elementos da sequência para $d_{ff}$.
+2. Uma função de ativação ReLU.
+3. Outra camada linear que reduz a dimensão dos elementos da sequência de volta para $d$.
+
+Onde $d_{ff}$ é um hiperparâmetro.
 
 ```python
 @dataclass
@@ -882,24 +1223,26 @@ class TransformerLayer(nn.Module):
         return norm_ff_outputs
 ```
 
-### *Encoder*
+### Encoder
+
+O encoder gera, a partir sequência recebida, outra sequência de embeddings, que auxiliará o decoder na geração dos elementos da sequência. Esses embeddings pertencem a um espaço próprio que é determinado durante o treinamento para otimizar o decoder.
+
+A arquitetura do decoder é composta de $m$ blocos de decoder, o primeiro bloco usará a sequência recebida como entrada, e os demais usarão o resultado do bloco anterior no lugar. A sequência gerada pelo $m$º bloco será considerada a sequência gerada pelo encoder.
+
+O valor de $m$ é um hiperparâmetro que deve ser definido antes do treinamento.
 
 ```mermaid
 flowchart
     input(Sequência recebida)
-    EncoderBlock(1º Bloco de *transformer*)
-    EncoderBlock2(2º Bloco de *transformer*)
-    EncoderBlockN(mº Bloco de *transformer*)
-    outputN(Sequência gerada pelo *encoder*)
+    EncoderBlock(1º Bloco de transformer)
+    EncoderBlock2(2º Bloco de transformer)
+    EncoderBlockN(mº Bloco de transformer)
+    outputN(Saída)
     input --> EncoderBlock
     EncoderBlock --> EncoderBlock2
     EncoderBlock2 -- ... --> EncoderBlockN
     EncoderBlockN --> outputN
 ```
-
-O codificador ou *encoder* é responsável por converter uma sequência recebida em outra sequência latente. Isso significa que esse valor existe em um espaço que pode não ter um significado claro fora da arquitetura, mas durante o treinamento, o *encoder* é otimizado de forma que o resultado desse componente serve de suporte para que o modelo como um todo possa gerar melhores resultados. No caso, o objetivo do *encoder* é criar uma representação da sequência que será usada de forma mais eficiente pelo *decoder* posteriormente como variável independente adicional.
-
-Um *encoder* é composto de uma série de blocos de *transformer* aplicados em série sobre a sequência original: o 1º bloco usará a sequência original como *Queries*, *Keys* e *Values*, o 2º bloco usará a sequência do 1º bloco como *Queries*, *Keys* e *Values*, e assim por diante, até se obter a sequência gerada pelo $m$º bloco, que será considerada a sequência gerada pelo *encoder*.
 
 ```python
 class Encoder(nn.Module):
@@ -933,78 +1276,27 @@ class Encoder(nn.Module):
         return layer_outputs
 ```
 
-### *Decoder*
+### Decoder
 
-O *decoder* é responsável por gerar, a partir sequência recebida com *shift* e a sequência gerada pelo *encoder*. Além disso, também é composto de blocos iguais aplicados em série, mas os blocos usados são um pouco diferentes:
+O decoder é responsável por combinar a sequência pós shift e a sequência do encoder em uma sequência final de embeddings.
 
-```mermaid
-flowchart
-    encoderOutput(Sequência gerada pelo *encoder*)
-    Value(*Values*)
-    Key(*Keys*)
-    Query(*Queries*)
-    MHA(*Multihead Attention*)
-    DecoderBlock(Bloco de *transformer*)
-    decoderBlockOutput(Sequência gerada)
-    attentionMask(Máscara de atenção)
-    attentionMask --> MHA
-    Query --> MHA
-    Key --> MHA
-    Value --> MHA
-    MHA -- Value --> DecoderBlock
-    encoderOutput -- Query, Key --> DecoderBlock
-    DecoderBlock --> decoderBlockOutput
-```
+A arquitetura do decoder é composta de $n$ blocos de decoder. Todos os blocos receberão duas sequências, onde uma delas será a sequência do encoder. Porém, o primeiro bloco também usará a sequência pós shift como entrada, e os demais também usarão o resultado do bloco anterior no lugar.
 
-Esses blocos possuem mais uma operação de *Multihead Attention* a partir da sequência recebida, e nesse caso, será usada a máscara de atenção. A sequência gerada nessa etapa é usada como os *values* em um bloco de *transformer*, e as *queries* e *keys* serão a sequência gerada pelo *encoder*. Realizar essa mudança transforma o mecanismo em outro, denominado *Encoder-Decoder Attention*, e esse caso é um dos motivos pelos quais damos três nomes diferentes para as variáveis de entrada mesmo que sejam iguais em outras etapas.
-
-```python
-class DecoderLayer(nn.Module):
-    def __init__(self: Self, config: TransformerLayerConfig) -> None:
-        super().__init__()
-        self.config = config
-        self.mha = MultiheadAttention(
-            embed_dim=self.config.embed_dim,
-            n_heads=self.config.n_heads,
-        )
-        self.transformer_layer = TransformerLayer(self.config)
-
-    def forward(
-        self: Self,
-        queries: torch.Tensor,
-        keys: torch.Tensor,
-        values: torch.Tensor,
-        encoder_outputs: torch.Tensor,
-    ) -> torch.Tensor:
-        batches, tokens, _ = keys.size()
-        mask = get_attn_mask((batches, self.config.n_heads, tokens, tokens))
-        outputs = self.mha(
-            queries=queries,
-            keys=keys,
-            values=values,
-            mask=mask,
-        )
-        outputs = self.transformer_layer(
-            queries=encoder_outputs,
-            keys=encoder_outputs,
-            values=outputs,
-        )
-        return outputs
-```
+O valor de $n$ é um hiperparâmetro que deve ser definido antes do treinamento.
 
 ```mermaid
 flowchart
-    input("`Sequência recebida (com *shift*)`")
-    encoderOutput("`Sequência gerada pelo *encoder*`")
-    DecoderBlock1(1º bloco de *decoder*)
-    DecoderBlock2(2º bloco de *decoder*)
-    DecoderBlockN(nº bloco de *decoder*)
-    output(Output)
+    input("`Sequência pós shift`")
+    encoderOutput("`sequência do encoder`")
+    DecoderBlock1(1º bloco de decoder)
+    DecoderBlock2(2º bloco de decoder)
+    DecoderBlockN(nº bloco de decoder)
+    output(Saída)
 
-    input -- *Queries, Keys, Values* --> DecoderBlock1
+    input -- Queries, Keys, Values --> DecoderBlock1
     encoderOutput --> DecoderBlock1
 
-    DecoderBlock1 -- *Queries, Keys, Values* --> DecoderBlock2
+    DecoderBlock1 -- Queries, Keys, Values --> DecoderBlock2
     encoderOutput --> DecoderBlock2
     
     DecoderBlock2 -- ... --> DecoderBlockN
@@ -1012,10 +1304,6 @@ flowchart
     
     DecoderBlockN --> output
 ```
-
-O *decoder* é composto de uma série de blocos de *decoder*, onde o primeiro bloco recebe a sequência com *shift*, o segundo bloco recebe a sequência gerada pelo primeiro bloco, e assim por diante, até se obter a sequência gerada pelo $n$º bloco, que será considerada a sequência gerada pelo *decoder*. Em todos os casos, será usada a mesma sequência gerada pelo *encoder*.
-
-Ao usar blocos que determinam a atenção que deve ser prestada em cada elemento da sequência recebida (após a passagem pelo *encoder*), mas geram a sequência usando os elementos da sequência com *shift*, o *decoder* é treinado para conseguir realizar *shift* na sequência recebida sem saber qual é a sequência esperada. E como o primeiro *shift* sempre será remover o *token* `<bos>` do início da sequência e adicioná-lo ao final, sempre é possível realizar a primeira predição do modelo, cujo *token* gerado pode ser usado para gerar a segunda predição do modelo, e assim por diante. Dessa forma é possível gerar uma sequência nova inteira usando apenas a sequência recebida original.
 
 ```python
 class Decoder(nn.Module):
@@ -1056,28 +1344,84 @@ class Decoder(nn.Module):
         return layer_outputs
 ```
 
-### Processamento de saída
+Os blocos de decoder possuem seguinte arquitetura:
+
+1. Queries, Keys e Values são transformados via MHA usando máscara de atenção.
+2. A sequência transformada e a sequência do encoder são transformados usando Encoder-Decoder Attention.
+
+Encoder-Decoder Attention (EDA) é um tipo de MHA e é o único caso na arquitetura onde Queries, Keys e Values não possuem o mesmo valor (já que recebe duas sequências como entrada). A diferença entre EDA e MHA está na primeira usar os elementos da sequência (transformada pelo passo 1) como Values e os da sequência do encoder como Queries e Keys.
 
 ```mermaid
-flowchart LR
-    DecoderBlockN(Input)
-    linear(Linear)
-    Softmax(Softmax)
-    Argmax(Argmax)
-    outputString(Output)
-    DecoderBlockN --> linear
-    linear --> Softmax
-    Softmax --> Argmax
-    Argmax --> outputString
+flowchart
+    encoderOutput(Sequência do encoder)
+    Value(Values)
+    Key(Keys)
+    Query(Queries)
+    MHA(MHA)
+    DecoderBlock(Bloco de transformer)
+    decoderBlockOutput(Saída)
+    attentionMask(Máscara de atenção)
+    attentionMask --> MHA
+    Query --> MHA
+    Key --> MHA
+    Value --> MHA
+    MHA -- Values --> DecoderBlock
+    encoderOutput -- Queries, Keys --> DecoderBlock
+    DecoderBlock --> decoderBlockOutput
 ```
 
-Por último, a sequência gerada pelo decoder é transformada em *tokens* do vocabulário de saída (lembre-se que ele pode ser diferente do vocabulário de entrada caso desejar). A forma com que isso é feita consiste em:
+```python
+class DecoderLayer(nn.Module):
+    def __init__(self: Self, config: TransformerLayerConfig) -> None:
+        super().__init__()
+        self.config = config
+        self.mha = MultiheadAttention(
+            embed_dim=self.config.embed_dim,
+            n_heads=self.config.n_heads,
+        )
+        self.transformer_layer = TransformerLayer(self.config)
 
-* Aplicar uma transformação linear na sequência gerada, que leva a dimensão dos elementos da sequência de $d_{in}$ para $|v_{out}|$, o número de *tokens* no vocabulário de saída.
-* Aplicar a função *softmax* em cada elemento da sequência, normalizando os valores dos elementos e fazendo com que representem as probabilidades de cada *token* ser o valor predito para cada posição da sequência.
-* Aplicar a funcão *argmax* em cada elemento da sequência, que obtém o índice com maior probabilidade de cada elemento e fazendo com que representem o *token* mais provável para cada posição da sequência.
+    def forward(
+        self: Self,
+        queries: torch.Tensor,
+        keys: torch.Tensor,
+        values: torch.Tensor,
+        encoder_outputs: torch.Tensor,
+    ) -> torch.Tensor:
+        batches, tokens, _ = keys.size()
+        mask = get_attn_mask((batches, self.config.n_heads, tokens, tokens))
+        outputs = self.mha(
+            queries=queries,
+            keys=keys,
+            values=values,
+            mask=mask,
+        )
+        outputs = self.transformer_layer(
+            queries=encoder_outputs,
+            keys=encoder_outputs,
+            values=outputs,
+        )
+        return outputs
+```
 
-Nesse ponto, durante o treinamento, já é possível calcular a perda comparando os *tokens* esperados e os preditos na sua forma numérica. Para gerar um texto, por exemplo, ainda é necessário converter os *tokens* de volta para seus valores textuais (no nosso caso, caracteres) e concatená-los.
+### Processamento de saída
+
+A sequência final de embeddings é transformada em tokens do vocabulário de saída da seguinte forma:
+
+1. A sequência final é transformada linearmente, e as dimensões passam de $d$ para o número de *tokens* no vocabulário de saída.
+2. Os elementos são normalizados via Softmax, tornando os elementos em probabilidades para cada token possível por posição na sequência.
+3. Os índices de maior probabilidade são obtidos via argmax.
+
+```mermaid
+flowchart
+    DecoderBlockN(Entrada) --> linear(Linear) --> Softmax(Softmax) --> Argmax(Argmax) --> outputString(Saída)
+```
+
+Cada índice obtido dessa forma representa o token que será predito naquela posição da sequência, e essa sequência será o resultado da iteração do modelo autoregressivo.
+
+Durante o treinamento, os tokens essa sequência serão comparados com os tokens esperados com  preditos para calcular a perda.
+
+Após o treinamento, além de realizar todas as iterações necessárias com o modelo autoregressivo, é necessário converter os tokens gerados para seus valores textuais equivalentes e concatená-los.
 
 ```python
 class OutputProcessor(nn.Module):
@@ -1110,7 +1454,11 @@ class OutputProcessor(nn.Module):
         return outputs
 ```
 
-E assim, está feita a implementação da arquitetura de um *transformer* de forma completa.
+## Conclusão
+
+Com todos os componentes definidos, está completa a implementação da arquitetura Transformer. No exemplo abaixo está um exemplo de como usar todos os componentes juntos e como executar o modelo.
+
+Ainda falta o treinamento e o algoritmo para usar o modelo autoregressivo.
 
 ```python
 class Transformer(nn.Module):
@@ -1185,11 +1533,7 @@ class Transformer(nn.Module):
 
         outputs = self.output_processor(decoder_outputs, token_counts)
         return outputs
-```
 
-Um exemplo de execução:
-
-```python
 config = TransformerLayerConfig()
 
 transformer = Transformer(
@@ -1211,3 +1555,21 @@ lines = [
 
 print(*lines, sep="\n")
 ```
+
+## Referências
+
+* [Attention is All You Need](https://arxiv.org/abs/1706.03762)
+* [Deep Residual Learning for Image Recognition](https://arxiv.org/abs/1512.03385) (ResNet)
+* [Layer Normalization](https://arxiv.org/abs/1607.06450)
+* [Formal Algorithms for Transformers](https://arxiv.org/abs/2207.09238)
+
+## Recursos adicionais
+
+* [Aula do Andrew Karpathy](https://youtu.be/VMj-3S1tku0?si=TwjBr_x28focppys) sobre conceitos fundamentais de redes neurais e backpropagation.
+* [Aula #2 da UvA DL](https://uvadlc-notebooksreadthedocs.io/en/latest/tutorial_notebooks/tutorial2/Introduction_to_PyTorch.html) sobre Redes Neurais Feed-forward em PyTorch
+* [Aula #3 da UvA DL](https://uvadlc-notebooks.readthedocs.io/en/latest/tutorial_notebooks/tutorial3/Activation_Functions.html) sobre evitar neurônios mortos
+* [Aula #4 da UvA DL](https://uvadlc-notebooks.readthedocs.io/en/latest/tutorial_notebooks/tutorial4/Optimization_and_Initialization.html) sobre técnicas de normalização da variância
+
+## Agradecimentos
+
+* Ao [Prof. Peter Bloem](https://peterbloem.nl), pelo seu excelente [post](https://peterbloem.nl/blog/transformers) sobre Transformers em detalhe.
