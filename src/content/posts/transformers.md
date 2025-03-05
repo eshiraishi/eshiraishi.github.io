@@ -1,6 +1,6 @@
 ---
 title: 🇧🇷 Explicando Transformers do zero
-description: "Attention is all you need"
+description: "Atenção é realmente tudo que você precisa?"
 date: '2025-01-31'
 ---
 
@@ -12,13 +12,15 @@ Para ajudar a entender o que os Transformers têm de especial, esse post vai exp
 
 Embora já existam muitas implementações de Transformers disponíveis na internet, durante o momento de escrita desse post, não existiam muitos artigos explicando o tópico em Português de forma didática, o que motivou a escrita.
 
-Infelizmente, se esse post não assumir absolutamente nenhum pré-requisito, o conteúdo ficará extenso demais para ser feito de uma vez (embora talvez seja possível escrever outros posts com os pré-requisitos no futuro). Por isso, para entender tudo que será explicado, é importante entender os conteúdos a seguir:
+Infelizmente, se absolutamente nenhum pré-requisito for assumido, o conteúdo ficará extenso demais para ser feito de uma vez (embora talvez seja possível escrever outros posts com os pré-requisitos no futuro). Por isso, para entender tudo que será explicado, é importante entender os conteúdos a seguir:
 
 * Como funcionam operações matriciais como produto interno, produto matricial, transposição de matrizes, etc.
-* Como funcionam os componentes de redes neurais *feed-forward*
+* Como funcionam os componentes de redes neurais feed-forward
 * Como programar em Python ao nível de criar classes e objetos e interagir com bibliotecas terceiras
-* Como usar os componentes básicos do PyTorch, como tensores, dispositivos, módulos, *autograd*, otimizadores, etc.
+* Como usar os componentes básicos do PyTorch, como tensores, dispositivos, módulos, autograd, otimizadores, etc.
 * Porque realizar operações em lote usando operações matriciais podem ser muito mais rápido que realizá-las individualmente.
+
+Além disso, a seção de recursos adicionais possui alguns conteúdos em Inglês que explicam esses mencionados.
 
 ## Objetivo
 
@@ -44,7 +46,7 @@ Criar modelos eficientes para transdução de sequências foi um problema em abe
 
 Técnicas baseadas em redes neurais recorrentes possuiam a melhor performance em aplicações como tradução textual, como foi o caso da arquitetura proposta pela Google para o Google Tradutor em 2014 no influente artigo "Sequence to Sequence Learning with Neural Networks"). Embora explicar esse tipo de arquitetura esteja fora do escopo desse post, existiam problemas comuns ao processo de treinamento de redes neurais recorrentes que encorajaram o desenvolvimento de alternativas:
 
-1. A sua natureza recursiva pode causar problemas de gradient vanishing, efeito que ocorre quando os valores dos gradientes gerados via *backpropagation* são pequenos demais para que o modelo consiga convergir para o mínimo global até o final do treinamento, praticamente parando antes do valor da função de perda se tornar próximo do mínimo global.
+1. A sua natureza recursiva pode causar problemas de gradient vanishing, efeito que ocorre quando os valores dos gradientes gerados via backpropagation são pequenos demais para que o modelo consiga convergir para o mínimo global até o final do treinamento, praticamente parando antes do valor da função de perda se tornar próximo do mínimo global.
 
 2. A ordem sequencial das operações envolvidas nesse tipo de modelo pode tornar a inferência muito lentas, o que pode tornar o treinamento e uso posterior do modelo inviável.
 
@@ -62,7 +64,7 @@ Essa conclusão explica o nome do artigo: do ponto de vista da arquitetura do mo
 
 Para conseguirmos trabalhar com textos, é necessário definir uma representação numérica equivalente a um texto para que essa representação possa ser usada pelos Transformers. A abordagem que a maioria das técnicas usa para realizar esse processo é converter esses valores em tokens e embeddings.
 
-### *Tokens*
+### tokens
 
 Como textos são representados por um alfabeto finito e conhecido, é possível enumerar todos os caracteres desse alfabeto e criar uma função que os associa a uma representação numérica única. Essas representações numéricas são conhecidas como tokens, e a função como tokenizer.
 
@@ -207,7 +209,7 @@ Mesmo ao escolher a opção 1, também é comum definir um tamanho máximo que a
 
 Em ambos os casos, o valor de $t$ geralmente é escolhido com base na memória disponível ou determinando empiricamente o valor para o comprimento de uma sequência onde, em média, os modelos sendo treinados não conseguem considerar toda a sequência recebida durante a geração.
 
-### *Embeddings*
+### Embeddings
 
 A representação numérica dos tokens é uma forma simples de converter caracteres para valores numéricos. Porém, usá-la diretamente como espaço de representação dos elementos da sequência recebida durante o treinamento de modelos pode criar vieses indesejados durante o treinamento.
 
@@ -458,9 +460,9 @@ Porém, nem todos os mecanismos funcionam dessa forma. Outros dependem de recurs
 
 ### Queries, Keys, Values
 
-Para justificar teoricamente o funcionamento desses mecanismos através de uma explicação usando analogias, os termos dessas operações, que embora no primeiro momento serão numericamente iguais, receberão nomes diferentes.
+Para explicar conceitualmente o funcionamento desses mecanismos, embora os termos dessas operações sejam numericamente iguais no primeiro momento, alguns termos receberão nomes abstratos diferentes.
 
-De forma reducionista, um mecanismo de atenção funciona de forma similar a um dicionário em Python, onde chaves (keys ou $K$) são associadas a valores (values ou $V$) e é possível recuperar um valor posteriormente a partir da sua chave, denominada consulta (query ou $Q$). A analogia é que no contexto do mecanismo, quem exerce esses papéis são:
+De forma reducionista, um mecanismo de atenção funciona de como um dicionário em Python, onde chaves (keys ou $K$) são associadas a valores (values ou $V$) e é possível recuperar um valor posteriormente a partir da sua chave, denominada consulta (query ou $Q$). A analogia é que no contexto do mecanismo, quem exerce esses papéis são:
 
 * Query: Um elemento da sequência recebida, como a palavra "ele".
 * Keys: Serão todos os elementos originais da sequência recebida
@@ -628,7 +630,7 @@ $$
   \text{DPA}(Q,K,V) = \text{Scores-DPA}(Q,K) \cdot V = Q^TKV
 $$
 
-Porém, o produto interno de dois vetores não está contido entre 0 e 1, e sim entre $-\infty$ e $\infty$. Dessa forma, o mecanismo poderá atribuir atenção infinitamente entre todos os elementos, o que pode enviesar o modelo e inviabilizar o uso do mecanismo. Para corrigir isso e normalizar a atenção, é aplicada uma função *softmax* sobre os scores:
+Porém, o produto interno de dois vetores não está contido entre 0 e 1, e sim entre $-\infty$ e $\infty$. Dessa forma, o mecanismo poderá atribuir atenção infinitamente entre todos os elementos, o que pode enviesar o modelo e inviabilizar o uso do mecanismo. Para corrigir isso e normalizar a atenção, é aplicada a função softmax sobre os scores:
 
 $$
   \text{DPA}(Q,K,V) = \text{Softmax}(Q^TK)V
@@ -646,7 +648,7 @@ A origem da normalização por $\sqrt{d}$ é empírica. Antes dos Transformers, 
 
 #### Projeções lineares
 
-Uma das formas com que os Transformers tornam o SDPA mais eficiente é projetar linearmente as queries, keys e values para espaços diferentes, multiplicando-as por matrizes de parâmetros treináveis (denotadas como $W^Q$, $W^K$ e $W^V$). Isso faz com que os valores das queries, keys e values se tornem diferentes entre si, e durante o treino, esses parâmetros sejam otimizados para otimizar a forma como o *transformer* converte os *embeddings* originais em novos *embeddings* que representam melhor o valor de cada *token* no contexto onde estão inseridos.
+Uma das formas com que os Transformers tornam o SDPA mais eficiente é projetar linearmente as queries, keys e values para espaços diferentes, multiplicando-as por matrizes de parâmetros treináveis (denotadas como $W^Q$, $W^K$ e $W^V$). Isso faz com que os valores das queries, keys e values se tornem diferentes entre si, e durante o treino, esses parâmetros sejam otimizados para otimizar a forma como o transformer converte os embeddings originais em outro espaço com as mesmas dimensões, mas que representam melhor o valor de cada token no contexto onde estão inseridos.
 
 $$
   \text{SDPA-Transformer}(Q,K,V) =  SDPA(QW^Q, KW^K,VW^V)
@@ -654,7 +656,7 @@ $$
 
 #### Multihead Attention (MHA)
 
-Essa variação do SDPA consiste em aplicar o mecanismo $h$ vezes sobre os *embeddings* para combinar os resultados dessas aplicações, onde o número de cabeças $h$ é um hiperparâmetro do modelo.
+Essa variação do SDPA consiste em aplicar o mecanismo $h$ vezes sobre os embeddings para combinar os resultados dessas aplicações, onde o número de cabeças $h$ é um hiperparâmetro do modelo.
 
 Como os scores no SDPA são normalizados, não é possível prestar atenção em todos os elementos simultaneamente. O objetivo do uso de MHA é fazer com que cada SDPA foque em um tipo de padrão diferente no representar do contexto para criar um modelo melhor durante o treinamento.
 
@@ -665,9 +667,9 @@ Embora esse mecanismo seja eficaz em otimizar modelos, se for implementado da fo
 1. Dividir as queries, keys e values em $h$ trechos contíguos, transformando as dimensões do batch de $b \times t \times d$ para $b \times t \times h \times \frac{h}{d}$.
 2. Reordenar a ordem dos elementos das queries, keys e values, transformando as dimensões do batch de $b \times t \times h \times \frac{h}{d}$ para $b \times h \times t \times \frac{h}{d}$.
 3. Aplicar SDPA no batch $h$ vezes, usando projeção diferentes para cada cabeça.
-4. Concatenar os *embeddings* de cada cabeça.
+4. Concatenar os embeddings de cada cabeça.
 5. Restaurar a ordem dos elementos no batch gerado, restaurando as dimensões para $b \times t \times d$.
-6. Aplicar uma projeção linear $W^O$ nos *embeddings* concatenados.
+6. Aplicar uma projeção linear $W^O$ nos embeddings concatenados.
 
 Após a etapa 3, o algoritmo pode ser descrito pela equação a seguir:
 
@@ -1029,7 +1031,7 @@ def get_attn_mask(size: int | tuple[int]) -> torch.Tensor:
     return mask
 ```
 
-## Transformers
+## Componentes da arquitetura
 
 A arquitetura dos Transformers original é composta dos componentes apresentados na seguinte ordem:
 
@@ -1408,7 +1410,7 @@ class DecoderLayer(nn.Module):
 
 A sequência final de embeddings é transformada em tokens do vocabulário de saída da seguinte forma:
 
-1. A sequência final é transformada linearmente, e as dimensões passam de $d$ para o número de *tokens* no vocabulário de saída.
+1. A sequência final é transformada linearmente, e as dimensões passam de $d$ para o número de tokens no vocabulário de saída.
 2. Os elementos são normalizados via Softmax, tornando os elementos em probabilidades para cada token possível por posição na sequência.
 3. Os índices de maior probabilidade são obtidos via argmax.
 

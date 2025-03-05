@@ -4,8 +4,8 @@
 
 @layer base {
   :root {
-    --font-serif: "Merriweather";
-    --font-sans: "Merriweather Sans";
+    --font-serif: "Hanken Grotesk Variable";
+    --font-sans: "Hanken Grotesk Variable";
     --font-mono: "Commit Mono";
   }
 
