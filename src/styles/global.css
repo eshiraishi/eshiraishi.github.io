@@ -93,7 +93,7 @@
     }
 
     a {
-      @apply text-blue-500 underline;
+      @apply text-indigo-600 dark:text-teal-500 underline;
     }
 
     table {

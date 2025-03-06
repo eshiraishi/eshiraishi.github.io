@@ -88,8 +88,14 @@ Uma sequência de tokens gerada a partir de um texto pode ser representanda usan
 $$
 \begin{array}{cccc}
     \texttt{g} & \texttt{a} & \texttt{t} & \texttt{o}
-\end{array} \\
-\downarrow \\
+\end{array}
+$$
+
+$$
+\downarrow
+$$
+
+$$
 \begin{bmatrix}
     7  &  1  & 20 & 15
 \end{bmatrix}
@@ -115,12 +121,21 @@ Nos exemplos, `<bos>` e `<eos>` sempre serão representados numericamente por `1
 $$
 \begin{array}{cccc}
     \texttt{g} & \texttt{a} & \texttt{t} & \texttt{o}
-\end{array} \\
-\downarrow \\
+\end{array}
+$$
+
+\downarrow
+$$
+
 \begin{array}{cccccc}
     \texttt{<bos>} & \texttt{g} & \texttt{a} & \texttt{t} & \texttt{o}  & \texttt{<eos>}
-\end{array} \\
-\downarrow \\
+\end{array}
+$$
+$$
+\downarrow
+$$
+$$
+
 \begin{bmatrix}
     1 & 9  &  3  & 22 & 17 & 2
 \end{bmatrix}
@@ -129,7 +144,7 @@ $$
 Os tokens `<bos>` e `<eos>` também podem ser usados para separar a sequência recebida da sequência gerada, o que será útil no treinamento dos Transformers futuramente. Por exemplo, se o modelo recebeu o texto "cachorro" e gerou o texto "dog", essas sequências pode ser descritas como sendo uma sequência só:
 
 $$
-\begin{array}{cccccc}
+\begin{array}{ccccccccccccccc}
 \texttt{<bos>} & \texttt{c} & \texttt{a} & \texttt{c} & \texttt{h} & \texttt{o} & \texttt{r} & \texttt{r} & \texttt{o} & \texttt{<eos>} & \texttt{<bos>} & \texttt{d} & \texttt{o} & \texttt{g} & \texttt{<eos>}
 \end{array}
 $$
@@ -195,7 +210,7 @@ $$
     \text{peixe} \\
     \text{pássaro} \\
     \text{cão}
-\begin{array}{c}
+\end{array}
 $$
 
 $$
@@ -203,7 +218,7 @@ $$
 $$
 
 $$
-\begin{array}{cccccccc}
+\begin{array}{cccccccccc}
     \texttt{<bos>} & \texttt{ g } & \texttt{ a } & \texttt{ t } & \texttt{ o } & \texttt{<eos>} & \texttt{<pad>} & \texttt{<pad>} & \texttt{<pad>} & \texttt{<pad>} \\
     \texttt{<bos>} & \texttt{e} & \texttt{l} & \texttt{e} & \texttt{f} & \texttt{a} & \texttt{n} & \texttt{t} & \texttt{e}  & \texttt{<eos>} \\
     \texttt{<bos>} & \texttt{p} & \texttt{e} & \texttt{i} & \texttt{x} & \texttt{e}  & \texttt{<eos>} & \texttt{<pad>} & \texttt{<pad>} & \texttt{<pad>} \\
@@ -319,7 +334,7 @@ $$
             3.14   & 4.56    & \dots  & 5.78 \\
             \vdots & \vdots  & \ddots & \vdots \\
             1.76   & 0.65    & \dots  & 0.13 \\
-            6.89 & 7.01 & \dots & 8.23 \\
+            6.89 & 7.01 & \dots & 8.23
         \end{bmatrix} \\
         \quad \\
         \begin{bmatrix}
@@ -327,7 +342,7 @@ $$
             9.34   & 0.12    & \dots  & 1.34 \\
             \vdots & \vdots  & \ddots & \vdots \\
             1.49   & 5.59    & \dots  & 0.33 \\
-            6.89   & 7.01    & \dots  & 8.23 \\
+            6.89   & 7.01    & \dots  & 8.23
         \end{bmatrix} \\
         \vdots \\
         \begin{bmatrix}
@@ -335,7 +350,7 @@ $$
             5.79 & 6.80 & \dots & 7.91 \\
             \vdots & \vdots  & \ddots & \vdots \\
             1.49   & 5.59    & \dots  & 0.33 \\
-            6.89 & 7.01 & \dots & 8.23 \\
+            6.89 & 7.01 & \dots & 8.23
         \end{bmatrix}
     \end{bmatrix}
 $$
@@ -356,7 +371,7 @@ $$
 
 $$
     \begin{bmatrix}
-        1 & 4 & 3 & 4 & 3 & 2 \\
+        1 & 4 & 3 & 4 & 3 & 2
     \end{bmatrix}
 $$
 
@@ -913,8 +928,7 @@ Esses embeddings serão combinados com a sequência recebida para alterar a sequ
 A técnica de PE introduzida na arquitetura dos Transformers é baseada na função a seguir:
 
 $$
-    \text{PE}(i, j, p) =
-    \begin{cases}
+    \text{PE}(i, j, p) = \begin{cases}
         \sin \dfrac{p}{\theta^{\frac{2i}{d}}} & \text{se }j \text{ é par}, \\
         \cos \dfrac{p}{\theta^{\frac{2i}{d}}} & \text{se }j \text{ é ímpar}.
     \end{cases}
@@ -1039,7 +1053,8 @@ O exemplo a seguir ilustra como a tradução autoregressiva "cachorro" em Portug
 $$
 \underbrace{
  \begin{array}{c|cccccccccc}
-    & 0              & 1              & 2              & 3              & 4              & 5              & 6              & 7              & 8              & 9              \\\hline
+    & 0              & 1              & 2              & 3              & 4              & 5              & 6              & 7              & 8              & 9              \\
+    \hline
   1 & \texttt{<bos>} & \texttt{  c  } & \texttt{  a  } & \texttt{  c  } & \texttt{  h  } & \texttt{  o  } & \texttt{  r  } & \texttt{  r  } & \texttt{  o  } & \texttt{<eos>} \\
   2 & \texttt{  c  } & \texttt{  a  } & \texttt{  c  } & \texttt{  h  } & \texttt{  o  } & \texttt{  r  } & \texttt{  r  } & \texttt{  o  } & \texttt{<eos>} & \texttt{<bos>} \\
   3 & \texttt{  a  } & \texttt{  c  } & \texttt{  h  } & \texttt{  o  } & \texttt{  r  } & \texttt{  r  } & \texttt{  o  } & \texttt{<eos>} & \texttt{<bos>} & \texttt{  d  } \\
