@@ -12,7 +12,7 @@ import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import rehypeKatex from "rehype-katex";
 import remarkMath from "remark-math";
 import remarkRehype from 'remark-rehype';
-import { SITE_URL } from "./src/consts";
+import { DARK_THEME, LIGHT_THEME, SITE_URL } from "./src/consts";
 
 const cache = await getCache();
 // @ts-check
@@ -39,7 +39,12 @@ export default defineConfig({
   },
   integrations: [
     expressiveCode({
-      themes: ['dark-plus', 'light-plus'],
+      themes: [DARK_THEME, LIGHT_THEME],
+      themeCssRoot: ':root',
+      themeCssSelector: (theme) =>
+        theme.name === DARK_THEME ? ':root.dark' : ':root:not(.dark)',
+      useDarkModeMediaQuery: false,
+      useStyleReset: false,
       styleOverrides: {
         uiFontFamily: "var(--font-sans), sans-serif",
         codeFontFamily: "var(--font-mono), monospace",
@@ -47,7 +52,6 @@ export default defineConfig({
         codeFontSize: '16px'
       },
       removeUnusedThemes: true,
-      useStyleReset: false,
       useThemedScrollbars: true,
       useThemedSelectionColors: true,
       // plugins: []  ,

@@ -33,12 +33,6 @@
     const button = document.getElementById("theme-toggle");
 
     button?.addEventListener("click", () => {
-      const root = document.documentElement;
-      const dataTheme = root.getAttribute("data-theme");
-      root.setAttribute(
-        "data-theme",
-        dataTheme === "dark-plus" ? "light-plus" : "dark-plus",
-      );
       document.documentElement.classList.toggle("dark");
     });
   };

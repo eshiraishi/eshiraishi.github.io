@@ -1233,7 +1233,7 @@ flowchart
     decoder("Decoder")
     outputProcessing(Processamento de saída)
     conditional{"`eos?`"}
-    input --> inputProcessing -.-> encoder -.-> decoder -.-> outputProcessing
+    input --> inputProcessing --> encoder --> decoder --> outputProcessing
     inputProcessing --> decoder
     outputProcessing --> conditional -- Não --> inputProcessing
     conditional -- Sim --> output(Saída)

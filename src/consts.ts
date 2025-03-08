@@ -6,3 +6,6 @@ export const SITE_TITLE = "Enzo Shiraishi";
 export const SITE_DESCRIPTION = "Enzo Shiraishi's website and blog!";
 
 export const EMAIL = "enzo.shiraishi@gmail.com";
+
+export const DARK_THEME = 'dark-plus';
+export const LIGHT_THEME = 'light-plus';
