@@ -1118,7 +1118,7 @@ $$
     t-1    & -0.11  & 1.55   & -0.18  & \dots  & 0.95   & 0.95   \\
     t      & 1.45   & -1.42  & 1.62   & \dots  & 2.06  & -0.23
     \end{array}
-    }_{\text{Atenção original}}
+    }_{\text{Scores de atenção}}
 $$
 
 $$
@@ -1156,7 +1156,7 @@ $$
         t-1    & -0.11  & 1.55    & -0.18      & \dots  & 0.95     & -\infty  \\
         t      & 1.45   & -1.42   & 1.62       & \dots  & 2.06     & -0.23
         \end{array}
-    }_{\text{Atenção mascarada}}
+    }_{\text{Scores mascarados}}
 $$
 
 Existem casos onde esse vazamento não será um problema, e nesse caso, a attention mask aplicada será apenas um tensor nulo.
@@ -1173,7 +1173,7 @@ $$
         t-1    & -0.11  & 1.55   & -0.18  & \dots  & 0.95   & 0.95   \\
         t      & 1.45   & -1.42  & 1.62   & \dots  & 2.06  & -0.23
         \end{array}
-    }_{\text{Atenção original}}
+    }_{\text{Scores de atenção}}
 $$
 
 $$
@@ -1192,7 +1192,7 @@ $$
             t-1    & 0      & 0      & 0      & \dots  & 0      & 0      \\
             t      & 0      & 0      & 0      & \dots  & 0      & 0
         \end{array}
-    }_{\text{Máscara de atenção}}
+    }_{\text{Matriz nula}}
 $$
 
 $$
@@ -1211,7 +1211,7 @@ $$
         t-1    & -0.11  & 1.55   & -0.18  & \dots  & 0.95   & 0.95   \\
         t      & 1.45   & -1.42  & 1.62   & \dots  & 2.06  & -0.23
         \end{array}
-    }_{\text{Atenção original}}
+    }_{\text{Scores de atenção}}
 $$
 
 #### Attention Mask em PyTorch
@@ -1426,7 +1426,7 @@ class TransformerLayer(nn.Module):
 
 O encoder gera, a partir sequência recebida, outra sequência de embeddings, que auxiliará o decoder na geração dos elementos da sequência. Esses embeddings pertencem a um espaço próprio que é determinado durante o treinamento para otimizar o decoder.
 
-A arquitetura do decoder é composta de $m$ blocos de decoder, o primeiro bloco usará a sequência recebida como entrada, e os demais usarão o resultado do bloco anterior no lugar. A sequência gerada pelo $m$º bloco será considerada a sequência gerada pelo encoder.
+A arquitetura do decoder é composta de $m$ blocos de decoder, o primeiro bloco usará a sequência recebida como entrada, e os demais usarão o resultado do bloco anterior no lugar. A sequência gerada pelo $m$-ésimo bloco será considerada a sequência gerada pelo encoder.
 
 O valor de $m$ é um hiperparâmetro que deve ser definido antes do treinamento.
 
