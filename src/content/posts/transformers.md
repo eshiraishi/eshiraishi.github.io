@@ -1613,7 +1613,7 @@ A sequência final de embeddings é transformada em tokens do vocabulário de sa
 
 1. A sequência final é transformada linearmente, e as dimensões passam de $d$ para o número de tokens no vocabulário de saída.
 2. Os elementos são normalizados via Softmax, tornando os elementos em probabilidades para cada token possível por posição na sequência.
-3. Os índices de maior probabilidade são obtidos via argmax.
+3. Os índices de maior probabilidade são obtidos via Argmax.
 
 ```mermaid
 flowchart
