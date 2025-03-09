@@ -26,23 +26,23 @@ Além disso, a seção de recursos adicionais possui alguns conteúdos em Inglê
 
 De forma geral, Transformers podem ser usados para modelar aplicações de transdução de sequências, que são aplicações onde é necessário gerar uma sequência de elementos a partir de outra. Isso faz com que muitas aplicações possam ser modeladas como uma transdução de sequências, como tradução automática, geração textual, sumarização de textos e síntese de moléculas.
 
-De forma mais completa, uma função de transdução de sequências $M(s)$ relaciona uma sequência ordenada $s = <s_1,s_2,\cdots,s_{n}>$, composta de elementos do conjunto enumerável $S$ a outra sequência $t = <t_1,t_2,\cdots,t_{m}>$, composta de elementos do conjunto enumerável $T$.
+Usando uma definição mais formal, um modelo de transdução de sequências relaciona uma sequência ordenada $s = <s_1,s_2,\cdots,s_{n}>$, composta de elementos de um conjunto enumerável $S$ a outra sequência $t = <t_1,t_2,\cdots,t_{m}>$, composta de elementos de um conjunto enumerável $T$.
 
-Para facilitar a explicação sobre o funcionamento dos Transformers, além da notação formal, serão usados exemplos de uma aplicação específica. Dada a importância dos Transformers para o progresso de inteligências artificiais como os Large Language Models, os exemplos desse post serão baseados no contexto da criação de um modelo de linguagem.
+Para simplificar a explicação sobre o funcionamento dos Transformers, muitas explicações usarão exemplos pensando em uma aplicação específica. Dada a importância dos Transformers para o progresso de aplicações como os Large Language Models, os exemplos desse post serão baseados no contexto da criação de um modelo de linguagem.
 
-De forma geral, a ideia de um modelo de linguagem é determinar as próximas letras de um texto a partir dos seus elementos anteriores, assim como nos corretores automáticos usados nos teclados digitais de smartphones, por exemplo.
+O objetivo de um modelo de linguagem é determinar os próximos caracteres de um texto a partir dos anteriores, assim como fazem os corretores automáticos usados nos teclados digitais de smartphones, por exemplo.
 
-Adaptando a notação anterior, um modelo de linguagem $M(s)$ relaciona um texto $s = <s_1,s_2,\cdots,s_{n}>$, composto de letras do alfabeto $S$ a outro texto $s' = <s'_1,s'_2,\cdots,s'_{m}>$, também composto de letras do alfabeto $S$. Note que $S$ e $T$ serem iguais é uma especificidade de aplicações como modelos de linguagem. Em tradução automática, por exemplo, os textos podem estar em idiomas diferentes (logo os alfabetos podem ser diferentes).
+Adaptando a definição anterior, um modelo de linguagem relaciona um texto $s = <s_1,s_2,\cdots,s_{n}>$, composto de caracteres do vocabulário $S$ a outro texto $s' = <s'_1,s'_2,\cdots,s'_{m}>$, também composto de caracteres do vocabulário $S$. Note que $S$ e $T$ serem iguais é uma especificidade de aplicações como modelos de linguagem. Em tradução automática, por exemplo, os textos podem estar em idiomas diferentes, logo, os vocabulários também podem ser diferentes.
 
 ### Observação
 
-Além de criar um modelo de linguagem de forma geral, um grande desafio na criação de redes neurais é minimizar o tempo de inferência desses modelos. Embora seja possível implementar um Transformer usando apenas estruturas como variáveis, listas e laços de repetição, esse tipo de implementação se torna lento demais para treinar e usar na prática pelo grande número de computações que precisam ser realizadas de forma ineficiente. Portanto, é necessário considerar técnicas de programação paralela desde o início da implementação do modelo.
+Além de criar um modelo de linguagem de forma geral, um grande desafio no desenvolvimento de redes neurais é maximizar a eficiência computacional desses modelos. Embora seja possível implementar um Transformer usando apenas estruturas como variáveis, listas e laços de repetição, esse tipo de implementação pode gerar modelos lentos demais para treinar e usar na prática pelo grande número de computações, que de forma ingênua, são realizadas de forma ineficiente. Portanto, é necessário levar em consideração o uso de técnicas de programação paralela desde o início da implementação do modelo.
 
 Em geral, a forma mais prática de implementar paralelismo em redes neurais é aproveitar a capacidade dos dispositivos modernos de realizar operações matemáticas sobre vetores, matrizes e tensores em paralelo de forma muito eficiente. Portanto, mudando a representação dos dados durante a execução das operações, é possível gerar algoritmos eficientes de forma simples, embora isso exija que os algoritmos sejam definidos levando em consideração dados multidimensionais desde a sua concepção.
 
 ### Um pouco de história
 
-Criar modelos eficientes para transdução de sequências foi um problema em aberto por muitos anos para a comunidade científica, onde o desafio era resolver problemas comuns ao treino de arquiteturas alternativas aos Transformers.
+Criar modelos eficientes para transdução de sequências foi um problema em aberto por muitos anos para a comunidade científica, onde o desafio era resolver problemas comuns ao treino de arquiteturas alternativas aos Transformers. Mesmo com a criação de técnicas avançadas como os Transformers, modelos satisfatórios desse tipo ainda não existem para diversas aplicações.
 
 Técnicas baseadas em redes neurais recorrentes possuiam a melhor performance em aplicações como tradução textual, como foi o caso da arquitetura proposta pela Google para o Google Tradutor em 2014 no influente artigo "Sequence to Sequence Learning with Neural Networks"). Embora explicar esse tipo de arquitetura esteja fora do escopo desse post, existiam problemas comuns ao processo de treinamento de redes neurais recorrentes que encorajaram o desenvolvimento de alternativas:
 
@@ -124,16 +124,20 @@ $$
 \end{array}
 $$
 
-\downarrow
+$$
+    \downarrow
 $$
 
-\begin{array}{cccccc}
-    \texttt{<bos>} & \texttt{g} & \texttt{a} & \texttt{t} & \texttt{o}  & \texttt{<eos>}
-\end{array}
 $$
+    \begin{array}{cccccc}
+        \texttt{<bos>} & \texttt{g} & \texttt{a} & \texttt{t} & \texttt{o}  & \texttt{<eos>}
+    \end{array}
 $$
-\downarrow
+
 $$
+    \downarrow
+$$
+
 $$
 
 \begin{bmatrix}
@@ -985,10 +989,10 @@ $$
 $$
     PE(i,j,p) =
     \begin{bmatrix}
-        0.0000 & 1.0000 & 0.0000 & 1.0000 \\
-        0.8415 & 0.5403 & 0.0100 & 0.9999 \\
-        0.9093 & -0.4161 & 0.0200 & 0.9998 \\
-        0.1411 & -0.9899 & 0.0300 & 0.9996 \\
+         0.0000 &  1.0000 & 0.0000 & 1.0000 \\
+         0.8415 &  0.5403 & 0.0100 & 0.9999 \\
+         0.9093 & -0.4161 & 0.0200 & 0.9998 \\
+         0.1411 & -0.9899 & 0.0300 & 0.9996 \\
         -0.7568 & -0.6536 & 0.0400 & 0.9992 \\
     \end{bmatrix}
 $$
@@ -1232,7 +1236,7 @@ flowchart
     encoder("Encoder") 
     decoder("Decoder")
     outputProcessing(Processamento de saída)
-    conditional{"`eos?`"}
+    conditional{"`&lt;eos&gt;?`"}
     input --> inputProcessing --> encoder --> decoder --> outputProcessing
     inputProcessing --> decoder
     outputProcessing --> conditional -- Não --> inputProcessing
@@ -1486,7 +1490,7 @@ O valor de $n$ é um hiperparâmetro que deve ser definido antes do treinamento.
 ```mermaid
 flowchart
     input("`Sequência pós shift`")
-    encoderOutput("`sequência do encoder`")
+    encoderOutput("`Sequência do encoder`")
     DecoderBlock1(1º bloco de decoder)
     DecoderBlock2(2º bloco de decoder)
     DecoderBlockN(nº bloco de decoder)
@@ -1657,9 +1661,7 @@ class OutputProcessor(nn.Module):
 
 ## Conclusão
 
-Com todos os componentes definidos, está completa a implementação da arquitetura Transformer. No exemplo abaixo está uma implementação que os une e executa o modelo, além de um exemplo de uso.
-
-Ainda faltam o treinamento e o algoritmo para usar o modelo autoregressivo.
+Com todos os componentes definidos, está completa a implementação da arquitetura Transformer. No exemplo abaixo está uma implementação que os une e executa o modelo.
 
 ### Implementação completa em PyTorch
 
@@ -1736,7 +1738,11 @@ class Transformer(nn.Module):
 
         outputs = self.output_processor(decoder_outputs, token_counts)
         return outputs
+```
 
+O código a seguir mostra o uso do módulo acima. Além dessa implementação, ainda faltam implementações do algoritmo de treinamento e do algoritmo para realizar a predição completa através do modelo autoregressivo.
+
+```python
 config = TransformerLayerConfig()
 
 transformer = Transformer(
@@ -1765,6 +1771,7 @@ print(*lines, sep="\n")
 * [Deep Residual Learning for Image Recognition](https://arxiv.org/abs/1512.03385) (ResNet)
 * [Layer Normalization](https://arxiv.org/abs/1607.06450)
 * [Formal Algorithms for Transformers](https://arxiv.org/abs/2207.09238)
+* [Sequence to Sequence Learning with Neural Networks](https://arxiv.org/abs/1409.3215)
 
 ## Recursos adicionais
 

@@ -8,7 +8,7 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        serif: ['var(--font-serif)', ...defaultTheme.fontFamily.sans],
+        serif: ['var(--font-serif)', ...defaultTheme.fontFamily.serif],
         sans: ['var(--font-sans)', ...defaultTheme.fontFamily.sans],
         mono: ['var(--font-mono)', ...defaultTheme.fontFamily.mono],
       },
@@ -17,11 +17,6 @@ const config: Config = {
         neutral: colors.neutral,
       }
     }
-    // typography: ({ theme }: { theme: any }) => ({
-    //   DEFAULT: {
-    //     css: {}
-    //   }
-    // })
   },
   plugins: [],
 };
