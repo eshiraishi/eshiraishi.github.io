@@ -535,7 +535,7 @@ class TokenEmbedder(nn.Module):
 
 No contexto de redes neurais para transdução de sequências, o uso de atenção, de forma geral, se refere à capacidade do modelo de entender o contexto de cada elemento da sequência ao gerar um novo valor para cada elemento recebido.
 
-Nesse processo, os scores de atenção são gerados, uma sequência intermediária representando a intensidade com que cada elemento recebido deve ser utilizado para gerar os novos elementos individualmente. Ao combinar os scores de atenção com os elementos originais, a sequência gerada é obtida.
+Nesse processo, os pesos de atenção são gerados, uma sequência intermediária representando a intensidade com que cada elemento recebido deve ser utilizado para gerar os novos elementos individualmente. Ao combinar os pesos de atenção com os elementos originais, a sequência gerada é obtida.
 
 O uso de mecanismos de atenção dessa forma permite que modelos compreendam o contexto onde cada palavra está inserida usando menos operações, o que acelera treinamentos e pode otimizar os modelos (por evitar que não entendam textos ambíguos sem considerar o contexto).
 
@@ -683,9 +683,9 @@ assert mechanism[query] == {
 }
 ```
 
-Essas frações serão os scores de atenção e são uma sequência normalizada, ou seja, a soma de todos os elementos é 1. Como os scores são normalizados e nos Transformers as sequências recebidas serão representadas por embeddings, é possível aplicar uma média ponderada usando os scores para gerar um novo elemento, que será a sequência gerada pelo mecanismo de atenção.
+Essas frações serão os pesos de atenção e são uma sequência normalizada, ou seja, a soma de todos os elementos é 1. Como os pesos são normalizados e nos Transformers as sequências recebidas serão representadas por embeddings, é possível aplicar uma média ponderada usando os pesos para gerar um novo elemento, que será a sequência gerada pelo mecanismo de atenção.
 
-Os scores precisam ser normalizados para que a atenção que pode ser distribuída seja finita e o mecanismo funcione corretamente. Então, Se o score de um elemento for relativamente maior, o score de pelo menos um dos outros elementos será relativamnnte menor de forma proporcional para manter essa propriedade.
+Os pesos precisam ser normalizados para que a atenção que pode ser distribuída seja finita e o mecanismo funcione corretamente. Então, Se o score de um elemento for relativamente maior, o score de pelo menos um dos outros elementos será relativamnnte menor de forma proporcional para manter essa propriedade.
 
 $$
     \text{Atn}(\text{Ele}) = 0.9 \cdot \text{Emb} (\text{João}) + 0.01 \cdot \text{Emb} (\text{pensou: }) + \cdots
@@ -718,7 +718,7 @@ $$
         \vdots & \vdots & \vdots & \ddots & \vdots \\
         t  & 0.1 & 0.2 & \dots & 0.5
     \end{array}
-}_{\text{Scores de atenção}}
+}_{\text{Pesos de atenção}}
 $$
 
 $$
@@ -778,7 +778,7 @@ $$
         \vdots & \vdots & \vdots & \ddots & \vdots \\
         t  & 0.1 & 0.2 & \dots & 0.5
     \end{array}
-    }_{\text{Scores de atenção}}
+    }_{\text{Pesos de atenção}}
 $$
 
 Por isso, embora queries, keys e values partam da mesma sequência inicialmente, é importante separar o seu papel em cada parte do mecanismo.
@@ -787,7 +787,7 @@ Por isso, embora queries, keys e values partam da mesma sequência inicialmente,
 
 #### Dot-Product Attention (DPA)
 
-Nesse mecanismo, os scores de atenção para cada elemento são determinados a partir do produto interno entre queries e keys.
+Nesse mecanismo, os pesos de atenção para cada elemento são determinados a partir do produto interno entre queries e keys.
 
 $$
   \text{Scores-DPA}(Q,K) = Q^TK
@@ -799,7 +799,7 @@ $$
   \text{DPA}(Q,K,V) = \text{Scores-DPA}(Q,K) \cdot V = Q^TKV
 $$
 
-Porém, o produto interno de dois vetores não está contido entre 0 e 1, e sim entre $-\infty$ e $\infty$. Dessa forma, o mecanismo poderá atribuir atenção infinitamente entre todos os elementos, o que pode enviesar o modelo e inviabilizar o uso do mecanismo. Para corrigir isso e normalizar a atenção, é aplicada a função softmax sobre os scores:
+Porém, o produto interno de dois vetores não está contido entre 0 e 1, e sim entre $-\infty$ e $\infty$. Dessa forma, o mecanismo poderá atribuir atenção infinitamente entre todos os elementos, o que pode enviesar o modelo e inviabilizar o uso do mecanismo. Para corrigir isso e normalizar a atenção, é aplicada a função softmax sobre os pesos.
 
 $$
   \text{DPA}(Q,K,V) = \text{Softmax}(Q^TK)V
@@ -807,7 +807,7 @@ $$
 
 #### Scaled Dot-Product Attention (SDPA)
 
-Essa variação do DPA adiciona um termo de normalização sobre os scores para estabilizar os gradientes gerados pelo mecanismo durante a etapa de backpropagation:
+Essa variação do DPA adiciona um termo de normalização sobre os pesos para estabilizar os gradientes gerados pelo mecanismo durante a etapa de backpropagation:
 
 $$
   \text{SDPA}(Q,K,V) = \text{Softmax}\left(\frac{Q^TK}{\sqrt{d}}\right)V
@@ -827,9 +827,9 @@ $$
 
 Essa variação do SDPA consiste em aplicar o mecanismo $h$ vezes sobre os embeddings para combinar os resultados dessas aplicações, onde o número de cabeças $h$ é um hiperparâmetro do modelo.
 
-Como os scores no SDPA são normalizados, não é possível prestar atenção em todos os elementos simultaneamente. O objetivo do uso de MHA é fazer com que cada SDPA foque em um tipo de padrão diferente no representar do contexto para criar um modelo melhor durante o treinamento.
+Como os pesos no SDPA são normalizados, não é possível prestar atenção em todos os elementos simultaneamente. O objetivo do uso de MHA é fazer com que cada SDPA foque em um tipo de padrão diferente no representar do contexto para criar um modelo melhor durante o treinamento.
 
-Usando uma analogia, MHA seria o equivalente a ler um texto $h$ vezes, permitindo prestar atenção em partes diferentes do texto a cada vez para entender melhor o contexto de cada palavra. A diferença é que cada leitura é feita simultaneamente no mecanismo.
+Usando uma analogia, MHA seria o equivalente a ler um texto $h$ vezes, permitindo prestar atenção em partes diferentes do texto a cada vez para entender melhor o contexto de cada palavra. No mecanismo, a diferença é que todas as leituras podem ser feitas ao mesmo.
 
 Embora esse mecanismo seja eficaz em otimizar modelos, se for implementado da forma literal, é necessário calcular SDPA $h$ vezes, tornando o MHA $h$ vezes mais lento, algo que não é desejado, já que um dos dos objetivos dos Transformers é criar modelos eficientes computacionalmente. Por isso, é usado o algoritmo alternativo a seguir para fazer com que a escalabilidade do mecanismo não seja afetada pelo número de cabeças:
 
@@ -1098,9 +1098,9 @@ Esse viés ocorre porque a função de perda será calculada comparando a sequê
 
 Esse padrão é um vazamento de dados, e se não for corrigido, o modelo possui alto potencial de não conseguir gerar o último elemento corretamente. Por isso, é necessário limitar o acesso do modelo aos elementos posteriores durante a geração para que consiga identificar os padrões de atenção corretamente durante o treinamento.
 
-Essa limitação é feita nos Transformers aplicando uma attention mask, que anula parte dos scores de forma que um novo elemento não será gerado usando elementos posteriores.
+Essa limitação é feita nos Transformers aplicando uma attention mask, que anula parte dos pesos de forma que um novo elemento não será gerado usando elementos posteriores.
 
-A aplicação da attention mask consiste em somar $-\infty$ aos elementos da matriz triangular superior dos scores de atenção. Dessa forma, esses elementos terão valor 0 após a aplicação da Softmax.
+A aplicação da attention mask consiste em somar $-\infty$ aos elementos da matriz triangular superior dos pesos de atenção. Dessa forma, esses elementos terão valor 0 após a aplicação da Softmax.
 
 $$
     \text{SDPA-Mask}(Q,K,V,M) = \text{Softmax}\left(\frac{Q^TK}{\sqrt{d_{in}}}+M\right)V
@@ -1118,7 +1118,7 @@ $$
     t-1    & -0.11  & 1.55   & -0.18  & \dots  & 0.95   & 0.95   \\
     t      & 1.45   & -1.42  & 1.62   & \dots  & 2.06  & -0.23
     \end{array}
-    }_{\text{Scores de atenção}}
+    }_{\text{Pesos de atenção}}
 $$
 
 $$
@@ -1156,7 +1156,7 @@ $$
         t-1    & -0.11  & 1.55    & -0.18      & \dots  & 0.95     & -\infty  \\
         t      & 1.45   & -1.42   & 1.62       & \dots  & 2.06     & -0.23
         \end{array}
-    }_{\text{Scores mascarados}}
+    }_{\text{Pesosmascarados}}
 $$
 
 Existem casos onde esse vazamento não será um problema, e nesse caso, a attention mask aplicada será apenas um tensor nulo.
@@ -1173,7 +1173,7 @@ $$
         t-1    & -0.11  & 1.55   & -0.18  & \dots  & 0.95   & 0.95   \\
         t      & 1.45   & -1.42  & 1.62   & \dots  & 2.06  & -0.23
         \end{array}
-    }_{\text{Scores de atenção}}
+    }_{\text{Pesosde atenção}}
 $$
 
 $$
@@ -1211,7 +1211,7 @@ $$
         t-1    & -0.11  & 1.55   & -0.18  & \dots  & 0.95   & 0.95   \\
         t      & 1.45   & -1.42  & 1.62   & \dots  & 2.06  & -0.23
         \end{array}
-    }_{\text{Scores de atenção}}
+    }_{\text{ de atenção}}
 $$
 
 #### Attention Mask em PyTorch
