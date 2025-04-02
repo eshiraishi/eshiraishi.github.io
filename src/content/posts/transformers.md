@@ -639,7 +639,7 @@ Todos os mecanismos que serão usados na arquitetura dos Transformers são basea
 
 Porém, nem todos os mecanismos funcionam dessa forma. Outros dependem de recursos externos para determinar a atenção, como outras variáveis ou modelos. Por isso, é dito que os mecanismos explicados usam Self-Attention, o que significa que assumem que a atenção para cada elemento pode ser determinada corretamente sem a necessidade de usar outros recursos externos.
 
-### Queries, Keys, Values
+### ~ELI5:~ Queries, Keys, Values
 
 Para explicar conceitualmente o funcionamento desses mecanismos, embora os termos dessas operações sejam numericamente iguais no primeiro momento, alguns termos receberão nomes abstratos diferentes.
 
@@ -1183,7 +1183,7 @@ $$
     }_{\text{Pesosmascarados}}
 $$
 
-Existem casos onde esse vazamento não será um problema, e nesse caso, a attention mask aplicada será apenas um tensor nulo.
+Existem casos onde esse vazamento não será um problema, onde a attention mask aplicada será apenas um tensor nulo.
 
 $$
     \underbrace{
