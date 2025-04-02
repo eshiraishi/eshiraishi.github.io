@@ -156,24 +156,36 @@ $$
 ```python
 from string import printable
 
-char_ids = {
+string_to_int = {
     '<bos>': 1,
     '<eos>': 2,
 }
 
-char_ids.update({
+string_to_int.update({
     char: index + 2
     for index, char in enumerate(printable, 1)
 })
 
+special_tokens = {'<bos>', '<eos>'}
 
-def tokenize(chars: str, char_ids: dict[str,int]) -> list[int]:
-    tokens = [1]
-    tokens.extend(
-        char_ids[char]
-        for char in chars
-    )
-    return [*tokens, 2]
+def split(text: str) -> Generator[str, None, None]:
+    index = 0
+
+    while index < len(text):
+        token = text[index]
+        for special_token in special_tokens:
+            if text.startswith(special_token, index):
+                token = special_token
+                break
+
+        yield token
+
+        index += len(token)
+
+def tokenize(self: Self, text: str) -> torch.Tensor:
+    tokens = [string_to_int[token] for token in split(text)]
+    tokens = torch.tensor(tokens)
+    return tokens
 ```
 
 ### Padding
@@ -261,43 +273,55 @@ char_ids.update({
     for index, char in enumerate(printable)
 })
 
+special_tokens = {'<pad>', '<bos>', '<eos>'}
 
-def tokenize(chars: str, char_ids: dict[str, int]) -> list[int]:
-    tokens = [1]
-    tokens.extend(
-        char_ids[char]
-        for char in chars
+def pad(
+    self: Self,
+    tokens: torch.Tensor,
+    amount: int,
+    fill_value: int,
+    side: Literal["left", "right"],
+) -> torch.Tensor:
+    if amount == 0:
+        return tokens
+
+    padding = torch.full(
+        size=(amount,),
+        fill_value=fill_value,
     )
-    return [*tokens, 2]
+    padded_tensor = (tokens, padding) if side == "right" else (padding, tokens)
+    padded_tensor = torch.cat(padded_tensor)
 
-def tokenize_and_pad(inputs: list[str]) -> torch.Tensor:
-    chars, *inputs = inputs
+    return padded_tensor
 
-    tokens = tokenize(chars, char_ids)
-    token_lists = [tokens]
+def batch_encode(
+    texts: list[str],
+    side: Literal["left", "right"] = "right",
+    strategy: Literal["max", "fixed"] = "max",
+    amount: int | None = None,
+    truncate: bool = False,
+) -> torch.Tensor:
+    token_lists = [encode(text) for text in texts]
+    lengths = [len(tokens) for tokens in token_lists]
 
-    token_count = len(tokens)
-    token_counts = [token_count]
+    max_length = max(lengths)
+    max_length = max_length if amount is None else max(max_length, amount)
 
-    max_length = token_count
-
-    for chars in inputs:
-        tokens = tokenize(chars)
-        token_lists.append(tokens)
-
-        token_count = len(tokens)
-        token_counts.append(token_count)
-
-        max_length = max(max_length, token_count)
-
-    for tokens, token_count in zip(token_lists, token_counts):
-        tokens.extend(
-            0
-            for _ in range(max_length - token_count)
+    token_lists = [
+        pad(
+            tokens=tokens,
+            amount=max_length - length,
+            fill_value=0,
+            side=side,
         )
+        for tokens, length in zip(token_lists, lengths)
+    ]
+    token_lists = torch.stack(token_lists)
 
-    tokens_tensor = torch.tensor(token_lists)
-    return tokens_tensor, token_counts
+    if strategy == "fixed" and truncate:
+        token_lists = token_lists[:, :amount]
+
+    return token_lists
 ```
 
 Por curiosidade, o módulo `torch.nested` permite representar matrizes a partir de uma lista de vetores de comprimentos variados. Porém, esse módulo ainda está em fase experimental, e usar esse recurso pode deixar as operações mais lentas que as outras alternativas.

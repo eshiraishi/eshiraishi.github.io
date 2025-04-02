@@ -22,9 +22,6 @@
   ::-webkit-scrollbar-corner {
     background: rgba(0, 0, 0, 0);
   }
-
-
-
 }
 
 @layer components {
@@ -49,7 +46,7 @@
     }
 
     :not(pre)>code {
-      @apply whitespace-nowrap rounded border bg-neutral-200/50 px-1 py-0.5 font-mono text-sm font-medium text-black dark:border-neutral-600 dark:bg-neutral-800/50 dark:text-white;
+      @apply whitespace-nowrap rounded bg-neutral-200/50 px-1 py-0.5 font-mono text-sm font-medium text-neutral-950 dark:bg-neutral-800/50 dark:text-neutral-50;
     }
 
     pre:has(code) {
@@ -65,7 +62,11 @@
     }
 
     blockquote {
-      @apply my-4 border-l-2 pl-4;
+      @apply my-4 border-l-8 rounded-lg pl-4 bg-neutral-100 dark:bg-neutral-800 py-4 border-neutral-200 dark:border-neutral-700;
+
+      p {
+        @apply my-0;
+      }
     }
 
     a {
@@ -73,20 +74,21 @@
     }
 
     table {
-      @apply my-4 w-full table-auto border-collapse text-sm rounded-lg border-none dark:bg-neutral-800;
+      @apply my-4 w-full table-auto border-collapse text-sm rounded-lg border-none bg-neutral-50 dark:bg-neutral-800;
+
+      tr:last-child td:first-child,
+      tr:last-child td:last-child {
+        @apply rounded-lg;
+      }
 
       th {
-        @apply border-b p-4 text-left font-medium border-none;
+        @apply rounded-lg border-b p-4 text-left font-medium border-none bg-neutral-50 dark:bg-neutral-800;
       }
 
       td {
         @apply border-b bg-neutral-50 p-4 border-none dark:bg-neutral-800;
       }
 
-      tr:last-child td:first-child,
-      tr:last-child td:last-child {
-        @apply rounded-lg;
-      }
     }
 
     ol {
@@ -133,3 +135,17 @@
   border-width: 0px !important;
   color: #d3d3d3 !important;
 }
+
+
+/* margin: 0 auto; */
+.katex,
+.katex * {
+  display: inline-block;
+  max-width: 100% !important;
+}
+
+
+/* >  >  > .katex-html > .base */
+/* .katex-display {
+  overflow-x: scroll;
+} */

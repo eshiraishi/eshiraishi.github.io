@@ -1,13 +1,11 @@
 // @ts-check
 import mdx from "@astrojs/mdx";
-import { defineConfig } from "astro/config";
-
 import sitemap from "@astrojs/sitemap";
-
 import tailwind from "@astrojs/tailwind";
 import { getCache } from "@beoe/cache";
 import rehypeMermaid from "@beoe/rehype-mermaid";
 import expressiveCode from "astro-expressive-code";
+import { defineConfig } from "astro/config";
 import rehypeKatex from "rehype-katex";
 import remarkMath from "remark-math";
 import remarkRehype from 'remark-rehype';
