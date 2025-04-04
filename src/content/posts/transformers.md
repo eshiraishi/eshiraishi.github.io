@@ -1174,6 +1174,8 @@ class PositionalEncoderConfig:
     theta: int = 10000
 ```
 
+&nbsp;
+
 ```python
 class PositionalEncoder(nn.Module):
     def __init__(self: Self, config: PositionalEncoderConfig) -> None:
@@ -1347,7 +1349,7 @@ $$
         t-1    & -0.11  & 1.55   & -0.18  & \dots  & 0.95   & 0.95   \\
         t      & 1.45   & -1.42  & 1.62   & \dots  & 2.06  & -0.23
         \end{array}
-    }_{\text{Pesosde atenção}}
+    }_{\text{Pesos de atenção}}
 $$
 
 $$
@@ -1385,7 +1387,7 @@ $$
         t-1    & -0.11  & 1.55   & -0.18  & \dots  & 0.95   & 0.95   \\
         t      & 1.45   & -1.42  & 1.62   & \dots  & 2.06  & -0.23
         \end{array}
-    }_{\text{ de atenção}}
+    }_{\text{Pesos de atenção}}
 $$
 
 A attention mask de um tensor arbitrário pode ser obtida da seguinte forma:
@@ -1479,6 +1481,8 @@ class InputProcessorConfig:
     pad_token_int: int
 ```
 
+&nbsp;
+
 ```python
 class InputProcessor(nn.Module):
     def __init__(self: Self, config: InputProcessorConfig) -> None:
@@ -1495,6 +1499,7 @@ class InputProcessor(nn.Module):
         embeddings = self.embedder(tokens)
         embeddings = self.positional_encoder(embeddings)
         return embeddings
+
 ```
 
 ### Transformer blocks
@@ -1564,6 +1569,8 @@ class TransformerBlockConfig:
     n_heads: int = 8
     hidden_dim: int = 2048
 ```
+
+&nbsp;
 
 ```python
 class TransformerBlock(nn.Module):
@@ -1635,6 +1642,8 @@ class EncoderConfig:
     n_blocks: int
 ```
 
+&nbsp;
+
 ```python
 class Encoder(nn.Module):
     def __init__(self: Self, config: EncoderConfig) -> None:
@@ -1691,12 +1700,16 @@ flowchart
     DecoderBlockN --> output
 ```
 
+&nbsp;
+
 ```python
 @dataclass
 class DecoderConfig:
     block: TransformerBlockConfig
     n_blocks: int
 ```
+
+&nbsp;
 
 ```python
 class Decoder(nn.Module):
@@ -1759,6 +1772,8 @@ flowchart
     encoderOutput -- Queries, Keys --> DecoderBlock
     DecoderBlock --> decoderBlockOutput
 ```
+
+&nbsp;
 
 ```python
 class DecoderBlock(nn.Module):
@@ -1824,6 +1839,8 @@ class OutputProcessorConfig:
     in_features: int
     out_features: int
 ```
+
+&nbsp;
 
 ```python
 class OutputProcessor(nn.Module):

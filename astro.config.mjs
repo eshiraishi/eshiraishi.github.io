@@ -19,7 +19,7 @@ export default defineConfig({
   site: SITE_URL,
   markdown: {
     remarkPlugins: [
-      [remarkMath, { singleDollarTextMath: true }],
+      [remarkMath, { singleDollarTextMath: true, output: 'html', strict: true, trust: true }],
       remarkRehype,
     ],
     rehypePlugins: [

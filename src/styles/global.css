@@ -25,7 +25,7 @@
   }
 
   article {
-    @apply max-w-3xl;
+    @apply max-w-3xl overflow-hidden;
 
     p {
       @apply my-4 leading-relaxed;
@@ -119,31 +119,27 @@
     mark {
       @apply dark:bg-yellow-500/50 dark:text-neutral-50;
     }
+
+    .katex-html {
+      @apply overflow-x-auto overflow-y-hidden;
+    }
   }
-}
 
-:root:not(.dark) .beoe-dark,
-:root.dark .beoe-light {
-  display: none;
-}
+  :root:not(.dark) .beoe-dark,
+  :root.dark .beoe-light {
+    @apply hidden;
+  }
 
-.beoe-dark,
-.beoe-light {
-  display: flex;
-  justify-content: center;
-}
+  .beoe-dark,
+  .beoe-light {
+    @apply flex justify-center;
+  }
 
-:root.dark span.edgeLabel .labelBkg,
-:root.dark span.edgeLabel,
-:root.dark span.edgeLabel p {
-  background-color: #171717 !important;
-  border-width: 0px !important;
-  color: #d3d3d3 !important;
-}
-
-
-.katex,
-.katex * {
-  display: inline-block;
-  max-width: 100% !important;
+  :root.dark span.edgeLabel .labelBkg,
+  :root.dark span.edgeLabel,
+  :root.dark span.edgeLabel p {
+    background-color: #171717 !important;
+    border-width: 0px !important;
+    color: #d3d3d3 !important;
+  }
 }
