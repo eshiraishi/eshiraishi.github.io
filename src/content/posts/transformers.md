@@ -332,6 +332,130 @@ Mesmo ao escolher a opção 1, também é comum definir um tamanho máximo que a
 
 Em ambos os casos, o valor de $t$ geralmente é escolhido com base na memória disponível ou determinando empiricamente o valor para o comprimento de uma sequência onde, em média, os modelos sendo treinados não conseguem considerar toda a sequência recebida durante a geração.
 
+### Implementação completa do Tokenizer
+
+```python
+class Tokenizer:
+    def __init__(
+        self: Self,
+        vocab: set[str],
+        config: TokenizerConfig,
+    ) -> None:
+        super().__init__()
+        self.vocab = vocab
+        self.config = config
+
+        self.string_to_int = {
+            self.config.pad_token: 0,
+            self.config.bos_token: 1,
+            self.config.eos_token: 2,
+        }
+        self.string_to_int.update(
+            {char: (index + 3) for index, char in enumerate(self.vocab)}
+        )
+
+        self.pad_token_int = self.string_to_int[self.config.pad_token]
+        self.bos_token_int = self.string_to_int[self.config.bos_token]
+        self.eos_token_int = self.string_to_int[self.config.eos_token]
+
+        self.vocab_size = len(self.string_to_int)
+
+        self.int_to_string = {
+            0: self.config.pad_token,
+            1: self.config.bos_token,
+            2: self.config.eos_token,
+        }
+        self.int_to_string.update(
+            {(index + 3): char for index, char in enumerate(self.vocab)}
+        )
+
+    def split(self: Self, chars: str) -> Generator[str, None, None]:
+        index = 0
+        while index < len(chars):
+            token = chars[index]
+            for special_token in self.config.special_tokens:
+                if chars.startswith(special_token, index):
+                    token = special_token
+                    break
+
+            yield token
+            index += len(token)
+
+    def encode(self: Self, text: str) -> torch.Tensor:
+        tokens = [self.string_to_int[token_string] for token_string in self.split(text)]
+        tokens = torch.tensor(tokens)
+        return tokens
+
+    def pad(
+        self: Self,
+        tokens: torch.Tensor,
+        amount: int,
+        fill_value: int,
+        side: Literal["left", "right"],
+    ) -> torch.Tensor:
+        if amount == 0:
+            return tokens
+
+        padding = torch.full(
+            size=(amount,),
+            fill_value=fill_value,
+        )
+        padded_tensor = (tokens, padding) if side == "right" else (padding, tokens)
+        padded_tensor = torch.cat(padded_tensor)
+
+        return padded_tensor
+
+    def batch_encode(
+        self: Self,
+        texts: list[str],
+        side: Literal["left", "right"] = "right",
+        strategy: Literal["max", "fixed"] = "max",
+        amount: int | None = None,
+        truncate: bool = False,
+    ) -> torch.Tensor:
+        token_lists = [self.encode(text) for text in texts]
+        lengths = [len(tokens) for tokens in token_lists]
+
+        max_length = max(lengths)
+        max_length = max_length if amount is None else max(max_length, amount)
+
+        token_lists = [
+            self.pad(
+                tokens=tokens,
+                amount=max_length - length,
+                fill_value=self.pad_token_int,
+                side=side,
+            )
+            for tokens, length in zip(token_lists, lengths)
+        ]
+        token_lists = torch.stack(token_lists)
+
+        if strategy == "fixed" and truncate:
+            token_lists = token_lists[:, :amount]
+
+        return token_lists
+
+    def decode(self: Self, tokens: torch.Tensor) -> str:
+        outputs = [self.int_to_string[token] for token in tokens.tolist()]
+        outputs = "".join(outputs)
+        return outputs
+
+    def batch_decode(self: Self, tokens: torch.Tensor) -> list[str]:
+        outputs = [self.decode(item) for item in tokens]
+        return outputs
+
+    def batch_shift(
+        self: Self,
+        input_tokens: torch.Tensor,
+        output_tokens: torch.Tensor,
+    ) -> str:
+        outputs = torch.cat((input_tokens[:, 1:], output_tokens), dim=1)
+        return outputs
+
+    def add_special_tokens(self: Self, text: str) -> str:
+        return self.config.bos_token + text + self.config.eos_token
+```
+
 ### Embeddings
 
 A representação numérica dos tokens é uma forma simples de converter caracteres para valores numéricos. Porém, usá-la diretamente como espaço de representação dos elementos da sequência recebida durante o treinamento de modelos pode criar vieses indesejados durante o treinamento.
@@ -494,65 +618,7 @@ embedder = nn.Embedding(
     embedding_dim=embed_dim,
 )
 
-embedder(42)
-```
-
-### Token embeddings em PyTorch
-
-```python
-class TokenEmbedder(nn.Module):
-    def __init__(self: Self, vocab: str, embed_dim: int) -> None:
-        super().__init__()
-        self.vocab = set(vocab)
-        self.embed_dim = embed_dim
-
-        self.char_ids = {
-            '<pad>': 0,
-            '<bos>': 1,
-            '<eos>': 2,
-        }
-
-        self.char_ids.update({
-            char: index + 3
-            for index, char in enumerate(self.vocab)
-        })
-
-        self.embedding = nn.Embedding(
-            num_embeddings=len(self.vocab) + 3,
-            embedding_dim=self.embed_dim,
-        )
-
-    def tokenize(self: Self, chars: str) -> list[int]:
-        tokens = [1]
-        tokens.extend(self.char_ids[char] for char in chars)
-        return [*tokens, 2]
-
-    def forward(self: Self, inputs: list[str]) -> torch.Tensor:
-        chars, *inputs = inputs
-
-        tokens = self.tokenize(chars)
-        token_lists = [tokens]
-
-        token_count = len(tokens)
-        token_counts = [token_count]
-
-        max_length = token_count
-
-        for chars in inputs:
-            tokens = self.tokenize(chars)
-            token_lists.append(tokens)
-
-            token_count = len(tokens)
-            token_counts.append(token_count)
-
-            max_length = max(max_length, token_count)
-
-        for tokens, token_count in zip(token_lists, token_counts):
-            tokens.extend(0 for _ in range(max_length - token_count))
-
-    tokens_tensor = torch.tensor(token_lists)
-    embeddings = self.embedding(tokens_tensor)
-    return embeddings, token_counts
+embedding = embedder(42)
 ```
 
 ## Atenção
@@ -639,7 +705,7 @@ Todos os mecanismos que serão usados na arquitetura dos Transformers são basea
 
 Porém, nem todos os mecanismos funcionam dessa forma. Outros dependem de recursos externos para determinar a atenção, como outras variáveis ou modelos. Por isso, é dito que os mecanismos explicados usam Self-Attention, o que significa que assumem que a atenção para cada elemento pode ser determinada corretamente sem a necessidade de usar outros recursos externos.
 
-### ~ELI5:~ Queries, Keys, Values
+### ELI5: Queries, Keys e Values
 
 Para explicar conceitualmente o funcionamento desses mecanismos, embora os termos dessas operações sejam numericamente iguais no primeiro momento, alguns termos receberão nomes abstratos diferentes.
 
@@ -680,14 +746,12 @@ Nesse caso, a palavra "Eles" não pode ser compreendida corretamente usando apen
 
 ```python
 sequence = keys = values = [
+    'Vi',
     'João',
-    'pensou',
-    'O',
-    'trem',
-    'estava',
-    'cheio',
-    'mas',
-    'ele',
+    'e',
+    'Maria',
+    'ontem.',
+    'Eles',
     ...
 ]
 
@@ -695,14 +759,12 @@ mechanism = AttentionMechanism(keys, values)
 query = 'ele'
 
 assert mechanism[query] == {
-    'João': 0.9,
-    'pensou': 0.01,
-    'O': 0.01,
-    'trem': 0.01,
-    'estava': 0.01,
-    'cheio': 0.01,
-    'mas': 0.01,
-    'ele': 0.01,
+    'Vi': 0.01,
+    'João': 0.45,
+    'e': 0.01,
+    'Maria': 0.45,
+    'ontem.': 0.01,
+    'Eles': 0.01,
     ...
 }
 ```
@@ -839,6 +901,24 @@ $$
 
 A origem da normalização por $\sqrt{d}$ é empírica. Antes dos Transformers, já se observava experimentalmente que normalizar a variância do gradiente gerado por camadas ocultas evita problemas de gradient vanishing e neurônios mortos durante o treinamento de modelos, característica que foi adaptada para a arquitetura posteriormente.
 
+```python
+def apply_scaled_dot_product_attention(
+    queries: torch.Tensor,
+    keys: torch.Tensor,
+    values: torch.Tensor,
+) -> torch.Tensor:
+    keys = keys.transpose(2, 3)
+    scores = queries @ keys / (split_embed_dim**0.5)
+
+    if mask is not None:
+        scores = scores.masked_fill(mask, float("-inf"))
+
+    weights = F.softmax(scores, dim=3)
+    outputs = weights @ values
+
+    return outputs
+```
+
 #### Projeções lineares
 
 Uma das formas com que os Transformers tornam o SDPA mais eficiente é projetar linearmente as queries, keys e values para espaços diferentes, multiplicando-as por matrizes de parâmetros treináveis (denotadas como $W^Q$, $W^K$ e $W^V$). Isso faz com que os valores das queries, keys e values se tornem diferentes entre si, e durante o treino, esses parâmetros sejam otimizados para otimizar a forma como o transformer converte os embeddings originais em outro espaço com as mesmas dimensões, mas que representam melhor o valor de cada token no contexto onde estão inseridos.
@@ -846,6 +926,18 @@ Uma das formas com que os Transformers tornam o SDPA mais eficiente é projetar 
 $$
   \text{SDPA-Transformer}(Q,K,V) =  SDPA(QW^Q, KW^K,VW^V)
 $$
+
+```python
+queries_projection = nn.Linear(embed_dim, embed_dim, bias=False)
+keys_projection = nn.Linear(embed_dim, embed_dim, bias=False)
+values_projection = nn.Linear(embed_dim, embed_dim, bias=False)
+
+queries = queries_projection(queries)
+keys = keys_projection(keys)
+values = values_projection(values)
+
+embeddings = apply_scaled_dot_product_attention(queries, keys, values)
+```
 
 #### Multihead Attention (MHA)
 
@@ -874,75 +966,127 @@ Dessa forma, SDPA ainda é aplicado $h$ vezes, mas como os elementos possuem dim
 
 De forma prática, aplicar MHA ainda será mais lento que aplicar SDPA devido à projeção linear $W^O$. Porém, o tempo adicionado não aumenta em relação a nenhuma variável.
 
-##### MHA em PyTorch
-
 ```python
+n_heads = 8
+split_embed_dim = embed_dim // n_heads
+outputs_projection = nn.Linear(embed_dim, embed_dim, bias=False)
+
+
+def split_embeddings(
+    embeddings: torch.Tensor,
+    batch_size: int,
+    n_tokens: int,
+) -> torch.Tensor:
+    splitted = embeddings.view(batch_size, n_tokens, n_heads, split_embed_dim)
+    splitted = splitted.transpose(1, 2)
+
+    return splitted
+
+
+def join_embeddings(
+    embeddings: torch.Tensor,
+    batch_size: int,
+    n_tokens: int,
+) -> torch.Tensor:
+    joined = embeddings.transpose(1, 2)
+    joined = joined.contiguous()
+    joined = joined.view(batch_size, n_tokens, embed_dim)
+    return joined
+
+
+def apply_multihead_attention(
+    queries: torch.Tensor,
+    keys: torch.Tensor,
+    values: torch.Tensor,
+) -> torch.Tensor:
+    batch_size, n_tokens, _ = queries.size()
+
+    queries = queries_projection(queries)
+    keys = keys_projection(keys)
+    values = values_projection(values)
+
+    queries = split_embeddings(queries, batch_size, n_tokens)
+    keys = split_embeddings(keys, batch_size, n_tokens)
+    values = split_embeddings(values, batch_size, n_tokens)
+
+    keys = keys.transpose(2, 3)
+    scores = queries @ keys / (split_embed_dim**0.5)
+    weights = F.softmax(scores, dim=3)
+
+    outputs = weights @ values
+    outputs = join_embeddings(outputs, batch_size, n_tokens)
+    outputs = outputs_projection(outputs)
+
+    return outputs
+
 class MultiheadAttention(nn.Module):
     def __init__(self: Self, embed_dim: int, n_heads: int) -> None:
         super().__init__()
 
         self.embed_dim = embed_dim
         self.n_heads = n_heads
-        self.head_dim = self.embed_dim // self.n_heads
+        self.split_embed_dim = self.embed_dim // self.n_heads
 
-        self.query_projection = nn.Linear(embed_dim, embed_dim, bias=False)
-        self.key_projection = nn.Linear(embed_dim, embed_dim, bias=False)
-        self.value_projection = nn.Linear(embed_dim, embed_dim, bias=False)
-        self.output_projection = nn.Linear(embed_dim, embed_dim, bias=False)
+        self.queries_projection = nn.Linear(self.embed_dim, self.embed_dim, bias=False)
+        self.keys_projection = nn.Linear(self.embed_dim, self.embed_dim, bias=False)
+        self.values_projection = nn.Linear(self.embed_dim, self.embed_dim, bias=False)
+        self.outputs_projection = nn.Linear(self.embed_dim, self.embed_dim, bias=False)
 
     def split_embeddings(
         self: Self,
-        inputs: torch.Tensor,
-        batches: int,
-        tokens: int,
+        embeddings: torch.Tensor,
+        batch_size: int,
+        n_tokens: int,
     ) -> torch.Tensor:
-        split_inputs = inputs.view(batches, tokens, self.n_heads, self.head_dim)
-        head_sorted_inputs = split_inputs.transpose(1, 2)
-        return head_sorted_inputs
+        splitted = embeddings.view(
+            batch_size,
+            n_tokens,
+            self.n_heads,
+            self.split_embed_dim,
+        )
+
+        splitted = splitted.transpose(1, 2)
+
+        return splitted
 
     def join_embeddings(
         self: Self,
-        inputs: torch.Tensor,
-        batches: int,
-        tokens: int,
+        embeddings: torch.Tensor,
+        batch_size: int,
+        n_tokens: int,
     ) -> torch.Tensor:
-        token_sorted_inputs = inputs.transpose(1, 2)
-        token_sorted_inputs = token_sorted_inputs.contiguous()
-        joined_inputs = token_sorted_inputs.view(batches, tokens, self.embed_dim)
-        return joined_inputs
+        joined = embeddings.transpose(1, 2)
+        joined = joined.contiguous()
+        joined = joined.view(batch_size, n_tokens, self.embed_dim)
+
+        return joined
 
     def forward(
         self: Self,
         queries: torch.Tensor,
         keys: torch.Tensor,
         values: torch.Tensor,
-        mask: torch.Tensor | None = None,
     ) -> torch.Tensor:
-        batches, tokens, _ = queries.size()
+        batch_size, n_tokens, _ = queries.size()
 
-        queries = self.query_projection(queries)
-        keys = self.key_projection(keys)
-        values = self.value_projection(values)
+        queries = self.queries_projection(queries)
+        keys = self.keys_projection(keys)
+        values = self.values_projection(values)
 
-        queries = self.split_embeddings(queries, batches, tokens)
-        keys = self.split_embeddings(keys, batches, tokens)
-        values = self.split_embeddings(values, batches, tokens)
+        queries = self.split_embeddings(queries, batch_size, n_tokens)
+        keys = self.split_embeddings(keys, batch_size, n_tokens)
+        values = self.split_embeddings(values, batch_size, n_tokens)
 
         keys = keys.transpose(2, 3)
 
-        scores = queries @ keys / (self.head_dim**0.5)
-
-        if mask is not None:
-            scores = scores.masked_fill(mask, float("-inf"))
-            print(scores)
-
+        scores = queries @ keys / (self.split_embed_dim**0.5)
         weights = F.softmax(scores, dim=3)
 
-        attn_outputs = weights @ values
-        joined_outputs = self.join_embeddings(attn_outputs, batches, tokens)
-        projected_outputs = self.output_projection(joined_outputs)
+        outputs = weights @ values
+        outputs = self.join_embeddings(outputs, batch_size, n_tokens)
+        outputs = self.outputs_projection(outputs)
 
-        return projected_outputs
+        return outputs
 ```
 
 ## Positional Encoding (PE)
@@ -1021,42 +1165,48 @@ $$
     \end{bmatrix}
 $$
 
-### PE em PyTorch
+Em PyTorch, esse cálculo pode ser feito em batch sem usar laços de repetição, acelerando a operação significativamente, da seguinte forma:
+
+```python
+@dataclass
+class PositionalEncoderConfig:
+    embed_dim: int
+    theta: int = 10000
+```
 
 ```python
 class PositionalEncoder(nn.Module):
-    def __init__(self: Self, embed_dim: int, theta: int) -> None:
+    def __init__(self: Self, config: PositionalEncoderConfig) -> None:
         super().__init__()
-        self.embed_dim = embed_dim
-        self.theta = theta
+        self.config = config
 
     @torch.no_grad()
-    def forward(self, inputs: torch.Tensor) -> torch.Tensor:
-        batches, tokens, _ = inputs.size()
+    def forward(self: Self, embeddings: torch.Tensor) -> torch.Tensor:
+        batch_size, n_tokens, _ = embeddings.size()
 
-        indexes = torch.arange(self.embed_dim, dtype=torch.float)
+        indexes = torch.arange(self.config.embed_dim, dtype=torch.float)
 
-        positions = torch.arange(tokens, dtype=torch.float)
-        positions = positions.view(tokens, 1)
+        positions = torch.arange(n_tokens, dtype=torch.float)
+        positions = positions.view(n_tokens, 1)
 
-        i = torch.arange(self.embed_dim // 2)
+        i = torch.arange(self.config.embed_dim // 2)
         i = i.float()
         i = i.repeat_interleave(2)
 
         cos_indexes = indexes % 2
         cos_indexes = cos_indexes.bool()
-        cos_indexes = cos_indexes.expand((tokens, self.embed_dim))
+        cos_indexes = cos_indexes.expand((n_tokens, self.config.embed_dim))
 
         sin_indexes = ~cos_indexes
 
-        encodings = positions / (self.theta ** (2 * i / self.embed_dim))
+        encodings = positions / (self.config.theta ** (2 * i / self.config.embed_dim))
 
         encodings[sin_indexes] = encodings[sin_indexes].sin()
         encodings[cos_indexes] = encodings[cos_indexes].cos()
 
-        encodings = encodings.expand((batches, tokens, self.embed_dim))
+        encodings = encodings.expand((batch_size, n_tokens, self.config.embed_dim))
 
-        return inputs + encodings
+        return embeddings + encodings
 ```
 
 ## Modelos autoregressivos
@@ -1238,10 +1388,10 @@ $$
     }_{\text{ de atenção}}
 $$
 
-#### Attention Mask em PyTorch
+A attention mask de um tensor arbitrário pode ser obtida da seguinte forma:
 
 ```python
-def get_attn_mask(size: int | tuple[int]) -> torch.Tensor:
+def attn_mask_like(size: tuple[int]) -> torch.Tensor:
     mask = torch.ones(size)
     mask = mask.triu(diagonal=1)
     mask = mask.bool()
@@ -1250,7 +1400,7 @@ def get_attn_mask(size: int | tuple[int]) -> torch.Tensor:
 
 ## Componentes da arquitetura
 
-A arquitetura dos Transformers original é composta dos componentes apresentados na seguinte ordem:
+A arquitetura dos Transformers original é composta dos componentes apresentados, na seguinte ordem:
 
 ```mermaid
 flowchart
@@ -1321,23 +1471,30 @@ Na segunda iteração, as sequências serão:
 
 E assim por diante.
 
-#### Processamento de entrada em PyTorch
+```python
+@dataclass
+class InputProcessorConfig:
+    embedder: EmbedderConfig
+    positional_encoder: PositionalEncoderConfig
+    pad_token_int: int
+```
 
 ```python
 class InputProcessor(nn.Module):
-    def __init__(
-        self: Self,
-        tokenizer: Tokenizer,
-        positional_encoder: PositionalEncoder,
-    ) -> None:
+    def __init__(self: Self, config: InputProcessorConfig) -> None:
         super().__init__()
-        self.tokenizer = tokenizer
-        self.positional_encoder = positional_encoder
+        self.config = config
+        self.embedder = nn.Embedding(
+            num_embeddings=self.config.embedder.n_tokens,
+            embedding_dim=self.config.embedder.embed_dim,
+            padding_idx=self.config.pad_token_int,
+        )
+        self.positional_encoder = PositionalEncoder(self.config.positional_encoder)
 
-    def forward(self: Self, inputs: list[str]) -> torch.Tensor:
-        input_tensors, token_counts = self.tokenizer(inputs)
-        encoded_tensors = self.positional_encoder(input_tensors)
-        return encoded_tensors, token_counts
+    def forward(self: Self, tokens: torch.Tensor) -> torch.Tensor:
+        embeddings = self.embedder(tokens)
+        embeddings = self.positional_encoder(embeddings)
+        return embeddings
 ```
 
 ### Transformer blocks
@@ -1402,14 +1559,15 @@ Onde $d_{ff}$ é um hiperparâmetro.
 
 ```python
 @dataclass
-class TransformerLayerConfig:
+class TransformerBlockConfig:
     embed_dim: int = 512
     n_heads: int = 8
     hidden_dim: int = 2048
+```
 
-
-class TransformerLayer(nn.Module):
-    def __init__(self: Self, config: TransformerLayerConfig) -> None:
+```python
+class TransformerBlock(nn.Module):
+    def __init__(self: Self, config: TransformerBlockConfig) -> None:
         super().__init__()
         self.config = config
 
@@ -1424,6 +1582,7 @@ class TransformerLayer(nn.Module):
             nn.ReLU(),
             nn.Linear(self.config.hidden_dim, self.config.embed_dim),
         )
+
         self.ff_layernorm = nn.LayerNorm(self.config.embed_dim)
 
     def forward(
@@ -1470,13 +1629,19 @@ flowchart
 #### Encoder em Pytorch
 
 ```python
+@dataclass
+class EncoderConfig:
+    block: TransformerBlockConfig
+    n_blocks: int
+```
+
+```python
 class Encoder(nn.Module):
-    def __init__(self: Self, n_layers: int, config: TransformerLayerConfig) -> None:
+    def __init__(self: Self, config: EncoderConfig) -> None:
         super().__init__()
-        self.n_layers = n_layers
         self.config = config
-        self.layers = nn.ModuleList(
-            TransformerLayer(self.config) for _ in range(self.n_layers)
+        self.blocks = nn.ModuleList(
+            TransformerBlock(self.config.block) for _ in range(self.config.n_blocks)
         )
 
     def forward(
@@ -1485,20 +1650,14 @@ class Encoder(nn.Module):
         keys: torch.Tensor,
         values: torch.Tensor,
     ) -> torch.Tensor:
-        layer, *layers = self.layers
-        layer_outputs = layer(
-            queries=queries,
-            keys=keys,
-            values=values,
-        )
+        block, *blocks = self.blocks
 
-        for layer in layers:
-            layer_outputs = layer(
-                queries=layer_outputs,
-                keys=layer_outputs,
-                values=layer_outputs,
-            )
-        return layer_outputs
+        outputs = block(queries=queries, keys=keys, values=values)
+
+        for block in blocks:
+            outputs = block(queries=outputs, keys=outputs, values=outputs)
+
+        return outputs
 ```
 
 ### Decoder
@@ -1533,17 +1692,19 @@ flowchart
 ```
 
 ```python
+@dataclass
+class DecoderConfig:
+    block: TransformerBlockConfig
+    n_blocks: int
+```
+
+```python
 class Decoder(nn.Module):
-    def __init__(
-        self: Self,
-        n_layers: int,
-        config: TransformerLayerConfig,
-    ) -> None:
+    def __init__(self: Self, config: DecoderConfig) -> None:
         super().__init__()
-        self.n_layers = n_layers
         self.config = config
-        self.layers = nn.ModuleList(
-            DecoderLayer(self.config) for _ in range(self.n_layers)
+        self.blocks = nn.ModuleList(
+            DecoderBlock(self.config.block) for _ in range(self.config.n_blocks)
         )
 
     def forward(
@@ -1553,22 +1714,24 @@ class Decoder(nn.Module):
         values: torch.Tensor,
         encoder_outputs: torch.Tensor,
     ) -> torch.Tensor:
-        layer, *layers = self.layers
-        layer_outputs = layer(
+        block, *blocks = self.blocks
+
+        outputs = block(
             queries=queries,
             keys=keys,
             values=values,
             encoder_outputs=encoder_outputs,
         )
 
-        for layer in layers:
-            layer_outputs = layer(
-                queries=layer_outputs,
-                keys=layer_outputs,
-                values=layer_outputs,
+        for block in blocks:
+            outputs = block(
+                queries=outputs,
+                keys=outputs,
+                values=outputs,
                 encoder_outputs=encoder_outputs,
             )
-        return layer_outputs
+
+        return outputs
 ```
 
 Os blocos de decoder possuem seguinte arquitetura:
@@ -1598,15 +1761,15 @@ flowchart
 ```
 
 ```python
-class DecoderLayer(nn.Module):
-    def __init__(self: Self, config: TransformerLayerConfig) -> None:
+class DecoderBlock(nn.Module):
+    def __init__(self: Self, config: TransformerBlockConfig) -> None:
         super().__init__()
         self.config = config
         self.mha = MultiheadAttention(
             embed_dim=self.config.embed_dim,
             n_heads=self.config.n_heads,
         )
-        self.transformer_layer = TransformerLayer(self.config)
+        self.transformer_block = TransformerBlock(self.config)
 
     def forward(
         self: Self,
@@ -1615,19 +1778,22 @@ class DecoderLayer(nn.Module):
         values: torch.Tensor,
         encoder_outputs: torch.Tensor,
     ) -> torch.Tensor:
-        batches, tokens, _ = keys.size()
-        mask = get_attn_mask((batches, self.config.n_heads, tokens, tokens))
+        batch_size, n_tokens, _ = keys.size()
+        mask = attn_mask_like((batch_size, self.config.n_heads, n_tokens, n_tokens))
+
         outputs = self.mha(
             queries=queries,
             keys=keys,
             values=values,
             mask=mask,
         )
-        outputs = self.transformer_layer(
+
+        outputs = self.transformer_block(
             queries=encoder_outputs,
             keys=encoder_outputs,
             values=outputs,
         )
+
         return outputs
 ```
 
@@ -1653,141 +1819,244 @@ Após o treinamento, além de realizar todas as iterações necessárias com o m
 #### Processamento de saída em PyTorch
 
 ```python
+@dataclass
+class OutputProcessorConfig:
+    in_features: int
+    out_features: int
+```
+
+```python
 class OutputProcessor(nn.Module):
-    def __init__(self: Self, embed_dim: int, vocab: str) -> None:
+    def __init__(self: Self, config: EmbedderConfig) -> None:
         super().__init__()
-        self.embed_dim = embed_dim
-        self.vocab = set(vocab)
-        self.out_dim = len(self.vocab)
-        self.linear = nn.Linear(self.embed_dim, self.out_dim)
-        self.id_chars = {index: char for index, char in enumerate(self.vocab)}
 
-    def untokenize(self: Self, tokens: list[int]) -> str:
-        return "".join(self.id_chars[token] for token in tokens)
+        self.config = config
 
-    def forward(self: Self, inputs: torch.Tensor, token_counts: list[int]) -> list[str]:
-        linear_outputs = self.linear(inputs)
-        batches, tokens, _ = linear_outputs.size()
+        self.linear = nn.Linear(
+            in_features=self.config.in_features,
+            out_features=self.config.out_features,
+        )
 
-        probs = linear_outputs.softmax(dim=2)
-        probs = probs.view(batches * tokens, self.out_dim)
+    def forward(
+        self: Self,
+        embeddings: torch.Tensor,
+        return_logits: bool = False,
+        return_probabilities: bool = False,
+    ) -> torch.Tensor:
+        embeddings = self.linear(embeddings)
+        if return_logits:
+            return embeddings
 
-        predictions = probs.argmax(dim=1)
-        predictions = predictions.view(batches, tokens)
+        batch_size, n_tokens, _ = embeddings.size()
 
-        outputs = [self.untokenize(tokens) for tokens in predictions.tolist()]
-        outputs = [
-            output[:token_count] for output, token_count in zip(outputs, token_counts)
-        ]
+        probabilities = embeddings.softmax(dim=2)
+        probabilities = probabilities.view(
+            batch_size * n_tokens,
+            self.config.out_features,
+        )
 
-        return outputs
+        if return_probabilities:
+            return probabilities
+
+        tokens = probabilities.argmax(dim=1)
+        tokens = tokens + 2
+        tokens = tokens.view(batch_size, n_tokens)
+
+        return tokens
 ```
 
 ## Conclusão
 
 Com todos os componentes definidos, está completa a implementação da arquitetura Transformer. No exemplo abaixo está uma implementação que os une e executa o modelo.
 
-### Implementação completa em PyTorch
+### Juntando tudo
 
 ```python
 class Transformer(nn.Module):
-    def __init__(
-        self: Self,
-        encoder_config: TransformerLayerConfig,
-        decoder_config: TransformerLayerConfig,
-        in_vocab: str | set[str],
-        out_vocab: str | set[str],
-        embed_dim: int = 512,
-        theta: int = 10000,
-        n_encoder_layers: int = 6,
-        n_decoder_layers: int = 6,
-    ) -> None:
+    def __init__(self: Self, config: TransformerConfig) -> None:
         super().__init__()
+        self.config = config
 
-        self.theta = theta
-        self.encoder_config = encoder_config
-        self.n_encoder_layers = n_encoder_layers
-        self.decoder_config = decoder_config
-        self.n_decoder_layers = n_decoder_layers
-        self.embed_dim = embed_dim
+        self.input_processor = InputProcessor(self.config.input_processor)
+        self.encoder = Encoder(self.config.encoder)
+        self.decoder = Decoder(self.config.decoder)
+        self.output_processor = OutputProcessor(self.config.output_processor)
 
-        self.in_vocab = set(in_vocab)
-        self.out_vocab = set(out_vocab)
-
-        self.tokenizer = TokenEmbedder(
-            embed_dim=self.embed_dim,
-            vocab=self.in_vocab,
-        )
-
-        self.positional_encoder = PositionalEncoder(
-            embed_dim=self.embed_dim,
-            theta=self.theta,
-        )
-
-        self.input_processor = InputProcessor(
-            tokenizer=self.tokenizer,
-            positional_encoder=self.positional_encoder,
-        )
-
-        self.encoder = Encoder(
-            n_layers=self.n_encoder_layers,
-            config=self.encoder_config,
-        )
-
-        self.decoder = Decoder(
-            n_layers=self.n_decoder_layers,
-            config=self.decoder_config,
-        )
-
-        self.output_processor = OutputProcessor(
-            embed_dim=self.embed_dim,
-            vocab=self.out_vocab,
-        )
-
-    def forward(self: Self, inputs: list[str]) -> str:
-        input_tensors, token_counts = self.input_processor(inputs)
+    def forward(
+        self: Self,
+        encoder_tokens: torch.Tensor,
+        decoder_tokens: torch.Tensor,
+        return_logits: bool = False,
+        return_probabilities: bool = False,
+    ) -> torch.Tensor:
+        encoder_tokens = self.input_processor(encoder_tokens)
+        decoder_tokens = self.input_processor(decoder_tokens)
 
         encoder_outputs = self.encoder(
-            queries=input_tensors,
-            keys=input_tensors,
-            values=input_tensors,
+            queries=encoder_tokens,
+            keys=encoder_tokens,
+            values=encoder_tokens,
         )
 
         decoder_outputs = self.decoder(
-            queries=input_tensors,
-            keys=input_tensors,
-            values=input_tensors,
+            queries=decoder_tokens,
+            keys=decoder_tokens,
+            values=decoder_tokens,
             encoder_outputs=encoder_outputs,
         )
 
-        outputs = self.output_processor(decoder_outputs, token_counts)
+        outputs = self.output_processor(
+            embeddings=decoder_outputs,
+            return_logits=return_logits,
+            return_probabilities=return_probabilities,
+        )
+
         return outputs
 ```
 
-O código a seguir mostra o uso do módulo acima. Além dessa implementação, ainda faltam implementações do algoritmo de treinamento e do algoritmo para realizar a predição completa através do modelo autoregressivo.
+### `TransformerExecutor`
+
+Para conseguir executar o modelo em si, é necessário aplicar o algoritmo autoregressivo, e assim como nas outras etapas, de forma que seja eficiente em batches. Para isso, serão criadas uma classe `TransformerExecutor`, responsável interagir com o modelo e o tokenizer para executar o algoritmo de forma eficiente a cada iteração.
 
 ```python
-config = TransformerLayerConfig()
+class TransformerExecutor:
+    def __init__(
+        self: Self,
+        tokenizer: Tokenizer,
+        transformer: Transformer,
+    ) -> None:
+        super().__init__()
+        self.tokenizer = tokenizer
+        self.transformer = transformer
 
-transformer = Transformer(
-    in_vocab=printable,
-    out_vocab=printable,
-    encoder_config=config,
-    decoder_config=config,
-)
+    def get_output_tokens(
+        self: Self,
+        tokens: torch.Tensor,
+        mask: torch.Tensor,
+    ) -> torch.Tensor:
+        is_padding = mask != self.tokenizer.pad_token_int
+        is_padding = is_padding.sum(dim=1)
 
-inputs = ["nom", "par", "ca", "da"]
+        columns = is_padding - 1
+        batch_size, _ = tokens.size()
+        rows = torch.arange(batch_size)
 
-def separate_chars(chars):
-    return " ".join(repr(char) for char in chars)
+        tokens = tokens[rows, columns]
+        tokens = tokens.unsqueeze(1)
 
-lines = [
-    f"{separate_chars(item)} -> {separate_chars(output)}"
-    for item, output in zip(inputs, transformer(inputs))
+        return tokens
+
+    def get_bos_tokens(self: Self, length: int) -> torch.Tensor:
+        output_tokens = torch.full((length, 1), self.tokenizer.bos_token_int)
+        return output_tokens
+
+    def make_prediction():
+        pass
+
+    @torch.no_grad()
+    def predict(
+        self: Self,
+        texts: list[str],
+        max_new_tokens: int | None = None,
+    ) -> list[str]:
+        texts = [self.tokenizer.add_special_tokens(chars) for chars in texts]
+        input_tokens = self.tokenizer.batch_encode(texts)
+
+        bos_tokens = self.get_bos_tokens(len(texts))
+
+        encoder_tokens = input_tokens
+        decoder_tokens = self.tokenizer.batch_shift(encoder_tokens, bos_tokens)
+
+        output_tokens = [output for output in bos_tokens]
+        eos_indexes = [None for _ in texts]
+        index = 1
+
+        while any(eos_index is None for eos_index in eos_indexes) and (
+            max_new_tokens is None or index < max_new_tokens
+        ):
+            predicted_tokens = self.transformer(encoder_tokens, decoder_tokens)
+
+            next_output_tokens = self.get_output_tokens(
+                tokens=predicted_tokens,
+                mask=input_tokens,
+            )
+
+            shifted_decoder_tokens = self.tokenizer.batch_shift(
+                input_tokens=decoder_tokens,
+                output_tokens=next_output_tokens,
+            )
+
+            encoder_tokens, decoder_tokens = decoder_tokens, shifted_decoder_tokens
+
+            output_tokens = [
+                previous_output_tokens
+                if eos_index is not None
+                else torch.cat((previous_output_tokens, next_output_token))
+                for previous_output_tokens, next_output_token, eos_index in zip(
+                    output_tokens,
+                    next_output_tokens,
+                    eos_indexes,
+                )
+            ]
+
+            eos_indexes = [
+                eos_index
+                if eos_index is not None
+                else index
+                if token == self.tokenizer.eos_token_int
+                else None
+                for eos_index, token in zip(eos_indexes, next_output_tokens)
+            ]
+
+            index += 1
+
+        outputs = self.tokenizer.batch_decode(output_tokens)
+
+        return outputs
+```
+
+### Unindo tudo
+
+O código a seguir mostra o uso dos módulos acima. Além dessa implementação, ainda falta a implementação do algoritmo de treinamento.
+
+```python
+
+
+vocab = set(printable)
+
+tokenizer_config = TokenizerConfig()
+tokenizer = Tokenizer(vocab, tokenizer_config)
+
+transformer_config = TransformerConfig(tokenizer.vocab_size)
+
+transformer = Transformer(transformer_config)
+executor = TransformerExecutor(tokenizer, transformer)
+
+texts = [
+    "Onde fica o hospital mais perto?",
+    "Por que os dinossauros desapareceram?",
+    "Quem vive no Palacio do Planalto?",
+    "Transformers? Aqueles filmes de carro?",
 ]
 
-print(*lines, sep="\n")
+predicted = executor.predict(
+    texts=texts,
+    max_new_tokens=16,
+)
 ```
+
+Todo o código desse post pode ser acessado de forma mais fácil através da biblioteca [language-models](http://github.com/eshiraishi/language-models/). Ao instanciar um modelo dessa forma, o resultado obtido será completamente aleatório,
+
+Ao instanciar um modelo dessa forma, provavelmente o resultado será aleatório, dado que o modelo ainda não foi treinado, o que gera resultados estranhos:
+
+```txt
+Onde fica o hospital mais perto?       -> <bos><eos>
+Por que os dinossauros desapareceram?  -> <bos>qfJ1L"11fJ1__\rb
+Quem vive no Palacio do Planalto?      -> <bos>1;";1__V"1\rfJ"J
+Transformers? Aqueles filmes de carro? -> <bos>fJ"2J[fJ;"JJp9J
+```
+
+Porém isso é esperado. Em um dos próximos posts, um modelo usando esse código será treinado para mostrar resultados mais factíveis.
 
 ## Referências
 
