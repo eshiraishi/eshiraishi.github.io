@@ -10,7 +10,7 @@
   }
 
   ::-webkit-scrollbar-corner {
-    background: rgba(0, 0, 0, 0);
+    @apply bg-[#00000000];
   }
 }
 
@@ -106,10 +106,7 @@
 
     ol,
     ul {
-      p {
-        margin: 0 !important;
-        display: inline;
-      }
+      @apply mx-0 my-0 inline;
     }
 
     kbd {
@@ -123,6 +120,22 @@
     .katex-html {
       @apply overflow-x-auto overflow-y-hidden;
     }
+
+
+    .beoe-dark,
+    .beoe-light {
+      @apply flex justify-center;
+    }
+
+
+    :root.dark span.edgeLabel .labelBkg,
+    :root.dark span.edgeLabel,
+    :root.dark span.edgeLabel p {
+      background-color: #171717 !important;
+      border-width: 0px !important;
+      color: #d3d3d3 !important;
+    }
+
   }
 
   :root:not(.dark) .beoe-dark,
@@ -130,16 +143,12 @@
     @apply hidden;
   }
 
-  .beoe-dark,
-  .beoe-light {
-    @apply flex justify-center;
+
+  /* body::-webkit-scrollbar {
+    @apply w-4 bg-neutral-700 rounded;
   }
 
-  :root.dark span.edgeLabel .labelBkg,
-  :root.dark span.edgeLabel,
-  :root.dark span.edgeLabel p {
-    background-color: #171717 !important;
-    border-width: 0px !important;
-    color: #d3d3d3 !important;
-  }
+  body::-webkit-scrollbar-track {
+    @apply
+  } */
 }
