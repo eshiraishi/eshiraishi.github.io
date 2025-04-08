@@ -71,7 +71,7 @@
     }
 
     a {
-      @apply text-indigo-600 dark:text-sky-500 underline;
+      @apply text-teal-600 dark:text-teal-500 underline;
     }
 
     table {
@@ -131,11 +131,8 @@
     :root.dark span.edgeLabel .labelBkg,
     :root.dark span.edgeLabel,
     :root.dark span.edgeLabel p {
-      background-color: #171717 !important;
-      border-width: 0px !important;
-      color: #d3d3d3 !important;
+      @apply bg-[#171717] border-none text-[#d3d3d3];
     }
-
   }
 
   :root:not(.dark) .beoe-dark,

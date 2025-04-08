@@ -13,44 +13,43 @@ import { DARK_THEME, LIGHT_THEME, SITE_URL } from "./src/consts";
 
 const cache = await getCache();
 // @ts-check
+const remarkMathConfig = { singleDollarTextMath: true, output: 'html', strict: true, trust: true };
+const rehypeMermaidConfig = {
+  strategy: "inline",
+  darkScheme: "class",
+  mermaidConfig: {
+    theme: 'neutral',
+    darkMode: true,
+    logLevel: 'info'
+  },
+  cache
+};
+const expressiveCodeIntegration = expressiveCode({
+  themes: [DARK_THEME, LIGHT_THEME],
+  themeCssRoot: ':root',
+  useDarkModeMediaQuery: false,
+  useStyleReset: false,
+  removeUnusedThemes: true,
+  useThemedScrollbars: true,
+  useThemedSelectionColors: true,
+  themeCssSelector: (theme) => theme.name === DARK_THEME ? ':root.dark' : ':root:not(.dark)',
+  styleOverrides: {
+    uiFontFamily: "var(--font-sans), sans-serif",
+    codeFontFamily: "var(--font-mono), monospace",
+  },
+})
 
-// https://astro.build/config
 export default defineConfig({
   site: SITE_URL,
   markdown: {
     remarkPlugins: [
-      [remarkMath, { singleDollarTextMath: true, output: 'html', strict: true, trust: true }],
+      [remarkMath, remarkMathConfig],
       remarkRehype,
     ],
     rehypePlugins: [
-      [rehypeMermaid, {
-        strategy: "inline",
-        darkScheme: "class",
-        mermaidConfig: {
-          theme: 'neutral',
-          darkMode: true,
-          logLevel: 'info'
-        },
-        cache,
-      }],
+      [rehypeMermaid, rehypeMermaidConfig],
       rehypeKatex,
     ],
   },
-  integrations: [
-    expressiveCode({
-      themes: [DARK_THEME, LIGHT_THEME],
-      themeCssRoot: ':root',
-      themeCssSelector: (theme) =>
-        theme.name === DARK_THEME ? ':root.dark' : ':root:not(.dark)',
-      useDarkModeMediaQuery: false,
-      useStyleReset: false,
-      styleOverrides: {
-        uiFontFamily: "var(--font-sans), sans-serif",
-        codeFontFamily: "var(--font-mono), monospace",
-      },
-      removeUnusedThemes: true,
-      useThemedScrollbars: true,
-      useThemedSelectionColors: true,
-    }),
-    mdx(), sitemap(), tailwind()],
+  integrations: [expressiveCodeIntegration, mdx(), sitemap(), tailwind()],
 });

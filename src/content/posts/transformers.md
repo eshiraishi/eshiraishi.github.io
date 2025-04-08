@@ -1332,7 +1332,7 @@ $$
         t-1    & -0.11  & 1.55    & -0.18      & \dots  & 0.95     & -\infty  \\
         t      & 1.45   & -1.42   & 1.62       & \dots  & 2.06     & -0.23
         \end{array}
-    }_{\text{Pesosmascarados}}
+    }_{\text{Pesos mascarados}}
 $$
 
 Existem casos onde esse vazamento não será um problema, onde a attention mask aplicada será apenas um tensor nulo.
@@ -1407,16 +1407,16 @@ A arquitetura dos Transformers original é composta dos componentes apresentados
 ```mermaid
 flowchart
     direction TB
-    input(Sequência recebida)
-    inputProcessing(Processamento de entrada)
-    encoder("Encoder") 
-    decoder("Decoder")
-    outputProcessing(Processamento de saída)
-    conditional{"`&lt;eos&gt;?`"}
+    input@{ shape: text, label: "Sequência recebida" }
+    inputProcessing@{ shape: text, label: "Processamento de entrada" }
+    encoder@{ shape: text, label: "Encoder" }
+    decoder@{ shape: text, label: "Decoder" }
+    outputProcessing@{ shape: text, label: "Processamento de saída" }
+    conditional@{ shape: text, label: "&lt;eos&gt;?" }
     input --> inputProcessing --> encoder --> decoder --> outputProcessing
     inputProcessing --> decoder
     outputProcessing --> conditional -- Não --> inputProcessing
-    conditional -- Sim --> output(Saída)
+    conditional -- Sim --> output@{ shape: text, label: "Saída" }
 ```
 
 Para ilustrar o funcionamento de cada componente da arquitetura, considere que o modelo sendo descrito é um modelo de linguagem. Nesse caso, as sequências recebidas sempre usarão o formato `<bos><sequência recebida><eos><bos><sequência gerada><eos>`.
@@ -1427,20 +1427,17 @@ O processamento de entrada seguirá o processo apresentado, de criação de toke
 
 ```mermaid
 flowchart
-    lastToken(Último elemento gerado)
-    input(Sequência recebida)
+    lastToken@{ shape: text, label: "Último elemento gerado" }
+    input@{ shape: text, label: "Sequência recebida" }
     
-    subgraph p[ ]
-    shift(Shift)
-    embedding(Embedding)
-    pose(PE)
-    tokenizer(Tokenizer)
-    end
+    shift@{ shape: text, label: "Shift" }
+    embedding@{ shape: text, label: "Embedding" }
+    pose@{ shape: text, label: "PE" }
+    tokenizer@{ shape: text, label: "Tokenizer" }
     
-    encoder(Encoder)
-    decoder(Decoder)
+    encoder@{ shape: text, label: "Encoder" }
+    decoder@{ shape: text, label: "Decoder" }
 
-    input ~~~ lastToken
 
     input -.-> tokenizer
     input & lastToken --> shift --> tokenizer
@@ -1515,19 +1512,19 @@ O encoder e o decoder serão baseados em Transformer blocks, que geram outra seq
 
 ```mermaid
 flowchart
-    Key(Keys)
-    Mask(Máscara de atenção)    
-    Query(Queries)
-    Value(Values)
-    Sum1("`\+`")
-    Sum2("`\+`")
-    MHA(MHA)
-    LayerNorm1(LayerNorm)
-    LayerNorm2(LayerNorm)
-    Linear1(Linear)
-    Linear2(Linear)
-    ReLU(ReLU)
-    output(Saída)
+    Key@{ shape: text, label: "Keys" }
+    Mask@{ shape: text, label: "Máscara de atenção" }
+    Query@{ shape: text, label: "Queries" }
+    Value@{ shape: text, label: "Values" }
+    Sum1@{ shape: text, label: "&#43" }
+    Sum2@{ shape: text, label: "&#43" }
+    MHA@{ shape: text, label: "MHA" }
+    LayerNorm1@{ shape: text, label: "LayerNorm" }
+    LayerNorm2@{ shape: text, label: "LayerNorm" }
+    Linear1@{ shape: text, label: "Linear" }
+    Linear2@{ shape: text, label: "Linear" }
+    ReLU@{ shape: text, label: "ReLU" }
+    output@{ shape: text, label: "Saída" }
     Mask --> MHA
     Query --> MHA
     Key --> MHA
@@ -1622,11 +1619,11 @@ O valor de $m$ é um hiperparâmetro que deve ser definido antes do treinamento.
 
 ```mermaid
 flowchart
-    input(Sequência recebida)
-    EncoderBlock(1º Bloco de transformer)
-    EncoderBlock2(2º Bloco de transformer)
-    EncoderBlockN(mº Bloco de transformer)
-    outputN(Saída)
+    input@{ shape: text, label: "Sequência recebida" }
+    EncoderBlock@{ shape: text, label: "1º Bloco de transformer" }
+    EncoderBlock2@{ shape: text, label: "2º Bloco de transformer" }
+    EncoderBlockN@{ shape: text, label: "mº Bloco de transformer" }
+    outputN@{ shape: text, label: "Saída" }
     input --> EncoderBlock
     EncoderBlock --> EncoderBlock2
     EncoderBlock2 -- ... --> EncoderBlockN
@@ -1681,12 +1678,12 @@ O valor de $n$ é um hiperparâmetro que deve ser definido antes do treinamento.
 
 ```mermaid
 flowchart
-    input("`Sequência pós shift`")
-    encoderOutput("`Sequência do encoder`")
-    DecoderBlock1(1º bloco de decoder)
-    DecoderBlock2(2º bloco de decoder)
-    DecoderBlockN(nº bloco de decoder)
-    output(Saída)
+    input@{ shape: text, label: "Sequência pós shift" }
+    encoderOutput@{ shape: text, label: "Sequência do encoder" }
+    DecoderBlock1@{ shape: text, label: "1º bloco de decoder" }
+    DecoderBlock2@{ shape: text, label: "2º bloco de decoder" }
+    DecoderBlockN@{ shape: text, label: "nº bloco de decoder" }
+    output@{ shape: text, label: "Saída" }
 
     input -- Queries, Keys, Values --> DecoderBlock1
     encoderOutput --> DecoderBlock1
@@ -1756,14 +1753,14 @@ Encoder-Decoder Attention (EDA) é um tipo de MHA e é o único caso na arquitet
 
 ```mermaid
 flowchart
-    encoderOutput(Sequência do encoder)
-    Value(Values)
-    Key(Keys)
-    Query(Queries)
-    MHA(MHA)
-    DecoderBlock(Bloco de transformer)
-    decoderBlockOutput(Saída)
-    attentionMask(Máscara de atenção)
+    encoderOutput@{ shape: text, label: "Sequência do encoder" }
+    Value@{ shape: text, label: "Values" }
+    Key@{ shape: text, label: "Keys" }
+    Query@{ shape: text, label: "Queries" }
+    MHA@{ shape: text, label: "MHA" }
+    DecoderBlock@{ shape: text, label: "Bloco de transformer" }
+    decoderBlockOutput@{ shape: text, label: "Saída" }
+    attentionMask@{ shape: text, label: "Máscara de atenção" }
     attentionMask --> MHA
     Query --> MHA
     Key --> MHA
@@ -1822,7 +1819,7 @@ A sequência final de embeddings é transformada em tokens do vocabulário de sa
 
 ```mermaid
 flowchart
-    DecoderBlockN(Entrada) --> linear(Linear) --> Softmax(Softmax) --> Argmax(Argmax) --> outputString(Saída)
+    DecoderBlockN@{ shape: text, label: "Entrada" } --> linear@{ shape: text, label: "Linear" } --> Softmax@{ shape: text, label: "Softmax" } --> Argmax@{ shape: text, label: "Argmax" } --> outputString@{ shape: text, label: "Saída" }
 ```
 
 Cada índice obtido dessa forma representa o token que será predito naquela posição da sequência, e essa sequência será o resultado da iteração do modelo autoregressivo.
@@ -1884,9 +1881,9 @@ class OutputProcessor(nn.Module):
 
 ## Conclusão
 
-Com todos os componentes definidos, está completa a implementação da arquitetura Transformer. No exemplo abaixo está uma implementação que os une e executa o modelo.
+Com todos os componentes definidos, está completa a implementação da arquitetura Transformer. No exemplo abaixo está uma implementação que os une e executa o modelo (aplicando shift uma vez).
 
-### Juntando tudo
+### Modelo
 
 ```python
 class Transformer(nn.Module):
