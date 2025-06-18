@@ -27,9 +27,11 @@
   article {
     @apply max-w-3xl overflow-hidden;
 
+
     p {
       @apply my-4 leading-relaxed;
     }
+
 
     h1 {
       @apply my-4 text-xl font-bold dark:text-neutral-50;
@@ -98,6 +100,12 @@
 
     ol {
       @apply my-1 list-inside list-decimal space-y-1 [&_ol]:pl-5 [&_ul]:pl-5;
+
+      li {
+        p {
+          display: inline;
+        }
+      }
     }
 
     ul {
