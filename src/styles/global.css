@@ -103,7 +103,7 @@
 
       li {
         p {
-          display: inline;
+          @apply inline;
         }
       }
     }
