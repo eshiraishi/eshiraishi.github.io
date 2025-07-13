@@ -1,13 +1,15 @@
 ---
-title: 'Explicando Transformers, Pt. V: Modelos Autoregressivos'
+title: '🇧🇷 Explicando Transformers (Pt. 5): Modelos Autoregressivos'
 date: '2025-07-17'
-description: ''
+description: 'Nesse post, antes de entendermos a estrutura de um Transformer, vamos entender primeiro como funcionam os modelos autoregressivos. Eles são uma classe de modelos que recebem sequências de dados e geram novas sequências, um elemento por vez. Isso deixará mais simples o entendimento da arquitetura dos Transformers em breve.'
 image: '/transformers.png'
 ---
 
-Antes de entendermos a estrutura de um Transformer, vale a pena entender primeiro como funcionam os modelos autoregressivos. Eles são uma classe de modelos que recebem sequências de dados e geram novas sequências, um elemento por vez. Isso deixará mais simples o entendimento da arquitetura dos Transformers em breve.
+Nesse post, antes de entendermos a estrutura de um Transformer, vamos entender primeiro como funcionam os modelos autoregressivos. Eles são uma classe de modelos que recebem sequências de dados e geram novas sequências, um elemento por vez. Isso deixará mais simples o entendimento da arquitetura dos Transformers em breve.
 
-## Modelos autoregressivos
+**Em breve este post estará disponível! Fique de olho!**
+
+<!-- ## Modelos autoregressivos
 
 Transformers são modelos que realizam transdução de sequências utilizando um processo autoregressivo. Essa característica define como os diferentes componentes do modelo são organizados e combinados ao longo da arquitetura.
 
@@ -198,4 +200,4 @@ def attn_mask_like(size: tuple[int]) -> torch.Tensor:
 
 Usando um processo autogressivo, é possível criar modelos capazes de gerar sequências inteiras de elementos de forma iterativa. Esse é o segredo para criar inteligências artificiais capazes de traduzir textos, responder perguntas, e outras aplicações.
 
-Agora temos todas as peças para montar nosso próprio modelo desse tipo. No próximo post, vamos ver como foi feita a arquitetura do primeiro Transformer, como descrito no artigo original.
+Agora temos todas as peças para montar nosso próprio modelo desse tipo. No próximo post, vamos ver como foi feita a arquitetura do primeiro Transformer, como descrito no artigo original. -->

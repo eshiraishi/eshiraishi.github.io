@@ -1,7 +1,7 @@
 ---
-title: 'Explicando Transformers'
+title: '🇧🇷 Explicando Transformers'
 date: '2025-07-12'
-description: ''
+description: 'Guia completo em português sobre Transformers: da teoria à prática com PyTorch. Aprenda como funcionam os modelos por trás do ChatGPT, Claude e Gemini através de explicações conceituais e implementações funcionais.'
 image: '/transformers.png'
 ---
 
@@ -22,8 +22,8 @@ O guia é dividido em 7 partes:
 3. [Atenção](/posts/transformers-attention)
 4. [Positional Encoding](/posts/transformers-positional-encoding)
 5. [Modelos autoregressivos](/posts/transformers-autoregressive-models)
-6. [Juntando tudo: O transformer original](/posts/transformers-architecture)
-7. [Treinando um Transformer](/posts/transformers-training)
+6. [Juntando tudo](/posts/transformers-architecture)
+7. [Treinamento](/posts/transformers-training)
 
 ## Pré-requisitos
 

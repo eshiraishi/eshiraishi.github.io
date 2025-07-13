@@ -1,7 +1,7 @@
 ---
-title: 'Explicando Transformers, Pt. I: Introdução'
+title: '🇧🇷 Explicando Transformers (Pt. 1): Introdução'
 date: '2025-07-13'
-description: ''
+description: 'Nesse post, será feita uma introdução aos Transformers, explicando os problemas que estamos tentando resolver com essa arquitetura, introduzindo o contexto histórico que levou à sua criação e os desafios presentes na criação desse tipo de modelo.'
 image: '/transformers.png'
 ---
 
