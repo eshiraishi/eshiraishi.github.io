@@ -2,6 +2,7 @@
 title: 'Explicando Transformers, Pt. IV: Positional Encoding'
 date: '2025-07-16'
 description: ''
+image: '/transformers.png'
 ---
 
 No post anterior, vimos como funcionam mecanismos de atenção e concluímos que existem algumas limitações no seu uso direto. Nesse post, explicarei como funciona o Positional Encoding, uma técnica complementar à atenção para representar a posição dos elementos na sequência recebida.

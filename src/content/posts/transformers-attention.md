@@ -2,6 +2,7 @@
 title: 'Explicando Transformers, Pt. III: Atenção'
 date: '2025-07-15'
 description: ''
+image: '/transformers.png'
 ---
 
 Neste post, vou explicar o que é atenção e como funcionam os mecanismos apresentados no artigo "Attention is All You Need". No caminho, vamos ver como funcionam os mecanismos Scaled Dot-Product Attention e Multihead Attention, e ao final, também vamos implementar esses mecanismos do zero em PyTorch com foco em eficiência computacional.
@@ -331,7 +332,7 @@ Como os pesos no SDPA são normalizados, cada cabeça de atenção não pode "pr
 
 Usando uma analogia, o MHA seria como ler um texto $h$ vezes, focando em partes diferentes a cada leitura para compreender melhor o contexto de cada palavra. No mecanismo, porém, todas essas "leituras" acontecem simultaneamente.
 
-Embora esse mecanismo otimize o modelo, se implementado literalmente, seria necessário calcular o SDPA $h$ vezes, tornando o MHA $h$ vezes mais lento — o que pode tornar o mecanismo inviável computacionalmente. Para evitar esse problema, utiliza-se a adaptação a seguir no algoritmo, que permite que a sua complexidade computacional não cresça com o número de cabeças, mantendo a escalabilidade do modelo:
+Embora esse mecanismo otimize o modelo, se implementado literalmente, seria necessário calcular o SDPA $h$ vezes, tornando o MHA $h$ vezes mais lento, o que pode tornar o mecanismo inviável computacionalmente. Para evitar esse problema, utiliza-se a adaptação a seguir no algoritmo, que permite que a sua complexidade computacional não cresça com o número de cabeças, mantendo a escalabilidade do modelo:
 
 1. Dividir as queries, keys e values em $h$ partes, transformando as dimensões do batch de $b \times t \times d$ para $b \times t \times h \times \frac{d}{h}$.
 2. Transpor o tensor para que a dimensão das cabeças venha antes da dimensão das sequências, mudando de $b \times t \times h \times \frac{d}{h}$ para $b \times h \times t \times \frac{d}{h}$.

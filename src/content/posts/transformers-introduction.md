@@ -2,6 +2,7 @@
 title: 'Explicando Transformers, Pt. I: Introdução'
 date: '2025-07-13'
 description: ''
+image: '/transformers.png'
 ---
 
 Nesse post, será feita uma introdução aos Transformers, explicando os problemas que estamos tentando resolver com essa arquitetura, introduzindo o contexto histórico que levou à sua criação e os desafios presentes na criação desse tipo de modelo.
@@ -40,7 +41,7 @@ Como em grande parte da pesquisa em redes neurais, muitas decisões e convençõ
 
 O grande diferencial dos Transformers é serem baseados exclusivamente em redes neurais feedforward e mecanismos de atenção. Isso permite resolver os problemas mencionados e alcançar desempenho superior em tarefas de transdução de sequências.
 
-Essa abordagem justifica o nome do artigo: do ponto de vista arquitetural, não são necessárias redes neurais recorrentes para criar modelos eficientes — basta o uso de mecanismos de atenção, ou seja, "Attention is All you Need".
+Essa abordagem justifica o nome do artigo: do ponto de vista arquitetural, não são necessárias redes neurais recorrentes para criar modelos eficientes. Basta o uso de mecanismos de atenção, ou seja, "Attention is All you Need".
 
 ## Conclusão
 

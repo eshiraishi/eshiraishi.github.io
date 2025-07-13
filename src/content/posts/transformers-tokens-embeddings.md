@@ -2,6 +2,7 @@
 title: 'Explicando Transformers, Pt. II: Tokens e embeddings'
 date: '2025-07-14'
 description: ''
+image: '/transformers.png'
 ---
 
 Neste post, vou mostrar como os dados são representados em modelos como os Transformers, explicando como inteligências artificiais como o ChatGPT entendem nossos prompts. Vamos passar por conceitos importantes como tokens, embeddings e padding, criar um tokenizador simples em Python e como gerar embeddings de forma prática usando PyTorch.

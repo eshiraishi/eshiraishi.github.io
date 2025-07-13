@@ -2,6 +2,7 @@
 title: 'Explicando Transformers, Pt. V: Modelos Autoregressivos'
 date: '2025-07-17'
 description: ''
+image: '/transformers.png'
 ---
 
 Antes de entendermos a estrutura de um Transformer, vale a pena entender primeiro como funcionam os modelos autoregressivos. Eles são uma classe de modelos que recebem sequências de dados e geram novas sequências, um elemento por vez. Isso deixará mais simples o entendimento da arquitetura dos Transformers em breve.

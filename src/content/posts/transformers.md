@@ -2,6 +2,7 @@
 title: 'Explicando Transformers'
 date: '2025-07-12'
 description: ''
+image: '/transformers.png'
 ---
 
 Em 2017, a Google Brain lançou o artigo "Attention is All you Need", que introduziu para o mundo o Transformer, uma arquitetura para redes neurais para transdução de sequências baseada em atenção que permitiu a criação de modelos que superaram todos os outros modelos anteriores em tradução entre idiomas.
