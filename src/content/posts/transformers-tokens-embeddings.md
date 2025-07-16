@@ -7,9 +7,7 @@ image: '/transformers.png'
 
 Neste post, vou mostrar como os dados são representados em modelos como os Transformers, explicando como inteligências artificiais como o ChatGPT entendem nossos prompts. Vamos passar por conceitos importantes como tokens, embeddings e padding, criar um tokenizador simples em Python e como gerar embeddings de forma prática usando PyTorch.
 
-**Em breve este post estará disponível! Fique de olho!**
-
-<!-- ## Representação dos dados
+## Representação dos dados
 
 Para trabalhar com textos usando redes neurais, precisamos convertê-los para uma forma numérica que os modelos consigam processar. O método mais comum é transformar o texto em uma sequência de tokens, que são então convertidos em embeddings.
 
@@ -571,4 +569,4 @@ embedding = embedder(42)
 
 Neste post, vimos como transformar textos em sequências numéricas usando tokens e embeddings, de um jeito prático e eficiente. Esses conceitos podem parecer um pouco abstratos agora, mas logo vão fazer todo sentido quando começarmos a explorar como os Transformers realmente funcionam.
 
-No próximo post, vamos entender o que é atenção e como funcionam os mecanismos de atenção usados originalmente na arquitetura Transformer, Scaled Dot-Product Attention e Multihead Attention, como apresentados no artigo "Attention is All You Need". -->
+No próximo post, vamos entender o que é atenção e como funcionam os mecanismos de atenção usados originalmente na arquitetura Transformer, Scaled Dot-Product Attention e Multihead Attention, como apresentados no artigo "Attention is All You Need".
