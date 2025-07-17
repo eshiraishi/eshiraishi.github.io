@@ -5,9 +5,9 @@ import ThemeToggle from "./ThemeToggle.astro";
 
 <header class="mb-6 flex items-center justify-between" transition:name="header">
   <div class="flex items-center gap-6">
-    <nav class="flex items-center gap-4">
-      <a href="/" class="font-black">{SITE_TITLE}</a>
-      <a href="/posts"> Posts </a>
+    <nav class="nav-links flex items-center gap-4">
+      <a href="/" class="!font-bold">{SITE_TITLE}</a>
+      <a href="/posts">Posts</a>
       <a href={`mailto:${EMAIL}`}>Contact</a>
     </nav>
   </div>

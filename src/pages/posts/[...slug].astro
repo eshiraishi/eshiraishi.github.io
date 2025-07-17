@@ -62,15 +62,15 @@ const nextPost = currentIndex > 0 ? sortedPosts[currentIndex - 1] : null;
           previousPost && (
             <a
               href={`/posts/${previousPost.slug}`}
-              class="group flex flex-col rounded-lg p-2 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800 !text-inherit"
+              class="group flex flex-col rounded-lg p-2 !text-inherit transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800"
             >
-              <span class="text-sm text-neutral-500 dark:text-neutral-400 transition-colors group-hover:!text-neutral-600 dark:group-hover:!text-neutral-300">
-                ← Previous
+              <span class="text-sm text-neutral-500 transition-colors group-hover:!text-neutral-600 dark:text-neutral-400 dark:group-hover:!text-neutral-300">
+                Previous
               </span>
               <span class="mt-1 truncate font-medium transition-colors group-hover:!text-neutral-900 dark:group-hover:!text-neutral-100">
                 {previousPost.data.title}
               </span>
-              <span class="mt-1 text-sm text-neutral-500 dark:text-neutral-400 transition-colors group-hover:!text-neutral-600 dark:group-hover:!text-neutral-300">
+              <span class="mt-1 text-sm text-neutral-500 transition-colors group-hover:!text-neutral-600 dark:text-neutral-400 dark:group-hover:!text-neutral-300">
                 {formatDate(previousPost.data.date)}
               </span>
             </a>
@@ -83,15 +83,15 @@ const nextPost = currentIndex > 0 ? sortedPosts[currentIndex - 1] : null;
           nextPost && (
             <a
               href={`/posts/${nextPost.slug}`}
-              class="group flex flex-col rounded-lg p-2 text-right transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800 !text-inherit"
+              class="group flex flex-col rounded-lg p-2 text-right !text-inherit transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800"
             >
-              <span class="text-sm text-neutral-500 dark:text-neutral-400 transition-colors group-hover:!text-neutral-600 dark:group-hover:!text-neutral-300">
-                Next →
+              <span class="text-sm text-neutral-500 transition-colors group-hover:!text-neutral-600 dark:text-neutral-400 dark:group-hover:!text-neutral-300">
+                Next
               </span>
               <span class="mt-1 truncate font-medium transition-colors group-hover:!text-neutral-900 dark:group-hover:!text-neutral-100">
                 {nextPost.data.title}
               </span>
-              <span class="mt-1 text-sm text-neutral-500 dark:text-neutral-400 transition-colors group-hover:!text-neutral-600 dark:group-hover:!text-neutral-300">
+              <span class="mt-1 text-sm text-neutral-500 transition-colors group-hover:!text-neutral-600 dark:text-neutral-400 dark:group-hover:!text-neutral-300">
                 {formatDate(nextPost.data.date)}
               </span>
             </a>

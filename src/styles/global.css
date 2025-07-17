@@ -24,6 +24,12 @@
     @apply mx-0 my-auto;
   }
 
+  .nav-links {
+    a {
+      @apply no-underline hover:no-underline;
+    }
+  }
+
   article {
     @apply max-w-3xl overflow-hidden;
 
@@ -73,7 +79,32 @@
     }
 
     a {
-      @apply text-white dark:text-white underline decoration-neutral-400 dark:decoration-neutral-500 hover:no-underline hover:p-0.5 rounded transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800;
+      @apply underline decoration-neutral-400 dark:decoration-neutral-500 hover:no-underline hover:p-0.5 rounded transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800;
+      text-decoration-thickness: 1px;
+      text-underline-offset: 4px;
+
+      &:has(img.link-icon) {
+        @apply hover:bg-transparent hover:p-0 no-underline;
+      }
+
+      &:hover img.link-icon {
+        @apply opacity-100;
+      }
+
+      img.link-icon {
+        @apply w-4 h-4 my-0 ml-2 border-0 rounded-none inline-block opacity-30 transition-opacity;
+        /* Ensure SVG icons inherit text color and match foreground */
+        color: currentColor;
+      }
+
+      /* Make sure SVG icons are properly colored in both light and dark modes */
+      img.link-icon {
+        filter: invert(25%);
+      }
+
+      :root.dark & img.link-icon {
+        filter: invert(75%);
+      }
     }
 
     table {

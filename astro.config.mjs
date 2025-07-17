@@ -6,7 +6,9 @@ import { getCache } from "@beoe/cache";
 import rehypeMermaid from "@beoe/rehype-mermaid";
 import expressiveCode from "astro-expressive-code";
 import { defineConfig } from "astro/config";
+import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import rehypeKatex from "rehype-katex";
+import rehypeSlug from "rehype-slug";
 import remarkMath from "remark-math";
 import remarkRehype from 'remark-rehype';
 import { DARK_THEME, LIGHT_THEME, SITE_URL } from "./src/consts";
@@ -47,6 +49,23 @@ export default defineConfig({
       remarkRehype,
     ],
     rehypePlugins: [
+      rehypeSlug,
+      [rehypeAutolinkHeadings, {
+        behavior: 'wrap',
+        content: {
+          type: 'element',
+          tagName: 'img',
+          properties: {
+            src: '/link-icon.svg',
+            alt: 'Link',
+            className: ['link-icon']
+          }
+        },
+        properties: {
+          className: ['heading-anchor'],
+          ariaLabel: 'Link to section'
+        }
+      }],
       [rehypeMermaid, rehypeMermaidConfig],
       rehypeKatex,
     ],
