@@ -15,6 +15,18 @@ type Props = CollectionEntry<"posts">;
 
 const post = Astro.props;
 const { Content } = await post.render();
+
+// Get all posts sorted by date (newest first)
+const allPosts = await getCollection("posts");
+const sortedPosts = allPosts.sort(
+  (a, b) => b.data.date.getTime() - a.data.date.getTime(),
+);
+
+// Find current post index and get previous/next posts
+const currentIndex = sortedPosts.findIndex((p) => p.slug === post.slug);
+const previousPost =
+  currentIndex < sortedPosts.length - 1 ? sortedPosts[currentIndex + 1] : null;
+const nextPost = currentIndex > 0 ? sortedPosts[currentIndex - 1] : null;
 ---
 
 <Layout
@@ -29,7 +41,7 @@ const { Content } = await post.render();
         <img
           src={post.data.image}
           alt={post.data.title}
-          class="mx-auto mb-4 w-4/5 rounded-lg object-cover"
+          class="mx-auto mb-4 rounded-lg object-cover"
         />
       )
     }
@@ -42,5 +54,50 @@ const { Content } = await post.render();
     <article>
       <Content />
     </article>
+
+    <!-- Post Navigation -->
+    <nav class="flex flex-col gap-4 pt-8 sm:flex-row sm:justify-between">
+      <div class="min-w-0 flex-1">
+        {
+          previousPost && (
+            <a
+              href={`/posts/${previousPost.slug}`}
+              class="group flex flex-col rounded-lg p-2 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-900"
+            >
+              <span class="text-sm text-neutral-500 dark:text-neutral-400">
+                ← Previous
+              </span>
+              <span class="mt-1 truncate font-medium group-hover:text-blue-600 dark:group-hover:text-teal-400">
+                {previousPost.data.title}
+              </span>
+              <span class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+                {formatDate(previousPost.data.date)}
+              </span>
+            </a>
+          )
+        }
+      </div>
+
+      <div class="min-w-0 flex-1">
+        {
+          nextPost && (
+            <a
+              href={`/posts/${nextPost.slug}`}
+              class="group flex flex-col rounded-lg p-2 text-right transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-900"
+            >
+              <span class="text-sm text-neutral-500 dark:text-neutral-400">
+                Next →
+              </span>
+              <span class="mt-1 truncate font-medium group-hover:text-blue-600 dark:group-hover:text-teal-400">
+                {nextPost.data.title}
+              </span>
+              <span class="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+                {formatDate(nextPost.data.date)}
+              </span>
+            </a>
+          )
+        }
+      </div>
+    </nav>
   </main>
 </Layout>
