@@ -73,7 +73,7 @@
     }
 
     a {
-      @apply text-teal-600 dark:text-teal-500 underline;
+      @apply text-white dark:text-white underline decoration-neutral-400 dark:decoration-neutral-500 hover:no-underline hover:p-0.5 rounded transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800;
     }
 
     table {
