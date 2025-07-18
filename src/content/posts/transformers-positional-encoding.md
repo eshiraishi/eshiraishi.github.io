@@ -7,7 +7,7 @@ image: '/transformers.png'
 
 No post anterior, vimos como funcionam mecanismos de atenção e concluímos que existem algumas limitações no seu uso direto. Nesse post, explicarei como funciona o Positional Encoding, uma técnica complementar à atenção para representar a posição dos elementos na sequência recebida.
 
-**Em breve este post estará disponível! Fique de olho!**
+> **Em breve este post estará disponível! Fique de olho!**
 
 <!-- ## Positional Encoding (PE)
 

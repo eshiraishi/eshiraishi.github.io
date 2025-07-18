@@ -7,6 +7,14 @@
     --font-serif: "Inter Variable";
     --font-sans: "Inter Variable";
     --font-mono: "Roboto Mono Variable";
+
+    --theme-icon-color: theme('colors.neutral.500');
+    --theme-icon-hover-color: theme('colors.black');
+  }
+
+  :root.dark {
+    --theme-icon-color: theme('colors.neutral.400');
+    --theme-icon-hover-color: theme('colors.white');
   }
 
   ::-webkit-scrollbar-corner {
@@ -22,12 +30,6 @@
   .beoe-dark,
   .beoe-light {
     @apply mx-0 my-auto;
-  }
-
-  .nav-links {
-    a {
-      @apply no-underline hover:no-underline;
-    }
   }
 
   article {
@@ -87,23 +89,19 @@
         @apply hover:bg-transparent hover:p-0 no-underline;
       }
 
+      img.link-icon {
+        @apply w-4 h-4 my-0 ml-2 border-0 rounded-none inline-block opacity-0 transition-opacity;
+      }
+
       &:hover img.link-icon {
         @apply opacity-100;
-      }
-
-      img.link-icon {
-        @apply w-4 h-4 my-0 ml-2 border-0 rounded-none inline-block opacity-30 transition-opacity;
-        /* Ensure SVG icons inherit text color and match foreground */
         color: currentColor;
+        filter: none;
       }
 
-      /* Make sure SVG icons are properly colored in both light and dark modes */
-      img.link-icon {
-        filter: invert(25%);
-      }
-
-      :root.dark & img.link-icon {
-        filter: invert(75%);
+      /* Ensure proper visibility in dark mode */
+      :root.dark &:hover img.link-icon {
+        filter: invert(1);
       }
     }
 
@@ -180,11 +178,4 @@
   }
 
 
-  /* body::-webkit-scrollbar {
-    @apply w-4 bg-neutral-700 rounded;
-  }
-
-  body::-webkit-scrollbar-track {
-    @apply
-  } */
 }

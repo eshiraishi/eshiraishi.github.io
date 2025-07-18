@@ -21,6 +21,8 @@
     "@beoe/rehype-mermaid": "^0.3.0",
     "@fontsource-variable/inter": "^5.2.5",
     "@fontsource-variable/roboto-mono": "^5.2.5",
+    "@fontsource/commit-mono": "^5.2.5",
+    "@fontsource/instrument-sans": "^5.2.6",
     "astro": "^5.9.4",
     "astro-expressive-code": "^0.40.1",
     "astro-seo": "^0.8.4",

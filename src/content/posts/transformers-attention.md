@@ -7,7 +7,7 @@ image: '/transformers.png'
 
 Neste post, vou explicar o que é atenção e como funcionam os mecanismos apresentados no artigo "Attention is All You Need". No caminho, vamos ver como funcionam os mecanismos Scaled Dot-Product Attention e Multihead Attention, e ao final, também vamos implementar esses mecanismos do zero em PyTorch com foco em eficiência computacional.
 
-**Em breve este post estará disponível! Fique de olho!**
+> **Em breve este post estará disponível! Fique de olho!**
 
 <!-- ## O que é atenção?
 

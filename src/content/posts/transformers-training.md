@@ -7,4 +7,4 @@ image: '/transformers.png'
 
 Nesse post, vamos aprender a treinar o Transformer criado nas partes anteriores do guia de forma eficiente e aprender algumas formas que os modelos mais eficientes usam para melhorar o seu treinamento.
 
-**Em breve este post estará disponível! Fique de olho!**
+> **Em breve este post estará disponível! Fique de olho!**

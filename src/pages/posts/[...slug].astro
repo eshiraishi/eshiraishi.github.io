@@ -48,7 +48,7 @@ const nextPost = currentIndex > 0 ? sortedPosts[currentIndex - 1] : null;
     <h1 class="mb-2 text-center text-2xl font-medium">
       {post.data.title}
     </h1>
-    <p class="text-center font-medium text-neutral-500">
+    <p class="text-center font-medium text-neutral-500 dark:text-neutral-400">
       {formatDate(post.data.date)}
     </p>
     <article>
@@ -67,7 +67,7 @@ const nextPost = currentIndex > 0 ? sortedPosts[currentIndex - 1] : null;
               <span class="text-sm text-neutral-500 transition-colors group-hover:!text-neutral-600 dark:text-neutral-400 dark:group-hover:!text-neutral-300">
                 Previous
               </span>
-              <span class="mt-1 truncate font-medium transition-colors group-hover:!text-neutral-900 dark:group-hover:!text-neutral-100">
+              <span class="mt-1 truncate font-medium transition-colors group-hover:!text-black dark:group-hover:!text-white">
                 {previousPost.data.title}
               </span>
               <span class="mt-1 text-sm text-neutral-500 transition-colors group-hover:!text-neutral-600 dark:text-neutral-400 dark:group-hover:!text-neutral-300">
@@ -88,7 +88,7 @@ const nextPost = currentIndex > 0 ? sortedPosts[currentIndex - 1] : null;
               <span class="text-sm text-neutral-500 transition-colors group-hover:!text-neutral-600 dark:text-neutral-400 dark:group-hover:!text-neutral-300">
                 Next
               </span>
-              <span class="mt-1 truncate font-medium transition-colors group-hover:!text-neutral-900 dark:group-hover:!text-neutral-100">
+              <span class="mt-1 truncate font-medium transition-colors group-hover:!text-black dark:group-hover:!text-white">
                 {nextPost.data.title}
               </span>
               <span class="mt-1 text-sm text-neutral-500 transition-colors group-hover:!text-neutral-600 dark:text-neutral-400 dark:group-hover:!text-neutral-300">
