@@ -156,6 +156,7 @@ Para garantir que todos os vetores de um batch tenham o mesmo comprimento, é us
 | `␣`     | `29`    |
 | `.`     | `30`    |
 | `,`     | `31`    |
+
 Por fim, existem duas formas principais de definir o comprimento $t$ de cada sequência após o padding:
 
 1. Definir $t$ como o comprimento da maior sequência presente no batch atual.

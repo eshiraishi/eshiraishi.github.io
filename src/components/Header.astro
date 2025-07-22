@@ -1,6 +1,5 @@
 ---
 import { EMAIL, SITE_TITLE } from "../consts";
-import LanguageSelector from "./LanguageSelector.astro";
 import ThemeToggle from "./ThemeToggle.astro";
 
 // Navigation links
@@ -175,19 +174,31 @@ const navLinks = [
       e.stopPropagation();
       mobileMenu.classList.add("-translate-x-full");
     };
+    // Handler for mobile nav links: close menu but allow default navigation
+    const navLinkHandler = (e) => {
+      // don't prevent default so link navigation proceeds
+      mobileMenu.classList.add("-translate-x-full");
+    };
 
-    // Attach and remove listeners for buttons
-    [[menuButton, openHandler], [closeButton, closeHandler]].forEach(([el, handler]) => {
-      if (el) {
-        el.removeEventListener("click", handler);
-        el.addEventListener("click", handler);
+    // Attach and remove listeners for menu and close buttons
+    const buttonHandlers = [
+      { button: menuButton, handler: openHandler },
+      { button: closeButton, handler: closeHandler },
+    ];
+    buttonHandlers.forEach(({ button, handler }) => {
+      if (button) {
+      button.removeEventListener("click", handler);
+      button.addEventListener("click", handler);
       }
     });
 
     // Attach and remove listeners for mobile navigation links
     document.querySelectorAll(".mobile-nav-link").forEach((link) => {
+      // remove old handlers
       link.removeEventListener("click", closeHandler);
-      link.addEventListener("click", closeHandler);
+      link.removeEventListener("click", navLinkHandler);
+      // add new handler that closes menu but allows navigation
+      link.addEventListener("click", navLinkHandler);
     });
   };
 
