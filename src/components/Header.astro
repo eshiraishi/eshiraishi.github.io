@@ -1,23 +1,35 @@
 ---
 import { EMAIL, SITE_TITLE } from "../consts";
+import LanguageSelector from "./LanguageSelector.astro";
 import ThemeToggle from "./ThemeToggle.astro";
 ---
 
-<header class="mb-6 flex items-center justify-between" transition:name="header">
-  <div class="flex items-center gap-6">
-    <nav class="nav-links flex items-center gap-4">
-      <a href="/" class="!font-bold">{SITE_TITLE}</a>
-      <a href="/posts">Posts</a>
-      <a href={`mailto:${EMAIL}`}>Contact</a>
-    </nav>
-  </div>
-  <ThemeToggle />
+<header class="relative mb-6" transition:name="header">
+  <nav class="nav-links scrollbar-hide flex items-center gap-2 overflow-x-auto">
+    <a href="/" class="!font-bold">{SITE_TITLE}</a>
+    <a href="/posts">Posts</a>
+    <a href={`mailto:${EMAIL}`}>Contact</a>
+    <div class="min-w-4 flex-1"></div>
+    <div class="flex shrink-0 items-center gap-2">
+      <LanguageSelector />
+      <ThemeToggle />
+    </div>
+  </nav>
 </header>
 
 <style>
   nav {
     a {
-      @apply font-medium text-neutral-500 no-underline hover:text-black hover:no-underline dark:text-neutral-400 dark:hover:text-white;
+      @apply whitespace-nowrap rounded-md px-2 py-1 font-medium text-neutral-500 no-underline transition-colors hover:bg-neutral-50 hover:text-black hover:no-underline dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white;
     }
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
   }
 </style>

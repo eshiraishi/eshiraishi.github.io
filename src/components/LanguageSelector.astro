@@ -1,0 +1,83 @@
+---
+// Language selector component
+const languages = [
+    { code: "en", name: "English", flag: "🇺🇸" },
+    { code: "es", name: "Español", flag: "🇪🇸" },
+    { code: "fr", name: "Français", flag: "🇫🇷" },
+    { code: "de", name: "Deutsch", flag: "🇩🇪" },
+    { code: "pt", name: "Português", flag: "🇧🇷" },
+];
+
+// Get current language from URL or default to 'en'
+const currentLang = Astro.url.pathname.startsWith("/") ? "en" : "en";
+---
+
+<div class="relative">
+    <select
+        id="language-select"
+        class="relative w-auto cursor-pointer appearance-none rounded-md bg-transparent px-2 py-0.5 text-center text-lg text-neutral-500 transition-colors hover:bg-neutral-50 hover:text-black focus:outline-none dark:border-neutral-600 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white"
+        aria-label="Select language"
+    >
+        {
+            languages.map((lang) => (
+                <option
+                    value={lang.code}
+                    selected={lang.code === currentLang}
+                    class="bg-white text-black dark:bg-neutral-800 dark:text-white"
+                >
+                    {lang.flag}
+                </option>
+            ))
+        }
+    </select>
+</div>
+
+<style>
+    /* Only custom styles that Tailwind can't handle directly */
+    select {
+        position: relative;
+        z-index: 50;
+    }
+
+    select option {
+        text-align: center;
+        padding: 0.5rem;
+        font-size: 1rem;
+    }
+
+    /* Ensure dropdown appears above other elements */
+    select:focus {
+        z-index: 100;
+    }
+</style>
+
+<script>
+    const setLanguageListener = () => {
+        const select = document.getElementById(
+            "language-select",
+        ) as HTMLSelectElement;
+
+        select?.addEventListener("change", (event) => {
+            const target = event.target as HTMLSelectElement;
+            const selectedLang = target.value;
+
+            // For now, just log the selection. You can implement actual language switching logic here
+            console.log("Language changed to:", selectedLang);
+
+            // Example: redirect to language-specific URL
+            // window.location.href = `/${selectedLang}${window.location.pathname}`;
+
+            // Or dispatch a custom event for language change
+            document.dispatchEvent(
+                new CustomEvent("languageChange", {
+                    detail: { language: selectedLang },
+                }),
+            );
+        });
+    };
+
+    setLanguageListener();
+
+    // Re-attach listener after page transitions
+    document.addEventListener("astro:after-swap", setLanguageListener);
+</script>

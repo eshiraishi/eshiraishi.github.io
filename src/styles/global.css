@@ -4,9 +4,9 @@
 
 @layer base {
   :root {
-    --font-serif: "Inter Variable";
-    --font-sans: "Inter Variable";
-    --font-mono: "Roboto Mono Variable";
+    --font-serif: "Atkinson Hyperlegible Next Variable";
+    --font-sans: "Atkinson Hyperlegible Next Variable";
+    --font-mono: "Atkinson Hyperlegible Mono Variable";
 
     --theme-icon-color: theme('colors.neutral.500');
     --theme-icon-hover-color: theme('colors.black');
@@ -17,8 +17,24 @@
     --theme-icon-hover-color: theme('colors.white');
   }
 
+  /* Hide scrollbar for webkit browsers (Chrome, Safari, Edge) */
+  ::-webkit-scrollbar {
+    display: none;
+  }
+
   ::-webkit-scrollbar-corner {
     @apply bg-[#00000000];
+  }
+
+  /* Hide scrollbar for Firefox */
+  html {
+    scrollbar-width: none;
+  }
+
+  /* Ensure scrolling still works on the body */
+  body {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
   }
 }
 
