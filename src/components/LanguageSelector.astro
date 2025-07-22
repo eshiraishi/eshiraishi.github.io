@@ -1,5 +1,11 @@
 ---
 // Language selector component
+interface Props {
+    showLabel?: boolean;
+}
+
+const { showLabel = false } = Astro.props;
+
 const languages = [
     { code: "en", name: "English", flag: "🇺🇸" },
     { code: "es", name: "Español", flag: "🇪🇸" },
@@ -12,10 +18,12 @@ const languages = [
 const currentLang = Astro.url.pathname.startsWith("/") ? "en" : "en";
 ---
 
-<div class="relative">
+<div
+    class={`relative ${showLabel ? "inline-flex items-center rounded-md px-2 py-1 font-medium text-neutral-500 transition-colors hover:bg-neutral-50 hover:text-black dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white" : ""}`}
+>
     <select
         id="language-select"
-        class="relative w-auto cursor-pointer appearance-none rounded-md bg-transparent px-2 py-0.5 text-center text-lg text-neutral-500 transition-colors hover:bg-neutral-50 hover:text-black focus:outline-none dark:border-neutral-600 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white"
+        class={`relative ${showLabel ? "w-full text-left" : "w-auto text-center"} cursor-pointer appearance-none rounded-md bg-transparent ${showLabel ? "p-0 text-base font-medium" : "px-2 py-0.5 text-lg"} ${showLabel ? "text-inherit" : "text-neutral-500"} transition-colors ${showLabel ? "" : "hover:bg-neutral-50 hover:text-black"} focus:outline-none dark:border-neutral-600 ${showLabel ? "" : "dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white"}`}
         aria-label="Select language"
     >
         {
@@ -25,7 +33,7 @@ const currentLang = Astro.url.pathname.startsWith("/") ? "en" : "en";
                     selected={lang.code === currentLang}
                     class="bg-white text-black dark:bg-neutral-800 dark:text-white"
                 >
-                    {lang.flag}
+                    {showLabel ? lang.name : lang.flag}
                 </option>
             ))
         }
@@ -40,9 +48,18 @@ const currentLang = Astro.url.pathname.startsWith("/") ? "en" : "en";
     }
 
     select option {
-        text-align: center;
         padding: 0.5rem;
         font-size: 1rem;
+    }
+
+    /* Center options only when not in label mode (emoji mode) */
+    select:not(.text-left) option {
+        text-align: center;
+    }
+
+    /* Left align options when in label mode */
+    select.text-left option {
+        text-align: left;
     }
 
     /* Ensure dropdown appears above other elements */

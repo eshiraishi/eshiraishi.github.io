@@ -2,34 +2,200 @@
 import { EMAIL, SITE_TITLE } from "../consts";
 import LanguageSelector from "./LanguageSelector.astro";
 import ThemeToggle from "./ThemeToggle.astro";
+
+// Navigation links
+const navLinks = [
+  { href: "/posts", label: "Posts" },
+  { href: `mailto:${EMAIL}`, label: "Contact" },
+];
 ---
 
 <header class="relative mb-6" transition:name="header">
-  <nav class="nav-links scrollbar-hide flex items-center gap-2 overflow-x-auto">
-    <a href="/" class="!font-bold">{SITE_TITLE}</a>
-    <a href="/posts">Posts</a>
-    <a href={`mailto:${EMAIL}`}>Contact</a>
-    <div class="min-w-4 flex-1"></div>
-    <div class="flex shrink-0 items-center gap-2">
-      <LanguageSelector />
+  <!-- Mobile header with title and hamburger button -->
+  <div class="mobile-header">
+    <a href="/" class="site-title">{SITE_TITLE}</a>
+    <button id="menu-button" class="menu-btn" aria-label="Toggle menu">
+      <div class="icon icon-hamburger" aria-hidden="true"></div>
+    </button>
+  </div>
+
+  <!-- Desktop nav, hidden on small screens -->
+  <nav class="desktop-nav">
+    <a href="/" class="site-title">{SITE_TITLE}</a>
+    {
+      navLinks.map((link) => (
+        <a href={link.href} class="nav-link">
+          {link.label}
+        </a>
+      ))
+    }
+    <div class="nav-spacer"></div>
+    <div class="nav-controls">
+      <!-- <LanguageSelector /> -->
       <ThemeToggle />
     </div>
   </nav>
+
+  <!-- Mobile menu overlay -->
+  <div id="mobile-menu" class="mobile-menu -translate-x-full">
+    <div class="mobile-menu-header">
+      <a href="/" class="site-title">{SITE_TITLE}</a>
+      <button id="menu-close" class="menu-btn" aria-label="Close menu">
+        <div class="icon icon-close" aria-hidden="true"></div>
+      </button>
+    </div>
+
+    {
+      navLinks.map((link) => (
+        <a href={link.href} class="mobile-nav-link">
+          {link.label}
+        </a>
+      ))
+    }
+
+    <!-- <div class="mobile-control-lang"><LanguageSelector showLabel={true} /></div> -->
+    <div class="mobile-control-theme"><ThemeToggle showLabel={true} /></div>
+  </div>
 </header>
 
 <style>
-  nav {
-    a {
-      @apply whitespace-nowrap rounded-md px-2 py-1 font-medium text-neutral-500 no-underline transition-colors hover:bg-neutral-50 hover:text-black hover:no-underline dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white;
-    }
+  /* Base components */
+  .site-title {
+    @apply inline-flex items-center whitespace-nowrap rounded-md px-2 py-1 text-lg font-bold text-neutral-500 no-underline transition-colors hover:bg-neutral-50 hover:text-black hover:no-underline dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white;
   }
 
-  .scrollbar-hide {
+  .nav-link,
+  .mobile-nav-link {
+    @apply inline-flex items-center whitespace-nowrap rounded-md px-2 py-1 font-medium text-neutral-500 no-underline transition-colors hover:bg-neutral-50 hover:text-black hover:no-underline dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white;
+  }
+
+  .mobile-nav-link {
+    @apply mb-2;
+  }
+
+  .menu-btn {
+    @apply rounded-md p-2 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800;
+    cursor: pointer;
+  }
+
+  .icon {
+    @apply h-6 w-6;
+    background-color: var(--theme-icon-color);
+    transition: background-color 0.2s ease;
+    pointer-events: none;
+  }
+
+  .menu-btn:hover .icon {
+    background-color: var(--theme-icon-hover-color);
+  }
+
+  /* Layout components */
+  .mobile-header {
+    @apply flex items-center justify-between md:hidden;
+  }
+
+  .desktop-nav {
+    @apply hidden items-center gap-2 overflow-x-auto md:flex;
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
 
-  .scrollbar-hide::-webkit-scrollbar {
+  .desktop-nav::-webkit-scrollbar {
     display: none;
   }
+
+  .nav-spacer {
+    @apply min-w-4 flex-1;
+  }
+
+  .nav-controls {
+    @apply flex shrink-0 items-center gap-2;
+  }
+
+  .mobile-menu {
+    @apply fixed inset-0 z-50 flex transform flex-col bg-white p-4 transition-transform duration-300 dark:bg-neutral-900;
+    transform: translateX(-100%);
+  }
+
+  .mobile-menu:not(.-translate-x-full) {
+    transform: translateX(0);
+  }
+
+  .mobile-menu-header {
+    @apply mb-4 flex items-center justify-between;
+  }
+
+  .mobile-control-lang,
+  .mobile-control-theme {
+    @apply mb-2 w-full;
+  }
+
+  /* Language selector - make it full width */
+  .mobile-control-lang :global(div),
+  .mobile-control-lang :global(select) {
+    @apply w-full;
+  }
+
+  /* Theme toggle - keep it simple and functional */
+  .mobile-control-theme :global(button) {
+    @apply w-full;
+  }
+
+  /* Icon masks */
+  .icon-hamburger {
+    mask: url("/hamburger.svg") no-repeat center;
+    mask-size: contain;
+    -webkit-mask: url("/hamburger.svg") no-repeat center;
+    -webkit-mask-size: contain;
+  }
+
+  .icon-close {
+    mask: url("/close.svg") no-repeat center;
+    mask-size: contain;
+    -webkit-mask: url("/close.svg") no-repeat center;
+    -webkit-mask-size: contain;
+  }
 </style>
+
+<!-- Inline script to toggle mobile menu, refactored for simplicity -->
+<script is:inline>
+  const setupMenuToggle = () => {
+    const menuButton = document.getElementById("menu-button");
+    const closeButton = document.getElementById("menu-close");
+    const mobileMenu = document.getElementById("mobile-menu");
+    if (!mobileMenu) return;
+
+    const openHandler = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      mobileMenu.classList.remove("-translate-x-full");
+    };
+    const closeHandler = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      mobileMenu.classList.add("-translate-x-full");
+    };
+
+    // Attach and remove listeners for buttons
+    [[menuButton, openHandler], [closeButton, closeHandler]].forEach(([el, handler]) => {
+      if (el) {
+        el.removeEventListener("click", handler);
+        el.addEventListener("click", handler);
+      }
+    });
+
+    // Attach and remove listeners for mobile navigation links
+    document.querySelectorAll(".mobile-nav-link").forEach((link) => {
+      link.removeEventListener("click", closeHandler);
+      link.addEventListener("click", closeHandler);
+    });
+  };
+
+  // Initialize on load and after Astro swaps content
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", setupMenuToggle);
+  } else {
+    setupMenuToggle();
+  }
+  document.addEventListener("astro:after-swap", setupMenuToggle);
+</script>

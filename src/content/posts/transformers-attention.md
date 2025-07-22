@@ -7,9 +7,7 @@ image: '/transformers.png'
 
 Neste post, vou explicar o que é atenção e como funcionam os mecanismos apresentados no artigo "Attention is All You Need". No caminho, vamos ver como funcionam os mecanismos Scaled Dot-Product Attention e Multihead Attention, e ao final, também vamos implementar esses mecanismos do zero em PyTorch com foco em eficiência computacional.
 
-> **Em breve este post estará disponível! Fique de olho!**
-
-<!-- ## O que é atenção?
+## O que é atenção?
 
 No contexto de redes neurais para transdução de sequências, atenção refere-se à capacidade do modelo de considerar o contexto de cada elemento da sequência ao gerar um novo valor para cada elemento de entrada. Ou seja, o modelo pode "prestar atenção" em diferentes partes da sequência para produzir saídas mais precisas e contextualizadas.
 
@@ -480,4 +478,4 @@ class MultiheadAttention(nn.Module):
 
 Os mecanismos de atenção são uma maneira eficiente de ajustar as representações dos valores para que reflitam melhor seu significado no contexto. A eficiência do MHA nessa tarefa faz toda a diferença quando combinada com outras técnicas para criar Transformers capazes de realizar bem várias tarefas.
 
-Apesar disso, a atenção sozinha pode ter algumas limitações. No próximo post, vamos ver como o Positional Encoding pode ajudar a representar a posição dos elementos em uma sequência e superar esses problemas. -->
+Apesar disso, a atenção sozinha pode ter algumas limitações. No próximo post, vamos ver como o Positional Encoding pode ajudar a representar a posição dos elementos em uma sequência e superar esses problemas.
