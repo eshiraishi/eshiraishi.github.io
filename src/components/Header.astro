@@ -1,5 +1,7 @@
 ---
 import { EMAIL, SITE_TITLE } from "../consts";
+
+import { Icon } from "astro-icon/components";
 import ThemeToggle from "./ThemeToggle.astro";
 
 // Navigation links
@@ -14,7 +16,7 @@ const navLinks = [
   <div class="mobile-header">
     <a href="/" class="site-title">{SITE_TITLE}</a>
     <button id="menu-button" class="menu-btn" aria-label="Toggle menu">
-      <div class="icon icon-hamburger" aria-hidden="true"></div>
+      <Icon name="heroicons:bars-3-20-solid" class="icon" aria-hidden="true" />
     </button>
   </div>
 
@@ -40,7 +42,11 @@ const navLinks = [
     <div class="mobile-menu-header">
       <a href="/" class="site-title">{SITE_TITLE}</a>
       <button id="menu-close" class="menu-btn" aria-label="Close menu">
-        <div class="icon icon-close" aria-hidden="true"></div>
+        <Icon
+          name="heroicons:x-mark-20-solid"
+          class="icon"
+          aria-hidden="true"
+        />
       </button>
     </div>
 
@@ -79,13 +85,13 @@ const navLinks = [
 
   .icon {
     @apply h-6 w-6;
-    background-color: var(--theme-icon-color);
-    transition: background-color 0.2s ease;
+    color: var(--theme-icon-color);
+    transition: color 0.2s ease;
     pointer-events: none;
   }
 
   .menu-btn:hover .icon {
-    background-color: var(--theme-icon-hover-color);
+    color: var(--theme-icon-hover-color);
   }
 
   /* Layout components */
@@ -140,20 +146,7 @@ const navLinks = [
     @apply w-full;
   }
 
-  /* Icon masks */
-  .icon-hamburger {
-    mask: url("/hamburger.svg") no-repeat center;
-    mask-size: contain;
-    -webkit-mask: url("/hamburger.svg") no-repeat center;
-    -webkit-mask-size: contain;
-  }
-
-  .icon-close {
-    mask: url("/close.svg") no-repeat center;
-    mask-size: contain;
-    -webkit-mask: url("/close.svg") no-repeat center;
-    -webkit-mask-size: contain;
-  }
+  /* Icon masks removed: now using astro-icon for menu icons */
 </style>
 
 <!-- Inline script to toggle mobile menu, refactored for simplicity -->
@@ -187,8 +180,8 @@ const navLinks = [
     ];
     buttonHandlers.forEach(({ button, handler }) => {
       if (button) {
-      button.removeEventListener("click", handler);
-      button.addEventListener("click", handler);
+        button.removeEventListener("click", handler);
+        button.addEventListener("click", handler);
       }
     });
 

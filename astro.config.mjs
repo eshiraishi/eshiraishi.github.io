@@ -13,6 +13,10 @@ import remarkMath from "remark-math";
 import remarkRehype from 'remark-rehype';
 import { DARK_THEME, LIGHT_THEME, SITE_URL } from "./src/consts";
 
+import icon from "astro-icon";
+
+// import icon from "astro-icon";
+
 const cache = await getCache();
 // @ts-check
 const remarkMathConfig = { singleDollarTextMath: true, output: 'html', strict: true, trust: true };
@@ -70,5 +74,5 @@ export default defineConfig({
       rehypeKatex,
     ],
   },
-  integrations: [expressiveCodeIntegration, mdx(), sitemap(), tailwind()],
+  integrations: [expressiveCodeIntegration, mdx(), sitemap(), tailwind(), icon()],
 });
