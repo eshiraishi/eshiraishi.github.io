@@ -1,5 +1,4 @@
 ---
-// Language selector component
 interface Props {
     showLabel?: boolean;
 }
@@ -8,13 +7,8 @@ const { showLabel = false } = Astro.props;
 
 const languages = [
     { code: "en", name: "English", flag: "🇺🇸" },
-    { code: "es", name: "Español", flag: "🇪🇸" },
-    { code: "fr", name: "Français", flag: "🇫🇷" },
-    { code: "de", name: "Deutsch", flag: "🇩🇪" },
     { code: "pt", name: "Português", flag: "🇧🇷" },
 ];
-
-// Get current language from URL or default to 'en'
 const currentLang = Astro.url.pathname.startsWith("/") ? "en" : "en";
 ---
 
@@ -40,34 +34,6 @@ const currentLang = Astro.url.pathname.startsWith("/") ? "en" : "en";
     </select>
 </div>
 
-<style>
-    /* Only custom styles that Tailwind can't handle directly */
-    select {
-        position: relative;
-        z-index: 50;
-    }
-
-    select option {
-        padding: 0.5rem;
-        font-size: 1rem;
-    }
-
-    /* Center options only when not in label mode (emoji mode) */
-    select:not(.text-left) option {
-        text-align: center;
-    }
-
-    /* Left align options when in label mode */
-    select.text-left option {
-        text-align: left;
-    }
-
-    /* Ensure dropdown appears above other elements */
-    select:focus {
-        z-index: 100;
-    }
-</style>
-
 <script>
     const setLanguageListener = () => {
         const select = document.getElementById(
@@ -78,13 +44,6 @@ const currentLang = Astro.url.pathname.startsWith("/") ? "en" : "en";
             const target = event.target as HTMLSelectElement;
             const selectedLang = target.value;
 
-            // For now, just log the selection. You can implement actual language switching logic here
-            console.log("Language changed to:", selectedLang);
-
-            // Example: redirect to language-specific URL
-            // window.location.href = `/${selectedLang}${window.location.pathname}`;
-
-            // Or dispatch a custom event for language change
             document.dispatchEvent(
                 new CustomEvent("languageChange", {
                     detail: { language: selectedLang },
@@ -94,7 +53,5 @@ const currentLang = Astro.url.pathname.startsWith("/") ? "en" : "en";
     };
 
     setLanguageListener();
-
-    // Re-attach listener after page transitions
     document.addEventListener("astro:after-swap", setLanguageListener);
 </script>

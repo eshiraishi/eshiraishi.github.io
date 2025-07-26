@@ -7,9 +7,7 @@ image: '/transformers.png'
 
 No post anterior, vimos como funcionam mecanismos de atenção e concluímos que existem algumas limitações no seu uso direto. Nesse post, explicarei como funciona o Positional Encoding, uma técnica complementar à atenção para representar a posição dos elementos na sequência recebida.
 
-> **Em breve este post estará disponível! Fique de olho!**
-
-<!-- ## Positional Encoding (PE)
+## Positional Encoding (PE)
 
 Os mecanismos de atenção apresentados até aqui não levam em conta a posição dos elementos na sequência recebida ao gerar a sequência de saída. Isso significa que, se a ordem dos elementos for alterada, o resultado permanecerá o mesmo. Esse efeito é indesejado e pode introduzir vieses no modelo durante o treinamento.
 
@@ -131,4 +129,4 @@ class PositionalEncoder(nn.Module):
 
 O Positional Encoding é fundamental para que os mecanismos de atenção consigam entender a ordem dos elementos em uma sequência. Com isso, estamos quase prontos para montar um Transformer completo.
 
-No próximo post, para facilitar a explicação da arquitetura, vamos entender como funcionam modelos autoregressivos, e ver como toda essa representação de dados pode ser usada para gerar outras formas de dados complexos, como textos e outros tipos de sequências. -->
+No próximo post, para facilitar a explicação da arquitetura, vamos entender como funcionam modelos autoregressivos, e ver como toda essa representação de dados pode ser usada para gerar outras formas de dados complexos, como textos e outros tipos de sequências.

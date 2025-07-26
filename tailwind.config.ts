@@ -8,9 +8,9 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        serif: ['var(--font-serif)', ...defaultTheme.fontFamily.serif],
-        sans: ['var(--font-sans)', ...defaultTheme.fontFamily.sans],
-        mono: ['var(--font-mono)', ...defaultTheme.fontFamily.mono],
+        serif: ['Atkinson Hyperlegible Next Variable', ...defaultTheme.fontFamily.serif],
+        sans: ['Atkinson Hyperlegible Next Variable', ...defaultTheme.fontFamily.sans],
+        mono: ['Atkinson Hyperlegible Mono Variable', ...defaultTheme.fontFamily.mono],
       },
       colors: {
         primary: colors.neutral,

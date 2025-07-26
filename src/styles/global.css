@@ -4,10 +4,6 @@
 
 @layer base {
   :root {
-    --font-serif: "Atkinson Hyperlegible Next Variable";
-    --font-sans: "Atkinson Hyperlegible Next Variable";
-    --font-mono: "Atkinson Hyperlegible Mono Variable";
-
     --theme-icon-color: theme('colors.neutral.500');
     --theme-icon-hover-color: theme('colors.black');
   }
@@ -17,24 +13,21 @@
     --theme-icon-hover-color: theme('colors.white');
   }
 
-  /* Hide scrollbar for webkit browsers (Chrome, Safari, Edge) */
   ::-webkit-scrollbar {
-    display: none;
+    @apply hidden;
   }
 
   ::-webkit-scrollbar-corner {
     @apply bg-[#00000000];
   }
 
-  /* Hide scrollbar for Firefox */
   html {
     scrollbar-width: none;
   }
 
-  /* Ensure scrolling still works on the body */
   body {
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }
 
@@ -97,9 +90,7 @@
     }
 
     a {
-      @apply underline decoration-neutral-400 dark:decoration-neutral-500 hover:no-underline hover:p-0.5 rounded transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800;
-      text-decoration-thickness: 1px;
-      text-underline-offset: 4px;
+      @apply underline decoration-neutral-400 dark:decoration-neutral-500 hover:no-underline hover:p-0.5 rounded transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800 decoration-1 underline-offset-4;
 
       &:has(img.link-icon) {
         @apply hover:bg-transparent hover:p-0 no-underline;
@@ -110,14 +101,12 @@
       }
 
       &:hover img.link-icon {
-        @apply opacity-100;
-        color: currentColor;
-        filter: none;
+        @apply opacity-100 text-current;
       }
 
       /* Ensure proper visibility in dark mode */
       :root.dark &:hover img.link-icon {
-        filter: invert(1);
+        @apply invert;
       }
     }
 
@@ -193,5 +182,93 @@
     @apply hidden;
   }
 
+  .site-title {
+    @apply inline-flex items-center whitespace-nowrap rounded-md px-2 py-1 text-lg font-bold text-neutral-500 no-underline transition-colors hover:bg-neutral-50 hover:text-black hover:no-underline dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white;
+  }
 
+  .nav-link,
+  .mobile-nav-link {
+    @apply inline-flex items-center whitespace-nowrap rounded-md px-2 py-1 font-medium text-neutral-500 no-underline transition-colors hover:bg-neutral-50 hover:text-black hover:no-underline dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white;
+  }
+
+  .mobile-nav-link {
+    @apply mb-2;
+  }
+
+  .menu-btn {
+    @apply rounded-md p-2 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800 cursor-pointer;
+  }
+
+  .icon {
+    @apply h-6 w-6 pointer-events-none transition-colors duration-200 text-neutral-500 dark:text-neutral-400;
+  }
+
+  .menu-btn:hover .icon {
+    @apply text-black dark:text-white;
+  }
+
+  .mobile-header {
+    @apply flex items-center justify-between md:hidden;
+  }
+
+  .desktop-nav {
+    @apply hidden items-center gap-2 overflow-x-auto md:flex;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .desktop-nav::-webkit-scrollbar {
+    @apply hidden;
+  }
+
+  .nav-spacer {
+    @apply min-w-4 flex-1;
+  }
+
+  .nav-controls {
+    @apply flex shrink-0 items-center gap-2;
+  }
+
+  .mobile-menu {
+    @apply fixed inset-0 z-50 flex transform flex-col bg-white p-4 transition-transform duration-300 dark:bg-neutral-900 -translate-x-full;
+  }
+
+  .mobile-menu:not(.-translate-x-full) {
+    @apply translate-x-0;
+  }
+
+  .mobile-menu-header {
+    @apply mb-4 flex items-center justify-between;
+  }
+
+  .mobile-control-lang,
+  .mobile-control-theme {
+    @apply mb-2 w-full;
+  }
+
+  .mobile-control-lang :global(div),
+  .mobile-control-lang :global(select),
+  .mobile-control-theme :global(button) {
+    @apply w-full;
+  }
+
+  #language-select {
+    @apply relative z-50;
+  }
+
+  #language-select option {
+    @apply p-2;
+  }
+
+  #language-select:not(.text-left) option {
+    @apply text-center;
+  }
+
+  #language-select:focus {
+    @apply z-[100];
+  }
+
+  .theme-toggle-btn {
+    @apply text-neutral-500 dark:text-neutral-400 duration-200 hover:text-black hover:dark:text-white;
+  }
 }
