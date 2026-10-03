@@ -1,0 +1,38 @@
+---
+import { getCollection } from "astro:content";
+import { getRelativeLocaleUrl } from "astro:i18n";
+import { SITE_DESCRIPTION, SITE_TITLE } from "../../../consts";
+import Layout from "../../../layouts/Layout.astro";
+import { getPostSlug } from "../../../lib/i18n";
+import { formatDate } from "../../../lib/utils";
+
+const locale = "pt-br" as const;
+const posts = (
+  await getCollection(
+    "posts",
+    (entry) => !entry.data.draft && entry.data.locale === locale,
+  )
+).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+---
+
+<Layout title={SITE_TITLE} description={SITE_DESCRIPTION}>
+  <main>
+    <ul class="flex flex-col gap-1.5">
+      {posts.map((post) => (
+        <li>
+          <a
+            href={getRelativeLocaleUrl(locale, `posts/${getPostSlug(post)}`)}
+            class="group flex justify-between gap-3 rounded-md p-1 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800"
+          >
+            <span class="overflow-hidden truncate text-ellipsis whitespace-nowrap text-left">
+              {post.data.title}
+            </span>
+            <span class="theme-muted whitespace-nowrap">
+              {formatDate(post.data.date)}
+            </span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </main>
+</Layout>

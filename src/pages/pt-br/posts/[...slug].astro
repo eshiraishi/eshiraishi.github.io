@@ -1,0 +1,22 @@
+---
+import { type CollectionEntry, getCollection } from "astro:content";
+import PostPage from "../../../components/PostPage.astro";
+import { getPostSlug, type Locale } from "../../../lib/i18n";
+
+export async function getStaticPaths() {
+  const posts = await getCollection(
+    "posts",
+    (entry) => !entry.data.draft && entry.data.locale === "pt-br",
+  );
+  return posts.map((post) => ({
+    params: { slug: getPostSlug(post) },
+    props: { post },
+  }));
+}
+
+type Props = { post: CollectionEntry<"posts"> };
+const locale: Locale = "pt-br";
+const { post } = Astro.props;
+---
+
+<PostPage post={post} locale={locale} />

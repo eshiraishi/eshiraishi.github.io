@@ -2,8 +2,8 @@
 import { getRelativeLocaleUrl } from "astro:i18n";
 import { DEFAULT_LOCALE, UI, type Locale } from "../lib/i18n";
 
-import EpsilonMark from "./EpsilonMark.astro";
 import { Icon } from "astro-icon/components";
+import EpsilonMark from "./EpsilonMark.astro";
 import LanguageSelector from "./LanguageSelector.astro";
 import ThemeToggle from "./ThemeToggle.astro";
 
@@ -26,7 +26,11 @@ const isPostPage = /^\/(?:en\/)?posts\/[^/]+/.test(Astro.url.pathname);
 const hasToc = tocHeadings.length > 0;
 ---
 
-<header class="relative mb-6" transition:name="header">
+<header
+  class="site-header mb-6"
+  data-site-header
+  transition:name="header"
+>
   <div class="mobile-header">
     {isPostPage && (
       <a
@@ -105,11 +109,7 @@ const hasToc = tocHeadings.length > 0;
       )}
       {!isPostPage && <EpsilonMark />}
       <button id="menu-close" class="menu-btn ml-auto" aria-label="Close menu">
-        <Icon
-          name="lucide:x"
-          class="icon"
-          aria-hidden="true"
-        />
+        <Icon name="lucide:x" class="icon" aria-hidden="true" />
       </button>
     </div>
 
@@ -132,11 +132,7 @@ const hasToc = tocHeadings.length > 0;
             aria-hidden="true"
           />
         </summary>
-        <nav
-          id="mobile-toc-nav"
-          class="mobile-toc-panel"
-          aria-label={tocLabel}
-        >
+        <nav id="mobile-toc-nav" class="mobile-toc-panel" aria-label={tocLabel}>
           <ol class="m-0 space-y-2 p-0 text-xs leading-snug">
             {tocHeadings.map((heading) => (
               <li class:list={[heading.depth === 3 && "pl-3"]}>
@@ -155,11 +151,13 @@ const hasToc = tocHeadings.length > 0;
       </details>
     )}
 
-    <div class="mobile-control-lang">
-      <LanguageSelector showLabel={true} />
-    </div>
-    <div class="mobile-control-theme">
-      <ThemeToggle showLabel={true} />
+    <div class="mobile-menu-controls">
+      <div class="mobile-control-lang">
+        <LanguageSelector />
+      </div>
+      <div class="mobile-control-theme">
+        <ThemeToggle />
+      </div>
     </div>
   </div>
 </header>
@@ -169,20 +167,24 @@ const hasToc = tocHeadings.length > 0;
     const menuButton = document.getElementById("menu-button");
     const closeButton = document.getElementById("menu-close");
     const mobileMenu = document.getElementById("mobile-menu");
+    const siteHeader = document.querySelector("[data-site-header]");
     if (!mobileMenu) return;
 
     const openHandler = (e) => {
       e.preventDefault();
       e.stopPropagation();
       mobileMenu.classList.add("is-open");
+      siteHeader?.setAttribute("data-menu-open", "true");
     };
     const closeHandler = (e) => {
       e.preventDefault();
       e.stopPropagation();
       mobileMenu.classList.remove("is-open");
+      siteHeader?.removeAttribute("data-menu-open");
     };
     const navLinkHandler = () => {
       mobileMenu.classList.remove("is-open");
+      siteHeader?.removeAttribute("data-menu-open");
     };
 
     const buttonHandlers = [
@@ -211,4 +213,26 @@ const hasToc = tocHeadings.length > 0;
     setupMenuToggle();
   }
   document.addEventListener("astro:after-swap", setupMenuToggle);
+
+  const setupHeaderScroll = () => {
+    const siteHeader = document.querySelector("[data-site-header]");
+    if (!siteHeader || siteHeader.dataset.scrollInitialized) return;
+
+    let lastScrollY = window.scrollY;
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      if (currentScrollY > lastScrollY + 2) {
+        siteHeader.setAttribute("data-scroll-direction", "down");
+      } else if (currentScrollY < lastScrollY) {
+        siteHeader.removeAttribute("data-scroll-direction");
+      }
+      lastScrollY = currentScrollY;
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    siteHeader.dataset.scrollInitialized = "true";
+  };
+
+  setupHeaderScroll();
+  document.addEventListener("astro:after-swap", setupHeaderScroll);
 </script>

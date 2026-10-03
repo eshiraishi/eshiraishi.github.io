@@ -145,11 +145,11 @@ $$
 \end{bmatrix}
 $$
 
-The `<bos>` and `<eos>` tokens can also be used to separate the received sequence from the generated sequence, which will be useful when training Transformers later. For example, if the model receives the text "cachorro" and generates the text "dog," these sequences can be described as a single sequence:
+The `<bos>` and `<eos>` tokens can also be used to separate the received sequence from the generated sequence, which will be useful when training Transformers later. For example, if the model receives the text "house" and generates the text "maison," these sequences can be described as a single sequence:
 
 $$
 \begin{array}{ccccccccccccccc}
-\texttt{<bos>} & \texttt{c} & \texttt{a} & \texttt{c} & \texttt{h} & \texttt{o} & \texttt{r} & \texttt{r} & \texttt{o} & \texttt{<eos>} & \texttt{<bos>} & \texttt{d} & \texttt{o} & \texttt{g} & \texttt{<eos>}
+\texttt{<bos>} & \texttt{h} & \texttt{o} & \texttt{u} & \texttt{s} & \texttt{e} & \texttt{<eos>} & \texttt{<bos>} & \texttt{m} & \texttt{a} & \texttt{i} & \texttt{s} & \texttt{o} & \texttt{n} & \texttt{<eos>}
 \end{array}
 $$
 
@@ -509,11 +509,11 @@ $$
 
 Using one of the simplest ways to transform tokens into embeddings efficiently, it is first necessary to apply one-hot encoding to each element, transforming them into sparse vectors (which have high dimensionality but many zero values).
 
-If $|T|$ is the size of the vocabulary, the representation of the text "baba" using One-Hot Encoding will be:
+If $|T|$ is the size of the vocabulary, the representation of the text "papa" using One-Hot Encoding will be. For readability, only the vocabulary columns used by this sequence are shown:
 
 $$
     \begin{array}{cccccccccc}
-        \texttt{<bos>} & \texttt{b} & \texttt{a} & \texttt{b} & \texttt{a} & \texttt{<eos>}
+        \texttt{<bos>} & \texttt{p} & \texttt{a} & \texttt{p} & \texttt{a} & \texttt{<eos>}
     \end{array}
 $$
 
@@ -523,7 +523,7 @@ $$
 
 $$
     \begin{bmatrix}
-        1 & 4 & 3 & 4 & 3 & 2
+        1 & 18 & 3 & 18 & 3 & 2
     \end{bmatrix}
 $$
 
@@ -532,15 +532,15 @@ $$
 $$
 
 $$
-\begin{array}{c|cccccc}
-    & 0 & 1 & 2 & 3 & 4 & \dots & |T| \\
+\begin{array}{c|cccc}
+    & 1 & 2 & 3 & 18 \\
     \hline
-    1 & 0 & 1 & 0 & 0 & 0 & \dots & 0 \\
-    4 & 0 & 0 & 0 & 0 & 1 & \dots & 0 \\
-    3 & 0 & 0 & 0 & 1 & 0 & \dots & 0 \\
-    4 & 0 & 0 & 0 & 0 & 1 & \dots & 0 \\
-    3 & 0 & 0 & 0 & 1 & 0 & \dots & 0 \\
-    2 & 0 & 0 & 1 & 0 & 0 & \dots & 0
+    1  & 1 & 0 & 0 & 0 \\
+    18 & 0 & 0 & 0 & 1 \\
+    3  & 0 & 0 & 1 & 0 \\
+    18 & 0 & 0 & 0 & 1 \\
+    3  & 0 & 0 & 1 & 0 \\
+    2  & 0 & 1 & 0 & 0
 \end{array}
 $$
 
@@ -574,13 +574,11 @@ $$
         \begin{array}{c|cccc}
             & 1 & 2 & \dots & d \\
             \hline
-            0      & 0.1    & 0.2    & \dots  & 0.6 \\
             1      & 0.7    & 0.8    & \dots  & 0.3 \\
             2      & 0.4    & 0.5    & \dots  & 0.9 \\
             3      & 0.9    & 0.1    & \dots  & 0.5 \\
-            4      & 0.3    & 0.9    & \dots  & 0.1 \\
             \vdots & \vdots & \vdots & \ddots & \vdots \\
-            |T|    & 0.2    & 0.4    & \dots  & 0.1
+            18     & 0.3    & 0.9    & \dots  & 0.1
         \end{array}
     }_{\text{Lookup matrix}}
 $$
@@ -595,9 +593,9 @@ $$
             & 1 & 2 & \dots & d \\
             \hline
             1  & 0.7 & 0.8 & \dots & 0.3 \\
-            4  & 0.3 & 0.9 & \dots & 0.1 \\
+            18 & 0.3 & 0.9 & \dots & 0.1 \\
             3  & 0.9 & 0.1 & \dots & 0.5 \\
-            4  & 0.3 & 0.9 & \dots & 0.1 \\
+            18 & 0.3 & 0.9 & \dots & 0.1 \\
             3  & 0.9 & 0.1 & \dots & 0.5 \\
             2  & 0.4 & 0.5 & \dots & 0.9 \\
         \end{array}
@@ -631,13 +629,13 @@ Using attention mechanisms in this way allows models to understand the context i
 
 For example, consider the following text:
 
-> John thought: The train was crowded, but he found an empty seat.
+> John told Mike that he was late. John apologized for the delay.
 
 For simplicity, ignore the special tokens and assume that each word is represented by an embedding (through the process abstracted by $\text{Emb}(X)$), transforming the text into the following sequence:
 
 $$
     \begin{array}{ccccccccc}
-        \text{John } & \text{thought: } & \text{The }  & \text{train } & \text{was } & \text{crowded, } & \text{but } & \text{he } & \cdots \\
+        \text{John } & \text{told } & \text{Mike }  & \text{that } & \text{he } & \text{was } & \text{late. } & \text{John } & \cdots \\
         \quad         \\
         \downarrow   & \downarrow      & \downarrow & \downarrow   & \downarrow     & \downarrow     & \downarrow  & \downarrow   \\
         \quad         \\
@@ -653,12 +651,12 @@ $$
     \end{array}
 $$
 
-An attention mechanism then receives this sequence and generates another sequence of the same length. The embedding representing the word "he" will be composed of embeddings closer to the part containing the word "John" than to the word "bus":
+An attention mechanism then receives this sequence and generates another sequence of the same length. The contextual representation of the word "he" should assign a high attention weight to "John," while "Mike" remains a competing candidate until the later context resolves the reference:
 
 $$
     \underbrace{
         \begin{array}{ccccccccc}
-            \text{John thought: the train was crowded, but he...}
+            \text{John told Mike that he was late. John...}
         \end{array}
     }_{X}
 $$
@@ -722,13 +720,13 @@ The following example illustrates this analogy:
 ```python
 sequence = keys = values = [
     'John',
-    'thought',
-    'The',
-    'train',
-    'was',
-    'crowded',
-    'but',
+    'told',
+    'Mike',
+    'that',
     'he',
+    'was',
+    'late.',
+    'John',
     ...
 ]
 
@@ -774,7 +772,7 @@ These fractions are the attention weights and form a normalized sequence: the su
 The weights must be normalized so that the attention that can be distributed is finite and the mechanism works correctly. If the score of one element is relatively higher, the score of at least one other element will be relatively lower in proportion, preserving this property.
 
 $$
-    \text{Atn}(\text{They}) = 0.9 \cdot \text{Emb} (\text{John}) + 0.01 \cdot \text{Emb} (\text{thought: }) + \cdots
+    \text{Atn}(\text{They}) = 0.45 \cdot \text{Emb} (\text{John}) + 0.45 \cdot \text{Emb} (\text{Mary}) + \cdots
 $$
 
 $$
@@ -1228,18 +1226,22 @@ Possible stopping criteria include:
 1. Define a maximum number of iterations.
 2. End the algorithm when the last generated element is equal to a special value, such as the `<eos>` token.
 
-The following example illustrates the autoregressive translation of the Portuguese word "cachorro" into the English word "dog." The special tokens separate the received text from the generated text, which will be represented as `<bos>cachorro<eos><bos>dog<eos>`.
+The following example illustrates the autoregressive translation of the English word "house" into the French word "maison." The special tokens separate the received text from the generated text, which will be represented as `<bos>house<eos><bos>maison<eos>`.
 
 $$
 \underbrace{
- \begin{array}{c|cccccccccc}
-    & 0              & 1              & 2              & 3              & 4              & 5              & 6              & 7              & 8              & 9              \\
+ \begin{array}{c|ccccccc}
+    & 0              & 1              & 2              & 3              & 4              & 5              & 6              \\
     \hline
-  1 & \texttt{<bos>} & \texttt{  c  } & \texttt{  a  } & \texttt{  c  } & \texttt{  h  } & \texttt{  o  } & \texttt{  r  } & \texttt{  r  } & \texttt{  o  } & \texttt{<eos>} \\
-  2 & \texttt{  c  } & \texttt{  a  } & \texttt{  c  } & \texttt{  h  } & \texttt{  o  } & \texttt{  r  } & \texttt{  r  } & \texttt{  o  } & \texttt{<eos>} & \texttt{<bos>} \\
-  3 & \texttt{  a  } & \texttt{  c  } & \texttt{  h  } & \texttt{  o  } & \texttt{  r  } & \texttt{  r  } & \texttt{  o  } & \texttt{<eos>} & \texttt{<bos>} & \texttt{  d  } \\
-  4 & \texttt{  c  } & \texttt{  h  } & \texttt{  o  } & \texttt{  r  } & \texttt{  r  } & \texttt{  o  } & \texttt{<eos>} & \texttt{<bos>} & \texttt{  d  } & \texttt{  o  } \\
-  5 & \texttt{  h  } & \texttt{  o  } & \texttt{  r  } & \texttt{  r  } & \texttt{  o  } & \texttt{<eos>} & \texttt{<bos>} & \texttt{  d  } & \texttt{  o  } & \texttt{  g  }
+  1 & \texttt{<bos>} & \texttt{h} & \texttt{o} & \texttt{u} & \texttt{s} & \texttt{e} & \texttt{<eos>} \\
+  2 & \texttt{h} & \texttt{o} & \texttt{u} & \texttt{s} & \texttt{e} & \texttt{<eos>} & \texttt{<bos>} \\
+  3 & \texttt{o} & \texttt{u} & \texttt{s} & \texttt{e} & \texttt{<eos>} & \texttt{<bos>} & \texttt{m} \\
+  4 & \texttt{u} & \texttt{s} & \texttt{e} & \texttt{<eos>} & \texttt{<bos>} & \texttt{m} & \texttt{a} \\
+  5 & \texttt{s} & \texttt{e} & \texttt{<eos>} & \texttt{<bos>} & \texttt{m} & \texttt{a} & \texttt{i} \\
+  6 & \texttt{e} & \texttt{<eos>} & \texttt{<bos>} & \texttt{m} & \texttt{a} & \texttt{i} & \texttt{s} \\
+  7 & \texttt{<eos>} & \texttt{<bos>} & \texttt{m} & \texttt{a} & \texttt{i} & \texttt{s} & \texttt{o} \\
+  8 & \texttt{<bos>} & \texttt{m} & \texttt{a} & \texttt{i} & \texttt{s} & \texttt{o} & \texttt{n} \\
+  9 & \texttt{m} & \texttt{a} & \texttt{i} & \texttt{s} & \texttt{o} & \texttt{n} & \texttt{<eos>}
  \end{array}
 }_{\text{Original sequence}}
 $$
@@ -1250,14 +1252,17 @@ $$
 
 $$
 \underbrace{
-    \begin{array}{c|cccccccccc}
-        & 0            & 1            & 2            & 3            & 4              & 5              & 6              & 7              & 8              & 9              \\
+    \begin{array}{c|ccccccc}
+        & 0 & 1 & 2 & 3 & 4 & 5 & 6 \\
         \hline
-        1 & \texttt{ c } & \texttt{ a } & \texttt{ c } & \texttt{ h } & \texttt{ o }   & \texttt{ r }   & \texttt{ r }   & \texttt{ o }   & \texttt{<eos>} & \texttt{<bos>} \\
-        2 & \texttt{ a } & \texttt{ c } & \texttt{ h } & \texttt{ o } & \texttt{ r }   & \texttt{ r }   & \texttt{ o }   & \texttt{<eos>} & \texttt{<bos>} & \texttt{ d }   \\
-        3 & \texttt{ c } & \texttt{ h } & \texttt{ o } & \texttt{ r } & \texttt{ r }   & \texttt{ o }   & \texttt{<eos>} & \texttt{<bos>} & \texttt{ d }   & \texttt{ o }   \\
-        4 & \texttt{ h } & \texttt{ o } & \texttt{ r } & \texttt{ r } & \texttt{ o }   & \texttt{<eos>} & \texttt{<bos>} & \texttt{ d }   & \texttt{ o }   & \texttt{ g }   \\
-        5 & \texttt{ o } & \texttt{ r } & \texttt{ r } & \texttt{ o } & \texttt{<eos>} & \texttt{<bos>} & \texttt{ d }   & \texttt{ o }   & \texttt{ g }   & \texttt{<eos>}
+        1 & \texttt{h} & \texttt{o} & \texttt{u} & \texttt{s} & \texttt{e} & \texttt{<eos>} & \texttt{<bos>} \\
+        2 & \texttt{o} & \texttt{u} & \texttt{s} & \texttt{e} & \texttt{<eos>} & \texttt{<bos>} & \texttt{m} \\
+        3 & \texttt{u} & \texttt{s} & \texttt{e} & \texttt{<eos>} & \texttt{<bos>} & \texttt{m} & \texttt{a} \\
+        4 & \texttt{s} & \texttt{e} & \texttt{<eos>} & \texttt{<bos>} & \texttt{m} & \texttt{a} & \texttt{i} \\
+        5 & \texttt{e} & \texttt{<eos>} & \texttt{<bos>} & \texttt{m} & \texttt{a} & \texttt{i} & \texttt{s} \\
+        6 & \texttt{<eos>} & \texttt{<bos>} & \texttt{m} & \texttt{a} & \texttt{i} & \texttt{s} & \texttt{o} \\
+        7 & \texttt{<bos>} & \texttt{m} & \texttt{a} & \texttt{i} & \texttt{s} & \texttt{o} & \texttt{n} \\
+        8 & \texttt{m} & \texttt{a} & \texttt{i} & \texttt{s} & \texttt{o} & \texttt{n} & \texttt{<eos>}
     \end{array}
 }_{\text{Sequence after the shift}}
 $$
@@ -1458,15 +1463,15 @@ Two sequences are generated from the text. The first, which is the encoder's inp
 
 Using the result of the shift is possible because, in the first iteration, the result of the shift is predictable, and in later iterations, the result of the previous iteration is the post-shift sequence.
 
-For example, if the only received text is `cachorro` and the generated text is `dog`, the sequences in the first iteration will be:
+For example, if the only received text is `house` and the generated text is `maison`, the sequences in the first iteration will be:
 
-- Encoder input: `<bos>cachorro<eos>`
-- Decoder input: `cachorro<eos><bos>`
+- Encoder input: `<bos>house<eos>`
+- Decoder input: `house<eos><bos>`
 
 In the second iteration, the sequences will be:
 
-- Encoder input: `cachorro<eos><bos>`
-- Decoder input: `cachorro<eos><bos>d`
+- Encoder input: `house<eos><bos>`
+- Decoder input: `house<eos><bos>m`
 
 And so on.
 
