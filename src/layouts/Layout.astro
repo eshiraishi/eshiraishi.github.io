@@ -67,9 +67,11 @@ const {
     <ClientRouter />
   </head>
   <body class="bg-white font-sans text-black antialiased transition-colors dark:bg-neutral-900 dark:text-neutral-200">
-    <div class={cn(`${lengthClassName} mx-auto p-4`, className)}>
+    <div class={cn(`${lengthClassName} mx-auto`, className)}>
       <Header tocHeadings={tocHeadings} tocLabel={tocLabel} />
-      <slot />
+      <div class="page-content p-4">
+        <slot />
+      </div>
     </div>
   </body>
 </html>

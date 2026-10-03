@@ -304,12 +304,12 @@
   }
 
   .site-header {
-    @apply sticky top-0 z-40 bg-white transition-transform duration-200 dark:bg-neutral-900;
+    @apply sticky top-0 z-40 bg-white p-4 transition-transform duration-200 dark:bg-neutral-900;
     position: sticky;
   }
 
   .site-header[data-scroll-direction="down"]:not([data-menu-open]) {
-    transform: translateY(calc(-100% - 1.5rem));
+    transform: translateY(-100%);
   }
 
   .desktop-nav {
