@@ -16,6 +16,8 @@ interface Props {
   image?: string;
   className?: string;
   lengthClassName?: string;
+  tocHeadings?: { depth: number; slug: string; text: string }[];
+  tocLabel?: string;
 }
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
@@ -27,6 +29,8 @@ const {
   image = "/blog-placeholder.png",
   className,
   lengthClassName = "max-w-xl",
+  tocHeadings,
+  tocLabel,
 } = Astro.props;
 ---
 
@@ -63,8 +67,8 @@ const {
     <ClientRouter />
   </head>
   <body class="bg-white font-sans text-black antialiased transition-colors dark:bg-neutral-900 dark:text-neutral-200">
-    <div class={cn(`${lengthClassName} text-justify mx-auto p-4`, className)}>
-      <Header />
+    <div class={cn(`${lengthClassName} mx-auto p-4`, className)}>
+      <Header tocHeadings={tocHeadings} tocLabel={tocLabel} />
       <slot />
     </div>
   </body>

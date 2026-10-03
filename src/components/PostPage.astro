@@ -9,16 +9,20 @@ interface Props {
   locale: Locale;
 }
 
-const { post } = Astro.props;
+const { post, locale } = Astro.props;
 const currentPost = (await getEntry("posts", post.id)) ?? post;
-const { Content } = await render(currentPost);
+const { Content, headings } = await render(currentPost);
+const tocHeadings = headings.filter(({ depth }) => depth <= 3);
+const tocLabel = locale === "pt-br" ? "Nesta página" : "On this page";
 ---
 
 <Layout
   title={currentPost.data.title}
   description={currentPost.data.description}
   image={currentPost.data.image}
-  lengthClassName="max-w-3xl"
+  lengthClassName="max-w-5xl"
+  tocHeadings={tocHeadings}
+  tocLabel={tocLabel}
 >
   <main>
     {!currentPost.data.hideImage && (
@@ -34,8 +38,134 @@ const { Content } = await render(currentPost);
     <p class="theme-muted text-center font-medium">
       {formatDate(currentPost.data.date)}
     </p>
-    <article>
-      <Content />
-    </article>
+    <div
+      class="post-layout mt-8 min-w-0"
+      data-post-layout
+      data-toc-open="true"
+    >
+      <article class="min-w-0">
+        <Content />
+      </article>
+      {tocHeadings.length > 0 && (
+        <aside
+          id="desktop-toc-nav"
+          class="desktop-toc-panel"
+          aria-label={tocLabel}
+          data-desktop-toc
+        >
+          <ol class="m-0 space-y-2 p-0 text-xs leading-snug">
+            {tocHeadings.map((heading) => (
+              <li class:list={[heading.depth === 3 && "pl-3"]}>
+                <a
+                  href={`#${heading.slug}`}
+                  class="toc-link theme-muted transition-colors hover:text-neutral-900 dark:hover:text-neutral-100"
+                  data-toc-link
+                >
+                  {heading.text}
+                </a>
+              </li>
+            ))}
+          </ol>
+        </aside>
+      )}
+    </div>
   </main>
 </Layout>
+
+<script>
+  let tocObserver: IntersectionObserver | undefined;
+
+  const setupTableOfContents = () => {
+    tocObserver?.disconnect();
+
+    const desktopToggle = document.querySelector<HTMLButtonElement>(
+      "[data-toc-toggle]",
+    );
+    const postLayout = document.querySelector<HTMLElement>(
+      "[data-post-layout]",
+    );
+    const desktopNav = document.querySelector<HTMLElement>(".desktop-nav");
+    const desktopPanel = document.querySelector<HTMLElement>(
+      "[data-desktop-toc]",
+    );
+    if (desktopToggle && desktopPanel) {
+      const syncDesktopToc = (isOpen: boolean) => {
+        desktopPanel.hidden = !isOpen;
+        postLayout?.setAttribute("data-toc-open", String(isOpen));
+        desktopNav?.setAttribute("data-toc-open", String(isOpen));
+        desktopToggle.setAttribute("aria-expanded", String(isOpen));
+        desktopPanel.setAttribute("aria-hidden", String(!isOpen));
+      };
+
+      if (!desktopPanel.dataset.tocInitialized) {
+        desktopToggle.addEventListener("click", () => {
+          syncDesktopToc(desktopPanel.hasAttribute("hidden"));
+        });
+        desktopPanel.dataset.tocInitialized = "true";
+      }
+      syncDesktopToc(true);
+    }
+
+    document
+      .querySelectorAll<HTMLDetailsElement>("[data-toc-mobile-details]")
+      .forEach((tocDetails) => {
+        const summary = tocDetails.querySelector("summary");
+        const syncSummaryState = () => {
+          summary?.setAttribute("aria-expanded", String(tocDetails.open));
+        };
+
+        if (!tocDetails.dataset.tocInitialized) {
+          tocDetails.open = true;
+          tocDetails.addEventListener("toggle", syncSummaryState);
+          tocDetails.dataset.tocInitialized = "true";
+        }
+        syncSummaryState();
+
+        tocDetails.querySelectorAll<HTMLAnchorElement>("a").forEach((link) => {
+          if (link.dataset.tocInitialized) return;
+          link.addEventListener("click", () => {
+            document.getElementById("mobile-menu")?.classList.remove("is-open");
+          });
+          link.dataset.tocInitialized = "true";
+        });
+      });
+
+    const links = [
+      ...document.querySelectorAll<HTMLAnchorElement>("[data-toc-link]"),
+    ];
+    const headings = links
+      .map((link) => {
+        const href = link.getAttribute("href");
+        return href ? document.getElementById(href.slice(1)) : null;
+      })
+      .filter((heading): heading is HTMLElement => Boolean(heading));
+    const firstHeading = headings[0];
+    if (!firstHeading) return;
+
+    const setCurrentHeading = (id: string) => {
+      links.forEach((link) => {
+        const isCurrent = link.getAttribute("href") === `#${id}`;
+        if (isCurrent) link.setAttribute("aria-current", "location");
+        else link.removeAttribute("aria-current");
+      });
+    };
+
+    setCurrentHeading(firstHeading.id);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const current = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort(
+            (a, b) => a.boundingClientRect.top - b.boundingClientRect.top,
+          )[0];
+        if (current) setCurrentHeading(current.target.id);
+      },
+      { rootMargin: "-15% 0px -70% 0px" },
+    );
+    tocObserver = observer;
+    headings.forEach((heading) => observer.observe(heading));
+  };
+
+  document.addEventListener("astro:page-load", setupTableOfContents);
+  setupTableOfContents();
+</script>

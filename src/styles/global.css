@@ -31,11 +31,7 @@
       var(--color-neutral-100) 35%,
       var(--color-white)
     );
-    --theme-code-surface: color-mix(
-      in srgb,
-      var(--color-neutral-200) 60%,
-      var(--color-white)
-    );
+    --theme-code-surface: var(--theme-surface);
     --theme-quote-border: color-mix(
       in srgb,
       var(--color-neutral-200) 55%,
@@ -46,21 +42,21 @@
     --theme-icon-color: var(--color-neutral-500);
     --theme-icon-hover-color: var(--color-black);
     --mermaid-bg: var(--color-white);
-    --mermaid-fg: var(--color-black);
+    --mermaid-fg: var(--color-neutral-800);
   }
 
   :root.dark {
     --theme-text-primary: var(--color-white);
     --theme-text-muted: var(--color-neutral-300);
     --theme-surface: #32302f;
-    --theme-code-surface: #282828;
+    --theme-code-surface: var(--theme-surface);
     --theme-quote-border: var(--color-neutral-800);
     --theme-selection: #26561c80;
     --theme-focus: var(--color-neutral-300);
     --theme-icon-color: var(--color-neutral-400);
     --theme-icon-hover-color: var(--color-white);
     --mermaid-bg: var(--color-neutral-900);
-    --mermaid-fg: var(--color-neutral-200);
+    --mermaid-fg: var(--color-neutral-100);
   }
 
   ::-webkit-scrollbar {
@@ -124,7 +120,8 @@
     }
 
     :not(pre) > code {
-      @apply rounded bg-neutral-200/50 px-1 py-0.5 font-mono text-sm font-normal whitespace-nowrap text-inherit dark:bg-neutral-800/50;
+      @apply rounded px-1 py-0.5 font-mono text-sm font-normal whitespace-nowrap text-inherit;
+      background-color: var(--theme-code-surface);
     }
 
     pre:has(code) {
@@ -144,6 +141,10 @@
       border-left-color: var(--theme-quote-border);
       background-color: var(--theme-surface);
 
+      code {
+        background-color: transparent;
+      }
+
       p {
         @apply my-0;
       }
@@ -158,6 +159,7 @@
 
       &:has(img.link-icon) {
         @apply no-underline hover:bg-transparent hover:p-0;
+        color: inherit;
       }
 
       img.link-icon {
@@ -165,7 +167,11 @@
       }
 
       &:hover img.link-icon {
-        @apply text-current opacity-100;
+        @apply opacity-50;
+      }
+
+      img.link-icon:hover {
+        @apply opacity-100;
       }
 
       /* Ensure proper visibility in dark mode */
@@ -183,6 +189,10 @@
         @apply rounded-lg;
       }
 
+      code {
+        background-color: transparent;
+      }
+
       th {
         @apply rounded-lg border-b border-none p-4 text-left font-bold;
         background-color: var(--theme-surface);
@@ -191,11 +201,6 @@
       td {
         @apply border-b border-none p-4;
         background-color: var(--theme-surface);
-
-        code {
-          @apply font-normal;
-          background-color: var(--theme-code-surface);
-        }
       }
     }
 
@@ -295,13 +300,11 @@
   }
 
   .desktop-nav {
-    @apply hidden items-center gap-2 overflow-x-auto md:flex;
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+    @apply hidden w-full transition-[max-width] duration-200 md:block;
   }
 
-  .desktop-nav::-webkit-scrollbar {
-    @apply hidden;
+  .desktop-nav-row {
+    @apply flex items-center gap-2;
   }
 
   .nav-spacer {
@@ -312,8 +315,55 @@
     @apply flex shrink-0 items-center gap-2;
   }
 
+  .desktop-toc-panel {
+    @apply hidden text-left md:block;
+  }
+
+  .post-layout {
+    @apply mx-auto;
+  }
+
+  @media (min-width: 768px) {
+    .post-layout[data-toc-open="true"] {
+      @apply grid items-start gap-10 md:grid-cols-[minmax(0,1fr)_12rem] md:gap-12;
+    }
+
+    .post-layout[data-toc-open="false"] {
+      @apply max-w-3xl;
+    }
+
+    .desktop-nav[data-toc-open="false"] {
+      @apply mx-auto max-w-3xl;
+    }
+  }
+
+  .mobile-toc {
+    @apply mt-2;
+  }
+
+  .mobile-toc-summary {
+    @apply flex list-none cursor-pointer items-center gap-2 rounded-md p-2 font-medium;
+    color: var(--theme-text-muted);
+  }
+
+  .mobile-toc-summary::-webkit-details-marker {
+    @apply hidden;
+  }
+
+  .mobile-toc-panel {
+    @apply px-2 pt-2;
+  }
+
+  .mobile-toc[open] .mobile-toc-chevron {
+    transform: rotate(180deg);
+  }
+
+  .toc-link[aria-current="location"] {
+    color: var(--theme-text-primary);
+  }
+
   .mobile-menu {
-    @apply fixed inset-0 z-50 flex flex-col bg-white p-4 transition-transform duration-300 dark:bg-neutral-900;
+    @apply fixed inset-0 z-50 flex flex-col overflow-y-auto bg-white p-4 transition-transform duration-300 dark:bg-neutral-900;
     transform: translateX(-100%);
   }
 

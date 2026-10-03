@@ -19,13 +19,34 @@ import icon from "astro-icon";
 const cache = new Map();
 // @ts-check
 const remarkMathConfig = { singleDollarTextMath: true };
+const rehypeRoundMermaidNodes = () => {
+  /** @param {any} tree */
+  const transform = (tree) => {
+    /** @param {any} node */
+    const visit = (node) => {
+      if (node.type === "element" && node.tagName === "rect") {
+        const className = node.properties?.className;
+        const classNames = Array.isArray(className) ? className : [className];
+        if (classNames.includes("text")) {
+          node.properties.rx = 6;
+          node.properties.ry = 6;
+        }
+      }
+      node.children?.forEach(visit);
+    };
+
+    visit(tree);
+  };
+
+  return transform;
+};
 const rehypeMermaidConfig = {
   strategy: "inline",
   mermaidConfig: {
     theme: "base",
     darkMode: false,
     flowchart: {
-      curve: "linear",
+      curve: "basis",
       htmlLabels: false,
       nodeSpacing: 32,
       rankSpacing: 36,
@@ -36,19 +57,24 @@ const rehypeMermaidConfig = {
       fontSize: "12px",
     },
     themeCSS: `
+      .node,
+      .cluster {
+        color: var(--theme-code-surface);
+      }
+
       .node rect,
       .node circle,
       .node ellipse,
       .node polygon,
       .node path {
-        fill: var(--mermaid-bg);
-        stroke: var(--mermaid-bg);
+        fill: currentColor;
+        stroke: none;
         stroke-width: 0 !important;
       }
 
       .cluster rect {
-        fill: var(--mermaid-bg);
-        stroke: var(--mermaid-bg);
+        fill: currentColor;
+        stroke: none;
       }
 
       .edgePath .path,
@@ -126,6 +152,7 @@ const markdownProcessor = unified({
       },
     ],
     [rehypeMermaid, rehypeMermaidConfig],
+    rehypeRoundMermaidNodes,
     rehypeMathjaxFira,
   ],
 });
