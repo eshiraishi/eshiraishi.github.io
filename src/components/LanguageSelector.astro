@@ -27,15 +27,13 @@ const languages = LOCALES.map((code) => ({
 ---
 
 <div
-  class={`theme-muted relative ${showLabel ? "inline-flex items-center rounded-md px-2 py-1 font-medium transition-colors hover:bg-neutral-50 hover:text-black dark:hover:bg-neutral-800 dark:hover:text-white" : "flex h-10 w-10 items-center justify-center rounded-md transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800"}`}
+  class={`theme-muted relative ${showLabel ? "inline-flex items-center rounded-md px-2 py-1 font-medium transition-colors hover:bg-neutral-50 hover:text-black dark:hover:bg-neutral-800 dark:hover:text-white" : "flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800"}`}
 >
-  {!showLabel && (
-    <Icon
-      name="lucide:languages"
-      class="language-icon h-4 w-4 pointer-events-none"
-      aria-hidden="true"
-    />
-  )}
+  <Icon
+    name="lucide:languages"
+    class={`language-icon h-4 w-4 shrink-0 pointer-events-none ${showLabel ? "mr-2" : ""}`}
+    aria-hidden="true"
+  />
   <select
     data-language-select
     class={`${showLabel ? "relative w-full text-left p-0 text-base font-medium text-inherit" : "absolute inset-0 h-full w-full opacity-0"} cursor-pointer appearance-none rounded-md bg-transparent transition-colors dark:border-neutral-600`}

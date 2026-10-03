@@ -93,6 +93,44 @@
     @apply my-8 flex justify-center overflow-x-auto px-0;
   }
 
+  .scroll-cue-x[data-scrollable-x="true"],
+  .scroll-cue-y[data-scrollable-y="true"] {
+    --scroll-cue-surface: var(--color-white);
+    --scroll-cue-shadow: color-mix(
+      in srgb,
+      var(--theme-text-primary) 12%,
+      transparent
+    );
+    background-repeat: no-repeat;
+  }
+
+  :root.dark .scroll-cue-x[data-scrollable-x="true"],
+  :root.dark .scroll-cue-y[data-scrollable-y="true"] {
+    --scroll-cue-surface: var(--color-neutral-900);
+  }
+
+  .scroll-cue-x[data-scrollable-x="true"] {
+    background-image:
+      linear-gradient(90deg, var(--scroll-cue-surface) 25%, transparent),
+      linear-gradient(270deg, var(--scroll-cue-surface) 25%, transparent),
+      radial-gradient(farthest-side at 0 50%, var(--scroll-cue-shadow), transparent),
+      radial-gradient(farthest-side at 100% 50%, var(--scroll-cue-shadow), transparent) !important;
+    background-position: 0 0, 100% 0, 0 0, 100% 0 !important;
+    background-size: 1rem 100%, 1rem 100%, 0.75rem 100%, 0.75rem 100% !important;
+    background-attachment: local, local, scroll, scroll !important;
+  }
+
+  .scroll-cue-y[data-scrollable-y="true"] {
+    background-image:
+      linear-gradient(180deg, var(--scroll-cue-surface) 25%, transparent),
+      linear-gradient(0deg, var(--scroll-cue-surface) 25%, transparent),
+      radial-gradient(farthest-side at 50% 0, var(--scroll-cue-shadow), transparent),
+      radial-gradient(farthest-side at 50% 100%, var(--scroll-cue-shadow), transparent) !important;
+    background-position: 0 0, 0 100%, 0 0, 0 100% !important;
+    background-size: 100% 1rem, 100% 1rem, 100% 0.75rem, 100% 0.75rem !important;
+    background-attachment: local, local, scroll, scroll !important;
+  }
+
   .beoe svg {
     @apply h-auto max-w-full;
   }
@@ -295,6 +333,10 @@
     color: var(--theme-text-primary);
   }
 
+  #menu-close .icon {
+    color: var(--theme-text-muted);
+  }
+
   .mobile-header {
     @apply flex items-center justify-between md:hidden;
   }
@@ -351,11 +393,15 @@
   }
 
   .mobile-toc {
-    @apply mt-2;
+    @apply relative mt-2 flex min-h-0 flex-1 flex-col overflow-hidden pt-4;
+  }
+
+  .mobile-toc:not([open]) {
+    @apply flex-none;
   }
 
   .mobile-toc-summary {
-    @apply flex cursor-pointer list-none items-center gap-2 rounded-md p-2 font-medium;
+    @apply flex h-8 w-full shrink-0 cursor-pointer list-none items-center gap-2 rounded-md px-2 py-1 font-medium;
     color: var(--theme-text-muted);
   }
 
@@ -364,7 +410,8 @@
   }
 
   .mobile-toc-panel {
-    @apply px-2 pt-2;
+    @apply min-h-0 overflow-y-auto px-2 pt-2;
+    max-height: calc(100dvh - 12rem);
   }
 
   .mobile-toc[open] .mobile-toc-chevron {
@@ -376,7 +423,8 @@
   }
 
   .mobile-menu {
-    @apply fixed inset-0 z-50 flex flex-col overflow-y-auto bg-white p-4 transition-transform duration-300 dark:bg-neutral-900;
+    @apply fixed inset-0 z-50 flex flex-col overflow-hidden bg-white p-4 transition-transform duration-300 dark:bg-neutral-900;
+    height: 100dvh;
     transform: translateX(-100%);
   }
 
@@ -385,22 +433,41 @@
   }
 
   .mobile-menu-header {
-    @apply mb-4 flex items-center justify-between;
+    @apply mb-4 flex shrink-0 items-center justify-between;
   }
 
-  .mobile-menu-controls {
-    @apply relative mt-5 flex items-center justify-end gap-2 pt-4;
+  .mobile-menu-item {
+    @apply relative shrink-0;
   }
 
-  .mobile-menu-controls::before {
+  .mobile-menu-item + .mobile-menu-item {
+    @apply mt-2 pt-2;
+  }
+
+  .mobile-menu-item + .mobile-menu-item::before {
     content: "";
     @apply absolute top-0 left-1/2 h-px w-8 -translate-x-1/2;
     background-color: var(--theme-quote-border);
   }
 
+  .mobile-toc[open] {
+    @apply flex-none;
+  }
+
   .mobile-control-lang,
   .mobile-control-theme {
-    @apply shrink-0;
+    @apply w-full;
+  }
+
+  .mobile-control-lang div,
+  .mobile-control-lang select,
+  .mobile-control-theme button {
+    @apply h-8 w-full;
+  }
+
+  .mobile-control-lang div,
+  .mobile-control-theme button {
+    @apply p-2;
   }
 
   [data-language-select] {

@@ -47,7 +47,7 @@ const hasToc = tocHeadings.length > 0;
     )}
     {!isPostPage && <EpsilonMark />}
     <button id="menu-button" class="menu-btn ml-auto" aria-label="Toggle menu">
-      <Icon name="lucide:menu" class="icon" aria-hidden="true" />
+      <Icon name="lucide:menu" class="icon back-icon" aria-hidden="true" />
     </button>
   </div>
 
@@ -109,12 +109,19 @@ const hasToc = tocHeadings.length > 0;
       )}
       {!isPostPage && <EpsilonMark />}
       <button id="menu-close" class="menu-btn ml-auto" aria-label="Close menu">
-        <Icon name="lucide:x" class="icon" aria-hidden="true" />
+        <Icon name="lucide:x" class="icon back-icon" aria-hidden="true" />
       </button>
     </div>
 
+    <div class="mobile-menu-item mobile-control-lang">
+      <LanguageSelector showLabel={true} />
+    </div>
+    <div class="mobile-menu-item mobile-control-theme">
+      <ThemeToggle showLabel={true} />
+    </div>
+
     {hasToc && (
-      <details class="mobile-toc" open data-toc-mobile-details>
+      <details class="mobile-menu-item mobile-toc" open data-toc-mobile-details>
         <summary
           class="mobile-toc-summary"
           aria-controls="mobile-toc-nav"
@@ -151,14 +158,6 @@ const hasToc = tocHeadings.length > 0;
       </details>
     )}
 
-    <div class="mobile-menu-controls">
-      <div class="mobile-control-lang">
-        <LanguageSelector />
-      </div>
-      <div class="mobile-control-theme">
-        <ThemeToggle />
-      </div>
-    </div>
   </div>
 </header>
 
@@ -174,16 +173,19 @@ const hasToc = tocHeadings.length > 0;
       e.preventDefault();
       e.stopPropagation();
       mobileMenu.classList.add("is-open");
+      siteHeader?.removeAttribute("data-scroll-direction");
       siteHeader?.setAttribute("data-menu-open", "true");
     };
     const closeHandler = (e) => {
       e.preventDefault();
       e.stopPropagation();
       mobileMenu.classList.remove("is-open");
+      siteHeader?.removeAttribute("data-scroll-direction");
       siteHeader?.removeAttribute("data-menu-open");
     };
     const navLinkHandler = () => {
       mobileMenu.classList.remove("is-open");
+      siteHeader?.removeAttribute("data-scroll-direction");
       siteHeader?.removeAttribute("data-menu-open");
     };
 
@@ -219,12 +221,17 @@ const hasToc = tocHeadings.length > 0;
     if (!siteHeader || siteHeader.dataset.scrollInitialized) return;
 
     let lastScrollY = window.scrollY;
+    let revealUntil = 0;
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      if (currentScrollY > lastScrollY + 2) {
-        siteHeader.setAttribute("data-scroll-direction", "down");
-      } else if (currentScrollY < lastScrollY) {
+      const delta = currentScrollY - lastScrollY;
+      const now = performance.now();
+
+      if (currentScrollY <= 8 || delta < 0) {
         siteHeader.removeAttribute("data-scroll-direction");
+        revealUntil = now + 500;
+      } else if (delta > 2 && now > revealUntil) {
+        siteHeader.setAttribute("data-scroll-direction", "down");
       }
       lastScrollY = currentScrollY;
     };
