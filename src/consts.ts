@@ -7,5 +7,5 @@ export const SITE_DESCRIPTION = "Enzo Shiraishi's website and blog!";
 
 export const EMAIL = "enzo.shiraishi@gmail.com";
 
-export const DARK_THEME = 'vitesse-dark';
-export const LIGHT_THEME = 'vitesse-light';
+export const DARK_THEME = "gruvbox-dark-hard";
+export const LIGHT_THEME = "gruvbox-light-hard";

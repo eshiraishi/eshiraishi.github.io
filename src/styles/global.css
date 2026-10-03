@@ -1,16 +1,66 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-serif: "Fira Sans", serif;
+  --font-sans: "Fira Sans", sans-serif;
+  --font-mono: "Fira Code Variable", monospace;
+  --color-neutral-50: #f9f5d7;
+  --color-neutral-100: #ebdbb2;
+  --color-neutral-200: #d5c4a1;
+  --color-neutral-300: #bdae93;
+  --color-neutral-400: #a89984;
+  --color-neutral-500: #7c6f64;
+  --color-neutral-600: #665c54;
+  --color-neutral-700: #504945;
+  --color-neutral-800: #3c3836;
+  --color-neutral-900: #1d2021;
+  --color-neutral-950: #1d2021;
+  --color-black: #1d2021;
+  --color-white: #f9f5d7;
+  --color-yellow-500: #d79921;
+}
 
 @layer base {
   :root {
-    --theme-icon-color: theme('colors.neutral.500');
-    --theme-icon-hover-color: theme('colors.black');
+    --theme-text-primary: var(--color-black);
+    --theme-text-muted: var(--color-neutral-700);
+    --theme-surface: color-mix(
+      in srgb,
+      var(--color-neutral-100) 35%,
+      var(--color-white)
+    );
+    --theme-code-surface: color-mix(
+      in srgb,
+      var(--color-neutral-200) 60%,
+      var(--color-white)
+    );
+    --theme-quote-border: color-mix(
+      in srgb,
+      var(--color-neutral-200) 55%,
+      var(--color-white)
+    );
+    --theme-selection: #94c68480;
+    --theme-focus: var(--color-neutral-700);
+    --theme-icon-color: var(--color-neutral-500);
+    --theme-icon-hover-color: var(--color-black);
+    --mermaid-bg: var(--color-white);
+    --mermaid-fg: var(--color-black);
   }
 
   :root.dark {
-    --theme-icon-color: theme('colors.neutral.400');
-    --theme-icon-hover-color: theme('colors.white');
+    --theme-text-primary: var(--color-white);
+    --theme-text-muted: var(--color-neutral-300);
+    --theme-surface: #32302f;
+    --theme-code-surface: #282828;
+    --theme-quote-border: var(--color-neutral-800);
+    --theme-selection: #26561c80;
+    --theme-focus: var(--color-neutral-300);
+    --theme-icon-color: var(--color-neutral-400);
+    --theme-icon-hover-color: var(--color-white);
+    --mermaid-bg: var(--color-neutral-900);
+    --mermaid-fg: var(--color-neutral-200);
   }
 
   ::-webkit-scrollbar {
@@ -29,44 +79,52 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
+  ::selection,
+  .expressive-code ::selection,
+  .expressive-code pre ::selection {
+    background-color: var(--theme-selection) !important;
+    color: inherit !important;
+  }
 }
 
 @layer components {
   :root {
-    @apply font-light;
+    @apply font-normal;
   }
 
-  .beoe-dark,
-  .beoe-light {
-    @apply mx-0 my-auto;
+  .beoe {
+    @apply my-8 flex justify-center overflow-x-auto px-0;
+  }
+
+  .beoe svg {
+    @apply h-auto max-w-full;
   }
 
   article {
     @apply max-w-3xl overflow-hidden;
 
-
     p {
       @apply my-4 leading-relaxed;
     }
 
-
     h1 {
-      @apply my-4 text-xl font-bold dark:text-neutral-50;
+      @apply my-4 text-xl font-bold text-inherit;
     }
 
     h2 {
-      @apply my-4 text-lg font-bold dark:text-neutral-50;
+      @apply my-4 text-lg font-bold text-inherit;
     }
 
     h3,
     h4,
     h5,
     h6 {
-      @apply my-4 font-bold dark:text-neutral-50;
+      @apply my-4 font-bold text-inherit;
     }
 
-    :not(pre)>code {
-      @apply whitespace-nowrap rounded bg-neutral-200/50 px-1 py-0.5 font-mono text-sm font-normal text-neutral-950 dark:bg-neutral-800/50 dark:text-neutral-50;
+    :not(pre) > code {
+      @apply rounded bg-neutral-200/50 px-1 py-0.5 font-mono text-sm font-normal whitespace-nowrap text-inherit dark:bg-neutral-800/50;
     }
 
     pre:has(code) {
@@ -82,7 +140,9 @@
     }
 
     blockquote {
-      @apply my-4 border-l-8 rounded-lg pl-4 bg-neutral-100 dark:bg-neutral-800 py-4 border-neutral-200 dark:border-neutral-700;
+      @apply my-4 rounded-lg border-l-8 py-4 pl-4;
+      border-left-color: var(--theme-quote-border);
+      background-color: var(--theme-surface);
 
       p {
         @apply my-0;
@@ -90,18 +150,22 @@
     }
 
     a {
-      @apply underline decoration-neutral-400 dark:decoration-neutral-500 hover:no-underline hover:p-0.5 rounded transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800 decoration-1 underline-offset-4;
+      @apply rounded underline decoration-neutral-400 decoration-1 underline-offset-4 transition-colors hover:p-0.5 hover:no-underline dark:decoration-neutral-500;
+
+      &:hover {
+        background-color: var(--theme-surface);
+      }
 
       &:has(img.link-icon) {
-        @apply hover:bg-transparent hover:p-0 no-underline;
+        @apply no-underline hover:bg-transparent hover:p-0;
       }
 
       img.link-icon {
-        @apply w-4 h-4 my-0 ml-2 border-0 rounded-none inline-block opacity-0 transition-opacity;
+        @apply my-0 ml-2 inline-block h-4 w-4 rounded-none border-0 opacity-0 transition-opacity;
       }
 
       &:hover img.link-icon {
-        @apply opacity-100 text-current;
+        @apply text-current opacity-100;
       }
 
       /* Ensure proper visibility in dark mode */
@@ -111,7 +175,8 @@
     }
 
     table {
-      @apply my-4 w-full table-auto border-collapse text-sm rounded-lg border-none bg-neutral-50 dark:bg-neutral-800;
+      @apply my-4 w-full table-auto border-collapse rounded-lg border-none text-sm;
+      background-color: var(--theme-surface);
 
       tr:last-child td:first-child,
       tr:last-child td:last-child {
@@ -119,17 +184,19 @@
       }
 
       th {
-        @apply rounded-lg border-b p-4 text-left font-bold border-none bg-neutral-50 dark:bg-neutral-800;
+        @apply rounded-lg border-b border-none p-4 text-left font-bold;
+        background-color: var(--theme-surface);
       }
 
       td {
-        @apply border-b bg-neutral-50 p-4 border-none dark:bg-neutral-800;
+        @apply border-b border-none p-4;
+        background-color: var(--theme-surface);
 
         code {
-          @apply bg-neutral-200 dark:bg-neutral-700 font-normal;
+          @apply font-normal;
+          background-color: var(--theme-code-surface);
         }
       }
-
     }
 
     ol {
@@ -152,43 +219,48 @@
     }
 
     kbd {
-      @apply rounded border border-b-2 bg-neutral-100 px-1 py-0.5 font-mono text-xs font-normal text-neutral-950 dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-50;
+      @apply rounded border border-b-2 px-1 py-0.5 font-mono text-xs font-normal text-neutral-950 dark:border-neutral-600 dark:text-neutral-50;
+      background-color: var(--theme-surface);
     }
 
     mark {
       @apply dark:bg-yellow-500/50 dark:text-neutral-50;
     }
 
-    .katex-html {
-      @apply overflow-x-auto overflow-y-hidden;
+    mjx-container[jax="SVG"] {
+      @apply inline-block max-w-full overflow-x-auto overflow-y-hidden align-middle;
     }
 
-
-    .beoe-dark,
-    .beoe-light {
-      @apply flex justify-center;
+    mjx-container[jax="SVG"][display="true"] {
+      @apply my-8 block overflow-x-auto py-2 text-center;
     }
 
-
-    :root.dark span.edgeLabel .labelBkg,
-    :root.dark span.edgeLabel,
-    :root.dark span.edgeLabel p {
-      @apply bg-[#171717] border-none text-[#d3d3d3];
+    mjx-container[jax="SVG"][display="true"] svg {
+      @apply mx-auto;
     }
-  }
 
-  :root:not(.dark) .beoe-dark,
-  :root.dark .beoe-light {
-    @apply hidden;
+    mjx-container[jax="SVG"] svg {
+      @apply h-auto max-w-full;
+    }
   }
 
   .site-title {
-    @apply inline-flex items-center whitespace-nowrap rounded-md px-2 py-1 text-lg font-bold text-neutral-500 no-underline transition-colors hover:bg-neutral-50 hover:text-black hover:no-underline dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white;
+    @apply inline-flex items-center rounded-md px-2 py-1 text-lg font-bold whitespace-nowrap no-underline transition-colors hover:bg-neutral-50 hover:no-underline dark:hover:bg-neutral-800;
+    color: var(--theme-text-muted);
+
+    &:hover {
+      color: var(--theme-text-primary);
+    }
   }
 
   .nav-link,
   .mobile-nav-link {
-    @apply inline-flex items-center whitespace-nowrap rounded-md px-2 py-1 font-medium text-neutral-500 no-underline transition-colors hover:bg-neutral-50 hover:text-black hover:no-underline dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white;
+    @apply inline-flex items-center rounded-md px-2 py-1 font-medium whitespace-nowrap no-underline transition-colors hover:bg-neutral-50 hover:no-underline dark:hover:bg-neutral-800;
+    color: var(--theme-text-muted);
+
+    &:hover {
+      color: var(--theme-text-primary);
+    }
   }
 
   .mobile-nav-link {
@@ -196,15 +268,26 @@
   }
 
   .menu-btn {
-    @apply rounded-md p-2 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800 cursor-pointer;
+    @apply cursor-pointer rounded-md p-2 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800;
   }
 
   .icon {
-    @apply h-6 w-6 pointer-events-none transition-colors duration-200 text-neutral-500 dark:text-neutral-400;
+    @apply pointer-events-none h-6 w-6 transition-colors duration-200;
+    color: var(--theme-text-muted);
+  }
+
+  .back-icon {
+    @apply h-4 w-4;
+  }
+
+  .epsilon {
+    @apply pointer-events-none h-4 w-4;
+    color: var(--theme-text-muted);
+    transform: scale(1.4);
   }
 
   .menu-btn:hover .icon {
-    @apply text-black dark:text-white;
+    color: var(--theme-text-primary);
   }
 
   .mobile-header {
@@ -230,11 +313,12 @@
   }
 
   .mobile-menu {
-    @apply fixed inset-0 z-50 flex transform flex-col bg-white p-4 transition-transform duration-300 dark:bg-neutral-900 -translate-x-full;
+    @apply fixed inset-0 z-50 flex flex-col bg-white p-4 transition-transform duration-300 dark:bg-neutral-900;
+    transform: translateX(-100%);
   }
 
-  .mobile-menu:not(.-translate-x-full) {
-    @apply translate-x-0;
+  .mobile-menu.is-open {
+    transform: translateX(0);
   }
 
   .mobile-menu-header {
@@ -246,29 +330,60 @@
     @apply mb-2 w-full;
   }
 
-  .mobile-control-lang :global(div),
-  .mobile-control-lang :global(select),
-  .mobile-control-theme :global(button) {
+  .mobile-control-lang div,
+  .mobile-control-lang select,
+  .mobile-control-theme button {
     @apply w-full;
   }
 
-  #language-select {
+  [data-language-select] {
     @apply relative z-50;
   }
 
-  #language-select option {
+  [data-language-select] option {
     @apply p-2;
   }
 
-  #language-select:not(.text-left) option {
+  [data-language-select]:not(.text-left) option {
     @apply text-center;
   }
 
-  #language-select:focus {
+  [data-language-select]:focus {
     @apply z-[100];
   }
 
+  [data-language-select]:focus-visible {
+    outline: 2px solid var(--theme-focus);
+    outline-offset: 2px;
+  }
+
   .theme-toggle-btn {
-    @apply text-neutral-500 dark:text-neutral-400 duration-200 hover:text-black hover:dark:text-white;
+    @apply duration-200;
+    color: var(--theme-text-muted);
+
+    &:hover {
+      color: var(--theme-text-primary);
+    }
+  }
+
+  .theme-muted {
+    color: var(--theme-text-muted);
+  }
+
+  .mermaid foreignObject,
+  .mermaid foreignObject * {
+    color: var(--mermaid-fg) !important;
+  }
+
+  .expressive-code pre {
+    border: 0 !important;
+  }
+
+  .expressive-code .frame {
+    box-shadow: none !important;
+  }
+
+  .expressive-code .copy button::before {
+    border: 0 !important;
   }
 }

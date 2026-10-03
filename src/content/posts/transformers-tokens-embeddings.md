@@ -1,8 +1,9 @@
 ---
-title: '🇧🇷 Explicando Transformers (Pt. 2): Tokens e embeddings'
-date: '2025-07-14'
-description: 'Neste post, vou mostrar como os dados são representados em modelos como os Transformers, explicando como inteligências artificiais como o ChatGPT entendem nossos prompts. Vamos passar por conceitos importantes como tokens, embeddings e padding, criar um tokenizador simples em Python e como gerar embeddings de forma prática usando PyTorch.'
-image: '/transformers.png'
+title: "🇧🇷 Explicando Transformers (Pt. 2): Tokens e embeddings"
+date: "2025-07-14"
+draft: true
+description: "Neste post, vou mostrar como os dados são representados em modelos como os Transformers, explicando como inteligências artificiais como o ChatGPT entendem nossos prompts. Vamos passar por conceitos importantes como tokens, embeddings e padding, criar um tokenizador simples em Python e como gerar embeddings de forma prática usando PyTorch."
+image: "/transformers.png"
 ---
 
 Neste post, vou mostrar como os dados são representados em modelos como os Transformers, explicando como inteligências artificiais como o ChatGPT entendem nossos prompts. Vamos passar por conceitos importantes como tokens, embeddings e padding, criar um tokenizador simples em Python e como gerar embeddings de forma prática usando PyTorch.
@@ -19,16 +20,16 @@ Além de mapear caracteres individuais, também é possível criar tokens para s
 
 No entanto, como o modelo de linguagem pressupõe que o texto já foi "tokenizado", a escolha do método de tokenização não altera a arquitetura do modelo. Por isso, para simplificar, neste guia será utilizado um tokenizer básico, composto apenas pelos caracteres imprimíveis da tabela ASCII, disponíveis no objeto `printable` do módulo `string` em Python.
 
-| Letra   | Token   |
-|---------|---------|
-| `a`     | `1`     |
-| `b`     | `2`     |
-| `c`     | `3`     |
-| ...     | ...     |
-| `z`     | `26`    |
-| `␣`     | `27`    |
-| `.`     | `28`    |
-| `,`     | `29`    |
+| Letra | Token |
+| ----- | ----- |
+| `a`   | `1`   |
+| `b`   | `2`   |
+| `c`   | `3`   |
+| ...   | ...   |
+| `z`   | `26`  |
+| `␣`   | `27`  |
+| `.`   | `28`  |
+| `,`   | `29`  |
 
 Uma sequência de tokens gerada a partir de um texto pode ser representada por um vetor, onde cada elemento corresponde ao valor numérico de um token na ordem em que aparece no texto. Quando reunimos vários desses vetores (um para cada texto de um batch) e os organizamos como linhas de uma matriz, conseguimos paralelizar as operações envolvidas na predição através de operações vetorizadas, o que maximiza a performance do modelo.
 
@@ -52,18 +53,18 @@ Além disso, o tokenizer insere dois tokens especiais em cada sequência: `<bos>
 
 Nestes exemplos, `<bos>` e `<eos>` são sempre representados pelos números `1` e `2`, respectivamente. Por isso, os demais tokens do vocabulário começam a ser numerados a partir de `3`.
 
-| Letra       | Token   |
-|-------------|---------|
-| `<bos>`     | `1`     |
-| `<eos>`     | `2`     |
-| `a`         | `3`     |
-| `b`         | `4`     |
-| `c`         | `5`     |
-| ...         | ...     |
-| `z`         | `28`    |
-| `␣`         | `29`    |
-| `.`         | `30`    |
-| `,`         | `31`    |
+| Letra   | Token |
+| ------- | ----- |
+| `<bos>` | `1`   |
+| `<eos>` | `2`   |
+| `a`     | `3`   |
+| `b`     | `4`   |
+| `c`     | `5`   |
+| ...     | ...   |
+| `z`     | `28`  |
+| `␣`     | `29`  |
+| `.`     | `30`  |
+| `,`     | `31`  |
 
 $$
 \begin{array}{cccc}
@@ -143,19 +144,19 @@ Após um texto ser transformado em uma sequência de tokens, ele pode ser repres
 
 Para garantir que todos os vetores de um batch tenham o mesmo comprimento, é usado um processo de padding, onde tokens especiais são adicionados ao início ou final de cada sequência até que todas tenham $n$ elementos. O token especial adicionado é chamado de padding token, representado por `<pad>`, e nos exemplos será sempre representado pelo número `0`. Considere também que cada batch será composto sempre de $b$ sequências.
 
-| Letra   | Token   |
-|---------|---------|
-| `<pad>` | `0`     |
-| `<bos>` | `1`     |
-| `<eos>` | `2`     |
-| `a`     | `4`     |
-| `b`     | `5`     |
-| `c`     | `6`     |
-| ...     | ...     |
-| `z`     | `28`    |
-| `␣`     | `29`    |
-| `.`     | `30`    |
-| `,`     | `31`    |
+| Letra   | Token |
+| ------- | ----- |
+| `<pad>` | `0`   |
+| `<bos>` | `1`   |
+| `<eos>` | `2`   |
+| `a`     | `4`   |
+| `b`     | `5`   |
+| `c`     | `6`   |
+| ...     | ...   |
+| `z`     | `28`  |
+| `␣`     | `29`  |
+| `.`     | `30`  |
+| `,`     | `31`  |
 
 Por fim, existem duas formas principais de definir o comprimento $t$ de cada sequência após o padding:
 

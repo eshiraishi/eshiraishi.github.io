@@ -1,8 +1,9 @@
 ---
-title: '🇧🇷 Explicando Transformers (Pt. 5): Modelos Autoregressivos'
-date: '2025-07-17'
-description: 'Nesse post, antes de entendermos a estrutura de um Transformer, vamos entender primeiro como funcionam os modelos autoregressivos. Eles são uma classe de modelos que recebem sequências de dados e geram novas sequências, um elemento por vez. Isso deixará mais simples o entendimento da arquitetura dos Transformers em breve.'
-image: '/transformers.png'
+title: "🇧🇷 Explicando Transformers (Pt. 5): Modelos Autoregressivos"
+date: "2025-07-17"
+draft: true
+description: "Nesse post, antes de entendermos a estrutura de um Transformer, vamos entender primeiro como funcionam os modelos autoregressivos. Eles são uma classe de modelos que recebem sequências de dados e geram novas sequências, um elemento por vez. Isso deixará mais simples o entendimento da arquitetura dos Transformers em breve."
+image: "/transformers.png"
 ---
 
 Nesse post, antes de entendermos a estrutura de um Transformer, vamos entender primeiro como funcionam os modelos autoregressivos. Eles são uma classe de modelos que recebem sequências de dados e geram novas sequências, um elemento por vez. Isso deixará mais simples o entendimento da arquitetura dos Transformers em breve.
@@ -13,9 +14,9 @@ Transformers são modelos que realizam transdução de sequências utilizando um
 
 Quando um modelo de transdução de sequências é autoregressivo, ele é treinado para modificar a sequência recebida por meio de um processo chamado shift, no qual:
 
-* O primeiro elemento é removido.
-* Todos os elementos são deslocados uma posição para trás.
-* A última posição é preenchida com um novo elemento gerado pelo modelo.
+- O primeiro elemento é removido.
+- Todos os elementos são deslocados uma posição para trás.
+- A última posição é preenchida com um novo elemento gerado pelo modelo.
 
 O modelo gera um novo elemento, que é adicionado ao início da sequência gerada. Em seguida, a sequência pós-shift se torna a nova sequência recebida, e o processo se repete: a cada iteração, um novo elemento é gerado e acrescentado à sequência, até que algum critério de parada seja atingido.
 

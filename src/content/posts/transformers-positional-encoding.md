@@ -1,8 +1,9 @@
 ---
-title: '🇧🇷 Explicando Transformers (Pt. 4): Positional Encoding'
-date: '2025-07-16'
-description: 'No post anterior, vimos como funcionam mecanismos de atenção e concluímos que existem algumas limitações no seu uso direto. Nesse post, explicarei como funciona o Positional Encoding, uma técnica complementar à atenção para representar a posição dos elementos na sequência recebida.'
-image: '/transformers.png'
+title: "🇧🇷 Explicando Transformers (Pt. 4): Positional Encoding"
+date: "2025-07-16"
+draft: true
+description: "No post anterior, vimos como funcionam mecanismos de atenção e concluímos que existem algumas limitações no seu uso direto. Nesse post, explicarei como funciona o Positional Encoding, uma técnica complementar à atenção para representar a posição dos elementos na sequência recebida."
+image: "/transformers.png"
 ---
 
 No post anterior, vimos como funcionam mecanismos de atenção e concluímos que existem algumas limitações no seu uso direto. Nesse post, explicarei como funciona o Positional Encoding, uma técnica complementar à atenção para representar a posição dos elementos na sequência recebida.
@@ -24,10 +25,10 @@ $$
 
 Onde:
 
-* $p$ é a posição de um elemento na sequência recebida.
-* $j$ é a posição de um item escalar em um elemento da sequência recebida.
-* $i$ é um índice auxiliar tal que $0 \leq i < \frac{d}{2}$, e $i$ é incrementado a cada dois itens consecutivos de $j$.
-* $\theta$ é um hiperparâmetro que representa a escala das posições.
+- $p$ é a posição de um elemento na sequência recebida.
+- $j$ é a posição de um item escalar em um elemento da sequência recebida.
+- $i$ é um índice auxiliar tal que $0 \leq i < \frac{d}{2}$, e $i$ é incrementado a cada dois itens consecutivos de $j$.
+- $\theta$ é um hiperparâmetro que representa a escala das posições.
 
 Os embeddings gerados pelo PE são incorporados à sequência de embeddings original ao serem somados com o valor dos token embeddings. Nos Transformers, essa função foi escolhida porque equivale a aplicar uma matriz de rotação aos embeddings dos elementos da sequência, em que o ângulo de rotação de cada elemento é determinado por sua posição.
 

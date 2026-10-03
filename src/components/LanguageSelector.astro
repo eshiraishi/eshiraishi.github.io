@@ -1,57 +1,76 @@
 ---
+import { getRelativeLocaleUrl } from "astro:i18n";
+import {
+  DEFAULT_LOCALE,
+  LOCALES,
+  LOCALE_LABELS,
+  UI,
+  type Locale,
+} from "../lib/i18n";
+
 interface Props {
-    showLabel?: boolean;
+  showLabel?: boolean;
 }
 
 const { showLabel = false } = Astro.props;
-
-const languages = [
-    { code: "en", name: "English", flag: "🇺🇸" },
-    { code: "pt", name: "Português", flag: "🇧🇷" },
-];
-const currentLang = Astro.url.pathname.startsWith("/") ? "en" : "en";
+const currentLocale = (Astro.currentLocale ?? DEFAULT_LOCALE) as Locale;
+const currentPath =
+  Astro.url.pathname.replace(/^\/en(?:\/|$)/, "").replace(/^\/+|\/+$/g, "") ||
+  "posts";
+const languages = LOCALES.map((code) => ({
+  code,
+  ...LOCALE_LABELS[code],
+  href: getRelativeLocaleUrl(code, currentPath),
+}));
 ---
 
 <div
-    class={`relative ${showLabel ? "inline-flex items-center rounded-md px-2 py-1 font-medium text-neutral-500 transition-colors hover:bg-neutral-50 hover:text-black dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white" : ""}`}
+  class={`theme-muted relative ${showLabel ? "inline-flex items-center rounded-md px-2 py-1 font-medium transition-colors hover:bg-neutral-50 hover:text-black dark:hover:bg-neutral-800 dark:hover:text-white" : "flex h-10 w-10 items-center justify-center rounded-md transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800"}`}
 >
-    <select
-        id="language-select"
-        class={`relative ${showLabel ? "w-full text-left" : "w-auto text-center"} cursor-pointer appearance-none rounded-md bg-transparent ${showLabel ? "p-0 text-base font-medium" : "px-2 py-0.5 text-lg"} ${showLabel ? "text-inherit" : "text-neutral-500"} transition-colors ${showLabel ? "" : "hover:bg-neutral-50 hover:text-black"} focus:outline-none dark:border-neutral-600 ${showLabel ? "" : "dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white"}`}
-        aria-label="Select language"
+  {!showLabel && (
+    <svg
+      class="language-icon h-4 w-4 pointer-events-none"
+      viewBox="0 0 16 16"
+      fill="currentColor"
+      aria-hidden="true"
     >
-        {
-            languages.map((lang) => (
-                <option
-                    value={lang.code}
-                    selected={lang.code === currentLang}
-                    class="bg-white text-black dark:bg-neutral-800 dark:text-white"
-                >
-                    {showLabel ? lang.name : lang.flag}
-                </option>
-            ))
-        }
-    </select>
+      <path
+        fill-rule="evenodd"
+        d="M11 5a.75.75 0 0 1 .688.452l3.25 7.5a.75.75 0 1 1-1.376.596L12.89 12H9.109l-.67 1.548a.75.75 0 1 1-1.377-.596l3.25-7.5A.75.75 0 0 1 11 5Zm-1.24 5.5h2.48L11 7.636 9.76 10.5ZM5 1a.75.75 0 0 1 .75.75v1.261a25.27 25.27 0 0 1 2.598.211.75.75 0 1 1-.2 1.487c-.22-.03-.44-.056-.662-.08A12.939 12.939 0 0 1 5.92 8.058c.237.304.488.595.752.873a.75.75 0 0 1-1.086 1.035A13.075 13.075 0 0 1 5 9.307a13.068 13.068 0 0 1-2.841 2.546.75.75 0 0 1-.827-1.252A11.566 11.566 0 0 0 4.08 8.057a12.991 12.991 0 0 1-.554-.938.75.75 0 1 1 1.323-.707c.049.09.099.181.15.271.388-.68.708-1.405.952-2.164a23.941 23.941 0 0 1-4.1.19.75.75 0 0 1-.2-1.487c.853-.114 1.72-.185 2.598-.211V1.75A.75.75 0 0 1 5 1Z"
+        clip-rule="evenodd"
+      />
+    </svg>
+  )}
+  <select
+    data-language-select
+    class={`${showLabel ? "relative w-full text-left p-0 text-base font-medium text-inherit" : "absolute inset-0 h-full w-full opacity-0"} cursor-pointer appearance-none rounded-md bg-transparent transition-colors dark:border-neutral-600`}
+    aria-label={UI[currentLocale].selectLanguage}
+  >
+    {languages.map((language) => (
+      <option
+        value={language.href}
+        selected={language.code === currentLocale}
+        class="bg-white text-black dark:bg-neutral-800 dark:text-white"
+      >
+        {showLabel ? language.name : language.flag}
+      </option>
+    ))}
+  </select>
 </div>
 
 <script>
-    const setLanguageListener = () => {
-        const select = document.getElementById(
-            "language-select",
-        ) as HTMLSelectElement;
+  const setupLanguageSelectors = () => {
+    document
+      .querySelectorAll<HTMLSelectElement>("[data-language-select]")
+      .forEach((select) => {
+        select.onchange = () => {
+          const locale = select.value.startsWith("/en") ? "en" : "pt-br";
+          localStorage.setItem("language", locale);
+          window.location.assign(select.value);
+        };
+      });
+  };
 
-        select?.addEventListener("change", (event) => {
-            const target = event.target as HTMLSelectElement;
-            const selectedLang = target.value;
-
-            document.dispatchEvent(
-                new CustomEvent("languageChange", {
-                    detail: { language: selectedLang },
-                }),
-            );
-        });
-    };
-
-    setLanguageListener();
-    document.addEventListener("astro:after-swap", setLanguageListener);
+  setupLanguageSelectors();
+  document.addEventListener("astro:after-swap", setupLanguageSelectors);
 </script>

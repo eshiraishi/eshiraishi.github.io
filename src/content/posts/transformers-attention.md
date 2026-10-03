@@ -1,8 +1,9 @@
 ---
-title: '🇧🇷 Explicando Transformers (Pt. 3): Atenção'
-date: '2025-07-15'
+title: "🇧🇷 Explicando Transformers (Pt. 3): Atenção"
+date: "2025-07-15"
+draft: true
 description: 'Neste post, vou explicar o que é atenção e como funcionam os mecanismos apresentados no artigo "Attention is All You Need". No caminho, vamos ver como funcionam os mecanismos Scaled Dot-Product Attention e Multihead Attention, e ao final, também vamos implementar esses mecanismos do zero em PyTorch com foco em eficiência computacional.'
-image: '/transformers.png'
+image: "/transformers.png"
 ---
 
 Neste post, vou explicar o que é atenção e como funcionam os mecanismos apresentados no artigo "Attention is All You Need". No caminho, vamos ver como funcionam os mecanismos Scaled Dot-Product Attention e Multihead Attention, e ao final, também vamos implementar esses mecanismos do zero em PyTorch com foco em eficiência computacional.
@@ -97,11 +98,11 @@ Para explicar conceitualmente o funcionamento desses mecanismos, é importante d
 
 De forma simplificada, um mecanismo de atenção pode ser comparado a um dicionário em Python: chaves (keys ou $K$) são associadas a valores (values ou $V$), e é possível recuperar um valor a partir de uma consulta (query ou $Q$). No contexto do mecanismo de atenção, os papéis de query, key e value são desempenhados pelos próprios elementos da sequência recebida, conforme descrito a seguir:
 
-* Query: O elemento da sequência para o qual queremos representar de outra forma. No exemplo anterior, seria a palavra "ele".
-* Keys: Todos os elementos da sequência recebida, que funcionam como possíveis referências para determinar o contexto da query.
-* Value: Um novo elemento que representa o significado da query, calculado a partir do elemento original e das keys.
-  * Se a query for ambígua, o value será ajustado para refletir melhor seu significado no contexto. No exemplo anterior, para "ele", o value ficará mais próximo do elemento que representa "João".
-  * Se não houver ambiguidade, o value pode ser igual ou muito próximo ao embedding original da query. No exemplo anterior, para "João", o value praticamente não muda.
+- Query: O elemento da sequência para o qual queremos representar de outra forma. No exemplo anterior, seria a palavra "ele".
+- Keys: Todos os elementos da sequência recebida, que funcionam como possíveis referências para determinar o contexto da query.
+- Value: Um novo elemento que representa o significado da query, calculado a partir do elemento original e das keys.
+  - Se a query for ambígua, o value será ajustado para refletir melhor seu significado no contexto. No exemplo anterior, para "ele", o value ficará mais próximo do elemento que representa "João".
+  - Se não houver ambiguidade, o value pode ser igual ou muito próximo ao embedding original da query. No exemplo anterior, para "João", o value praticamente não muda.
 
 O exemplo a seguir ilustra essa analogia:
 
@@ -252,6 +253,7 @@ $$
     \end{array}
     }_{\text{Pesos de atenção}}
 $$
+
 Por isso, embora queries, keys e values sejam inicialmente derivados da mesma sequência, é importante destacar que cada um desempenha um papel específico e distinto para o mecanismo de atenção.
 
 ### Mecanismos de atenção

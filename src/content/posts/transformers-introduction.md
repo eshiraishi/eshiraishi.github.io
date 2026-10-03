@@ -1,8 +1,9 @@
 ---
-title: '🇧🇷 Explicando Transformers (Pt. 1): Introdução'
-date: '2025-07-13'
-description: 'Nesse post, será feita uma introdução aos Transformers, explicando os problemas que estamos tentando resolver com essa arquitetura, introduzindo o contexto histórico que levou à sua criação e os desafios presentes na criação desse tipo de modelo.'
-image: '/transformers.png'
+title: "🇧🇷 Explicando Transformers (Pt. 1): Introdução"
+date: "2025-07-13"
+draft: true
+description: "Nesse post, será feita uma introdução aos Transformers, explicando os problemas que estamos tentando resolver com essa arquitetura, introduzindo o contexto histórico que levou à sua criação e os desafios presentes na criação desse tipo de modelo."
+image: "/transformers.png"
 ---
 
 Nesse post, será feita uma introdução aos Transformers, explicando os problemas que estamos tentando resolver com essa arquitetura, introduzindo o contexto histórico que levou à sua criação e os desafios presentes na criação desse tipo de modelo.
@@ -29,7 +30,7 @@ Durante muitos anos, criar modelos eficientes para transdução de sequências f
 
 Antes dos Transformers, as técnicas baseadas em redes neurais recorrentes (RNNs) apresentavam o melhor desempenho em tarefas como tradução automática, sendo a base da arquitetura utilizada pelo Google Tradutor em 2014, conforme descrito no artigo "Sequence to Sequence Learning with Neural Networks". Embora a explicação detalhada dessas arquiteturas esteja fora do escopo deste guia, vale destacar que o processo de treinamento das RNNs enfrentava alguns problemas que motivaram a busca por alternativas mais eficientes:
 
-1. A natureza recursiva das RNNs pode causar o problema de *gradient vanishing*, em que os gradientes calculados durante o backpropagation se tornam tão pequenos que o modelo não consegue aprender de forma eficiente, dificultando a convergência para o mínimo global da função de perda.
+1. A natureza recursiva das RNNs pode causar o problema de _gradient vanishing_, em que os gradientes calculados durante o backpropagation se tornam tão pequenos que o modelo não consegue aprender de forma eficiente, dificultando a convergência para o mínimo global da função de perda.
 
 2. Como algumas operações precisam ser realizadas de forma sequencial, a inferência nesses modelos pode ser muito lenta, tornando o treinamento e o uso prático inviáveis em muitos casos.
 

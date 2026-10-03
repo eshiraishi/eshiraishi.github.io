@@ -1,42 +1,78 @@
 ---
-import { EMAIL, SITE_TITLE } from "../consts";
+import { getRelativeLocaleUrl } from "astro:i18n";
+import { DEFAULT_LOCALE, UI, type Locale } from "../lib/i18n";
 
+import EpsilonMark from "./EpsilonMark.astro";
 import { Icon } from "astro-icon/components";
+import LanguageSelector from "./LanguageSelector.astro";
 import ThemeToggle from "./ThemeToggle.astro";
 
-const navLinks = [
-  { href: "/posts", label: "Posts" },
-  { href: `mailto:${EMAIL}`, label: "Contact" },
-];
+const locale = (Astro.currentLocale ?? DEFAULT_LOCALE) as Locale;
+const labels = UI[locale];
+const postsUrl = getRelativeLocaleUrl(locale, "posts");
+const isPostPage = /^\/(?:en\/)?posts\/[^/]+/.test(Astro.url.pathname);
 ---
 
 <header class="relative mb-6" transition:name="header">
   <div class="mobile-header">
-    <a href="/" class="site-title">{SITE_TITLE}</a>
-    <button id="menu-button" class="menu-btn" aria-label="Toggle menu">
+    {isPostPage && (
+      <a
+        href={postsUrl}
+        class="menu-btn inline-flex items-center no-underline"
+        aria-label={labels.backToPosts}
+      >
+        <Icon
+          name="heroicons:arrow-left-20-solid"
+          class="icon back-icon"
+          aria-hidden="true"
+        />
+      </a>
+    )}
+    <EpsilonMark />
+    <button id="menu-button" class="menu-btn ml-auto" aria-label="Toggle menu">
       <Icon name="heroicons:bars-3-20-solid" class="icon" aria-hidden="true" />
     </button>
   </div>
 
   <nav class="desktop-nav">
-    <a href="/" class="site-title">{SITE_TITLE}</a>
-    {
-      navLinks.map((link) => (
-        <a href={link.href} class="nav-link">
-          {link.label}
-        </a>
-      ))
-    }
+    {isPostPage && (
+      <a
+        href={postsUrl}
+        class="menu-btn inline-flex items-center no-underline"
+        aria-label={labels.backToPosts}
+      >
+        <Icon
+          name="heroicons:arrow-left-20-solid"
+          class="icon back-icon"
+          aria-hidden="true"
+        />
+      </a>
+    )}
+    <EpsilonMark />
     <div class="nav-spacer"></div>
     <div class="nav-controls">
+      <LanguageSelector />
       <ThemeToggle />
     </div>
   </nav>
 
-  <div id="mobile-menu" class="mobile-menu -translate-x-full">
+  <div id="mobile-menu" class="mobile-menu">
     <div class="mobile-menu-header">
-      <a href="/" class="site-title">{SITE_TITLE}</a>
-      <button id="menu-close" class="menu-btn" aria-label="Close menu">
+      {isPostPage && (
+        <a
+          href={postsUrl}
+          class="menu-btn inline-flex items-center no-underline"
+          aria-label={labels.backToPosts}
+        >
+          <Icon
+            name="heroicons:arrow-left-20-solid"
+            class="icon back-icon"
+            aria-hidden="true"
+          />
+        </a>
+      )}
+      <EpsilonMark />
+      <button id="menu-close" class="menu-btn ml-auto" aria-label="Close menu">
         <Icon
           name="heroicons:x-mark-20-solid"
           class="icon"
@@ -45,15 +81,12 @@ const navLinks = [
       </button>
     </div>
 
-    {
-      navLinks.map((link) => (
-        <a href={link.href} class="mobile-nav-link">
-          {link.label}
-        </a>
-      ))
-    }
-
-    <div class="mobile-control-theme"><ThemeToggle showLabel={true} /></div>
+    <div class="mobile-control-lang">
+      <LanguageSelector showLabel={true} />
+    </div>
+    <div class="mobile-control-theme">
+      <ThemeToggle showLabel={true} />
+    </div>
   </div>
 </header>
 
@@ -67,15 +100,15 @@ const navLinks = [
     const openHandler = (e) => {
       e.preventDefault();
       e.stopPropagation();
-      mobileMenu.classList.remove("-translate-x-full");
+      mobileMenu.classList.add("is-open");
     };
     const closeHandler = (e) => {
       e.preventDefault();
       e.stopPropagation();
-      mobileMenu.classList.add("-translate-x-full");
+      mobileMenu.classList.remove("is-open");
     };
-    const navLinkHandler = (e) => {
-      mobileMenu.classList.add("-translate-x-full");
+    const navLinkHandler = () => {
+      mobileMenu.classList.remove("is-open");
     };
 
     const buttonHandlers = [

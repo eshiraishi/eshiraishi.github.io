@@ -3,7 +3,7 @@
 **Miniblog** is an opinionated and extremely minimal blogging template built with [Astro](https://astro.build/) and [Tailwind CSS](https://tailwindcss.com/), whose design is heavily inspired by [jrmyphlmn.com](https://jrmyphlmn.com/). Incredibly easy to use and customize, you can use **Miniblog** as is, or add as much as you want to it.
 
 - Blog post authoring using [Markdown](https://www.markdownguide.org/) and [MDX](https://mdxjs.com/) for component-style content
-- Code block syntax highlighting with [Shiki](https://github.com/shikijs/shiki) 
+- Code block syntax highlighting with [Shiki](https://github.com/shikijs/shiki)
 - [RSS](https://en.wikipedia.org/wiki/RSS) feed and sitemap generation
 - SEO optimization, with customizable OpenGraph image support
 - Code formatting with [Prettier](https://prettier.io/)
@@ -66,6 +66,21 @@ description: "Lorem ipsum dolor sit amet."
 date: "Nov 06 2024"
 ---
 ```
+
+Posts use `pt-br` by default. English translations should set `locale: "en"`
+and reuse the Portuguese post's `translationKey`; they will then be available
+under `/en/posts/` while the existing Portuguese URL remains unchanged.
+
+Markdown supports build-time Mermaid diagrams and MathJax 4 mathematics:
+
+````md
+```mermaid
+flowchart LR
+  A --> B
+```
+
+Inline math: $x^2$.
+````
 
 ### Markdown Styling
 

@@ -1,0 +1,41 @@
+---
+import { type CollectionEntry, getEntry, render } from "astro:content";
+import Layout from "../layouts/Layout.astro";
+import type { Locale } from "../lib/i18n";
+import { formatDate } from "../lib/utils";
+
+interface Props {
+  post: CollectionEntry<"posts">;
+  locale: Locale;
+}
+
+const { post } = Astro.props;
+const currentPost = (await getEntry("posts", post.id)) ?? post;
+const { Content } = await render(currentPost);
+---
+
+<Layout
+  title={currentPost.data.title}
+  description={currentPost.data.description}
+  image={currentPost.data.image}
+  lengthClassName="max-w-3xl"
+>
+  <main>
+    {!currentPost.data.hideImage && (
+      <img
+        src={currentPost.data.image}
+        alt={currentPost.data.title}
+        class="mx-auto mb-4 rounded-lg object-cover"
+      />
+    )}
+    <h1 class="mb-2 text-center text-2xl font-medium">
+      {currentPost.data.title}
+    </h1>
+    <p class="theme-muted text-center font-medium">
+      {formatDate(currentPost.data.date)}
+    </p>
+    <article>
+      <Content />
+    </article>
+  </main>
+</Layout>

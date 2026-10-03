@@ -1,37 +1,40 @@
 ---
 interface Props {
-    href: string;
-    direction: "previous" | "next";
-    title: string;
-    date: Date;
+  href: string;
+  direction: "previous" | "next";
+  title: string;
+  date: Date;
+  locale: "pt-br" | "en";
 }
 
-const { href, direction, title, date } = Astro.props;
+import { UI } from "../lib/i18n";
+
+const { href, direction, title, date, locale } = Astro.props;
 
 import { formatDate } from "../lib/utils";
 
 const isNext = direction === "next";
-const directionLabel = isNext ? "Next" : "Previous";
+const directionLabel = isNext ? UI[locale].next : UI[locale].previous;
 const alignmentClass = isNext ? "text-right" : "";
 ---
 
 <a
-    href={href}
-    class={`group flex flex-col rounded-lg p-2 !text-inherit transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800 ${alignmentClass}`}
+  href={href}
+  class={`group flex flex-col rounded-lg p-2 !text-inherit transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800 ${alignmentClass}`}
 >
-    <span
-        class={`text-sm text-neutral-500 transition-colors group-hover:!text-neutral-600 dark:text-neutral-400 dark:group-hover:!text-neutral-300 ${alignmentClass}`}
-    >
-        {directionLabel}
-    </span>
-    <span
-        class={`mt-1 truncate font-medium transition-colors group-hover:!text-black dark:group-hover:!text-white ${alignmentClass}`}
-    >
-        {title}
-    </span>
-    <span
-        class={`mt-1 text-sm text-neutral-500 transition-colors group-hover:!text-neutral-600 dark:text-neutral-400 dark:group-hover:!text-neutral-300 ${alignmentClass}`}
-    >
-        {formatDate(date)}
-    </span>
+  <span
+    class={`theme-muted text-sm transition-colors group-hover:!text-black dark:group-hover:!text-white ${alignmentClass}`}
+  >
+    {directionLabel}
+  </span>
+  <span
+    class={`mt-1 truncate font-medium transition-colors group-hover:!text-black dark:group-hover:!text-white ${alignmentClass}`}
+  >
+    {title}
+  </span>
+  <span
+    class={`theme-muted mt-1 text-sm transition-colors group-hover:!text-black dark:group-hover:!text-white ${alignmentClass}`}
+  >
+    {formatDate(date)}
+  </span>
 </a>

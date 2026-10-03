@@ -1,76 +1,150 @@
 // @ts-check
 import mdx from "@astrojs/mdx";
+import { unified } from "@astrojs/markdown-remark";
 import sitemap from "@astrojs/sitemap";
-import tailwind from "@astrojs/tailwind";
-import { getCache } from "@beoe/cache";
+import tailwindcss from "@tailwindcss/vite";
 import rehypeMermaid from "@beoe/rehype-mermaid";
+import gruvboxDarkHard from "@shikijs/themes/gruvbox-dark-hard";
+import gruvboxLightHard from "@shikijs/themes/gruvbox-light-hard";
 import expressiveCode from "astro-expressive-code";
 import { defineConfig } from "astro/config";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
-import rehypeKatex from "rehype-katex";
+import rehypeMathjaxFira from "./src/lib/rehypeMathjaxFira";
 import rehypeSlug from "rehype-slug";
 import remarkMath from "remark-math";
-import remarkRehype from 'remark-rehype';
-import { DARK_THEME, LIGHT_THEME, SITE_URL } from "./src/consts";
+import { DARK_THEME, SITE_URL } from "./src/consts";
 
 import icon from "astro-icon";
 
-const cache = await getCache();
+const cache = new Map();
 // @ts-check
-const remarkMathConfig = { singleDollarTextMath: true, output: 'html', strict: true, trust: true };
+const remarkMathConfig = { singleDollarTextMath: true };
 const rehypeMermaidConfig = {
   strategy: "inline",
-  darkScheme: "class",
   mermaidConfig: {
-    theme: 'neutral',
-    darkMode: true,
-    logLevel: 'info'
+    theme: "base",
+    darkMode: false,
+    flowchart: {
+      curve: "linear",
+      htmlLabels: false,
+      nodeSpacing: 32,
+      rankSpacing: 36,
+      padding: 8,
+    },
+    themeVariables: {
+      fontFamily: '"Fira Code Variable", monospace',
+      fontSize: "12px",
+    },
+    themeCSS: `
+      .node rect,
+      .node circle,
+      .node ellipse,
+      .node polygon,
+      .node path {
+        fill: var(--mermaid-bg);
+        stroke: var(--mermaid-bg);
+        stroke-width: 0 !important;
+      }
+
+      .cluster rect {
+        fill: var(--mermaid-bg);
+        stroke: var(--mermaid-bg);
+      }
+
+      .edgePath .path,
+      .flowchart-link {
+        fill: none;
+        stroke: var(--mermaid-fg);
+        stroke-width: 1.25px !important;
+      }
+
+      .marker,
+      .marker path,
+      .arrowMarkerPath {
+        fill: var(--mermaid-fg) !important;
+        stroke: var(--mermaid-fg) !important;
+      }
+
+      .label text,
+      .label tspan,
+      .nodeLabel,
+      .edgeLabel,
+      .edgeLabel p,
+      .edgeLabel text {
+        color: var(--mermaid-fg);
+        fill: var(--mermaid-fg);
+      }
+
+      .edgeLabel rect,
+      .edgeLabel .labelBkg {
+        background: var(--mermaid-bg);
+        fill: var(--mermaid-bg);
+        opacity: 1;
+        stroke: none;
+      }
+    `,
+    logLevel: "info",
   },
-  cache
+  cache,
 };
 const expressiveCodeIntegration = expressiveCode({
-  themes: [DARK_THEME, LIGHT_THEME],
-  themeCssRoot: ':root',
+  themes: [gruvboxDarkHard, gruvboxLightHard],
+  themeCssRoot: ":root",
   useDarkModeMediaQuery: false,
   useStyleReset: false,
   removeUnusedThemes: true,
   useThemedScrollbars: true,
   useThemedSelectionColors: true,
-  themeCssSelector: (theme) => theme.name === DARK_THEME ? ':root.dark' : ':root:not(.dark)',
+  themeCssSelector: (theme) =>
+    theme.name === DARK_THEME ? ":root.dark" : ":root:not(.dark)",
   styleOverrides: {
     uiFontFamily: "var(--font-sans), sans-serif",
     codeFontFamily: "var(--font-mono), monospace",
   },
-})
+});
+const markdownProcessor = unified({
+  remarkPlugins: [[remarkMath, remarkMathConfig]],
+  rehypePlugins: [
+    rehypeSlug,
+    [
+      rehypeAutolinkHeadings,
+      {
+        behavior: "wrap",
+        content: {
+          type: "element",
+          tagName: "img",
+          properties: {
+            src: "/link-icon.svg",
+            alt: "Link",
+            className: ["link-icon"],
+          },
+        },
+        properties: {
+          className: ["heading-anchor"],
+          ariaLabel: "Link to section",
+        },
+      },
+    ],
+    [rehypeMermaid, rehypeMermaidConfig],
+    rehypeMathjaxFira,
+  ],
+});
 
 export default defineConfig({
   site: SITE_URL,
-  markdown: {
-    remarkPlugins: [
-      [remarkMath, remarkMathConfig],
-      remarkRehype,
-    ],
-    rehypePlugins: [
-      rehypeSlug,
-      [rehypeAutolinkHeadings, {
-        behavior: 'wrap',
-        content: {
-          type: 'element',
-          tagName: 'img',
-          properties: {
-            src: '/link-icon.svg',
-            alt: 'Link',
-            className: ['link-icon']
-          }
-        },
-        properties: {
-          className: ['heading-anchor'],
-          ariaLabel: 'Link to section'
-        }
-      }],
-      [rehypeMermaid, rehypeMermaidConfig],
-      rehypeKatex,
-    ],
+  i18n: {
+    locales: ["pt-br", "en"],
+    defaultLocale: "pt-br",
+    routing: {
+      prefixDefaultLocale: false,
+    },
   },
-  integrations: [expressiveCodeIntegration, mdx(), sitemap(), tailwind(), icon()],
+  markdown: {
+    syntaxHighlight: { type: "shiki", excludeLangs: ["mermaid", "math"] },
+    processor: markdownProcessor,
+  },
+  integrations: [expressiveCodeIntegration, mdx(), sitemap(), icon()],
+  vite: {
+    plugins: [tailwindcss()],
+  },
 });
