@@ -93,44 +93,6 @@
     @apply my-8 flex justify-center overflow-x-auto px-0;
   }
 
-  .scroll-cue-x[data-scrollable-x="true"],
-  .scroll-cue-y[data-scrollable-y="true"] {
-    --scroll-cue-surface: var(--color-white);
-    --scroll-cue-shadow: color-mix(
-      in srgb,
-      var(--theme-text-primary) 12%,
-      transparent
-    );
-    background-repeat: no-repeat;
-  }
-
-  :root.dark .scroll-cue-x[data-scrollable-x="true"],
-  :root.dark .scroll-cue-y[data-scrollable-y="true"] {
-    --scroll-cue-surface: var(--color-neutral-900);
-  }
-
-  .scroll-cue-x[data-scrollable-x="true"] {
-    background-image:
-      linear-gradient(90deg, var(--scroll-cue-surface) 25%, transparent),
-      linear-gradient(270deg, var(--scroll-cue-surface) 25%, transparent),
-      radial-gradient(farthest-side at 0 50%, var(--scroll-cue-shadow), transparent),
-      radial-gradient(farthest-side at 100% 50%, var(--scroll-cue-shadow), transparent) !important;
-    background-position: 0 0, 100% 0, 0 0, 100% 0 !important;
-    background-size: 1rem 100%, 1rem 100%, 0.75rem 100%, 0.75rem 100% !important;
-    background-attachment: local, local, scroll, scroll !important;
-  }
-
-  .scroll-cue-y[data-scrollable-y="true"] {
-    background-image:
-      linear-gradient(180deg, var(--scroll-cue-surface) 25%, transparent),
-      linear-gradient(0deg, var(--scroll-cue-surface) 25%, transparent),
-      radial-gradient(farthest-side at 50% 0, var(--scroll-cue-shadow), transparent),
-      radial-gradient(farthest-side at 50% 100%, var(--scroll-cue-shadow), transparent) !important;
-    background-position: 0 0, 0 100%, 0 0, 0 100% !important;
-    background-size: 100% 1rem, 100% 1rem, 100% 0.75rem, 100% 0.75rem !important;
-    background-attachment: local, local, scroll, scroll !important;
-  }
-
   .beoe svg {
     @apply h-auto max-w-full;
   }

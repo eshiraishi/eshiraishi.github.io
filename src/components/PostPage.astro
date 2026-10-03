@@ -130,39 +130,6 @@ const tocLabel = locale === "pt-br" ? "Nesta página" : "On this page";
         });
       });
 
-    const setupScrollCues = () => {
-      const horizontal = document.querySelectorAll<HTMLElement>(
-        '.beoe, article pre:has(code), article mjx-container[jax="SVG"]',
-      );
-      const vertical = document.querySelectorAll<HTMLElement>(
-        ".desktop-toc-panel, .mobile-toc-panel, article pre:has(code)",
-      );
-      const containers = [
-        ...Array.from(horizontal, (element) => ({ element, axis: "x" })),
-        ...Array.from(vertical, (element) => ({ element, axis: "y" })),
-      ];
-
-      containers.forEach(({ element, axis }) => {
-        const update = () => {
-          const size = axis === "x" ? "scrollWidth" : "scrollHeight";
-          const viewport = axis === "x" ? "clientWidth" : "clientHeight";
-          const dataKey = axis === "x" ? "scrollableX" : "scrollableY";
-          element.dataset[dataKey] = String(
-            element[size] > element[viewport] + 1,
-          );
-        };
-
-        element.classList.add(`scroll-cue-${axis}`);
-        update();
-        if (element.dataset.scrollCueInitialized) return;
-        element.addEventListener("scroll", update, { passive: true });
-        new ResizeObserver(update).observe(element);
-        element.dataset.scrollCueInitialized = "true";
-      });
-    };
-
-    setupScrollCues();
-
     const links = [
       ...document.querySelectorAll<HTMLAnchorElement>("[data-toc-link]"),
     ];

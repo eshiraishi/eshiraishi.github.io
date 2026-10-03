@@ -49,6 +49,11 @@
     "prettier-plugin-astro-organize-imports": "^0.4.14",
     "prettier-plugin-tailwindcss": "^0.8.1"
   },
+  "overrides": {
+    "astro": {
+      "http-cache-semantics": "npm:noop-package@1.0.0"
+    }
+  },
   "prettier": {
     "plugins": [
       "prettier-plugin-astro",
