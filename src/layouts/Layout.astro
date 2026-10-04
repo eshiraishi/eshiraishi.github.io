@@ -16,7 +16,12 @@ interface Props {
   image?: string;
   className?: string;
   lengthClassName?: string;
-  tocHeadings?: { depth: number; slug: string; text: string }[];
+  tocHeadings?: {
+    depth: number;
+    slug: string;
+    text: string;
+    isReference?: boolean;
+  }[];
   tocLabel?: string;
 }
 

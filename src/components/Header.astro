@@ -11,6 +11,7 @@ interface TocHeading {
   depth: number;
   slug: string;
   text: string;
+  isReference?: boolean;
 }
 
 interface Props {
@@ -149,6 +150,13 @@ const hasToc = tocHeadings.length > 0;
                   data-toc-link
                   data-mobile-toc-link
                 >
+                  {heading.isReference && (
+                    <Icon
+                      name="lucide:code-2"
+                      class="mr-1 inline-block h-3 w-3 align-[-2px]"
+                      aria-hidden="true"
+                    />
+                  )}
                   {heading.text}
                 </a>
               </li>

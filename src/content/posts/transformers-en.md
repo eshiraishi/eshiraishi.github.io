@@ -332,9 +332,7 @@ Even when choosing option 1, it is also common to define a maximum size for the 
 
 In both cases, the value of $t$ is generally chosen based on the available memory, or determined empirically as the sequence length at which, on average, the models being trained can no longer consider the entire received sequence during generation.
 
-### Complete tokenizer implementation
-
-```python
+```python reference="Complete tokenizer implementation"
 class Tokenizer:
     def __init__(
         self: Self,
@@ -1562,8 +1560,6 @@ The architecture of the feed-forward networks will be:
 
 Here, $d_{ff}$ is a hyperparameter.
 
-#### Transformer blocks in PyTorch
-
 ```python
 @dataclass
 class TransformerBlockConfig:
@@ -1574,7 +1570,7 @@ class TransformerBlockConfig:
 
 &nbsp;
 
-```python
+```python reference="Transformer blocks in PyTorch"
 class TransformerBlock(nn.Module):
     def __init__(self: Self, config: TransformerBlockConfig) -> None:
         super().__init__()
@@ -1635,8 +1631,6 @@ flowchart
     EncoderBlockN --> outputN
 ```
 
-#### Encoder in PyTorch
-
 ```python
 @dataclass
 class EncoderConfig:
@@ -1646,7 +1640,7 @@ class EncoderConfig:
 
 &nbsp;
 
-```python
+```python reference="Encoder in PyTorch"
 class Encoder(nn.Module):
     def __init__(self: Self, config: EncoderConfig) -> None:
         super().__init__()
@@ -1672,8 +1666,6 @@ class Encoder(nn.Module):
 ```
 
 ### Decoder
-
-#### Decoder in PyTorch
 
 The decoder is responsible for combining the post-shift sequence and the encoder sequence into a final sequence of embeddings.
 
@@ -1713,7 +1705,7 @@ class DecoderConfig:
 
 &nbsp;
 
-```python
+```python reference="Decoder in PyTorch"
 class Decoder(nn.Module):
     def __init__(self: Self, config: DecoderConfig) -> None:
         super().__init__()
@@ -1777,7 +1769,7 @@ flowchart
 
 &nbsp;
 
-```python
+```python reference="Decoder block in PyTorch"
 class DecoderBlock(nn.Module):
     def __init__(self: Self, config: TransformerBlockConfig) -> None:
         super().__init__()
@@ -1833,8 +1825,6 @@ During training, the tokens in this sequence are compared with the expected pred
 
 After training, in addition to performing all the iterations required by the autoregressive model, it is necessary to convert the generated tokens into their equivalent text values and concatenate them.
 
-#### Output processing in PyTorch
-
 ```python
 @dataclass
 class OutputProcessorConfig:
@@ -1844,7 +1834,7 @@ class OutputProcessorConfig:
 
 &nbsp;
 
-```python
+```python reference="Output processing in PyTorch"
 class OutputProcessor(nn.Module):
     def __init__(self: Self, config: EmbedderConfig) -> None:
         super().__init__()

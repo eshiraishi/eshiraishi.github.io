@@ -13,6 +13,7 @@ import rehypeMathjaxFira from "./src/lib/rehypeMathjaxFira";
 import rehypeSlug from "rehype-slug";
 import remarkMath from "remark-math";
 import { DARK_THEME, SITE_URL } from "./src/consts";
+import { pluginReferenceCode } from "./src/lib/expressiveCodeReference";
 
 import icon from "astro-icon";
 
@@ -114,6 +115,7 @@ const rehypeMermaidConfig = {
   cache,
 };
 const expressiveCodeIntegration = expressiveCode({
+  plugins: [pluginReferenceCode()],
   themes: [gruvboxDarkHard, gruvboxLightHard],
   themeCssRoot: ":root",
   useDarkModeMediaQuery: false,

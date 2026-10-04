@@ -174,9 +174,9 @@
         @apply opacity-100;
       }
 
-      /* Ensure proper visibility in dark mode */
-      :root.dark &:hover img.link-icon {
-        @apply invert;
+      :root.dark & img.link-icon {
+        filter: brightness(0) saturate(100%) invert(84%) sepia(16%)
+          saturate(594%) hue-rotate(357deg) brightness(93%) contrast(88%);
       }
     }
 
@@ -336,6 +336,15 @@
     overflow-y: auto;
   }
 
+  .desktop-toc-panel li,
+  .desktop-toc-panel .toc-link {
+    min-width: 0;
+  }
+
+  .desktop-toc-panel .toc-link {
+    @apply block overflow-hidden text-ellipsis whitespace-nowrap;
+  }
+
   .post-layout {
     @apply mx-auto;
   }
@@ -388,6 +397,12 @@
     @apply fixed inset-0 z-50 flex flex-col overflow-hidden bg-white p-4 transition-transform duration-300 dark:bg-neutral-900;
     height: 100dvh;
     transform: translateX(-100%);
+  }
+
+  @media (min-width: 768px) {
+    .mobile-menu {
+      display: none;
+    }
   }
 
   .mobile-menu.is-open {
@@ -464,6 +479,80 @@
 
   .theme-muted {
     color: var(--theme-text-muted);
+  }
+
+  article .reference-code {
+    @apply relative my-4 box-border w-full overflow-hidden rounded-lg;
+    display: block !important;
+    margin-inline: 0 !important;
+    background-color: var(--ec-codeBg) !important;
+    scroll-margin-top: 1.5rem;
+  }
+
+  article .reference-code-summary {
+    @apply relative box-border flex w-full min-w-0 cursor-pointer list-none items-center gap-2 px-3 py-3 pr-12 font-mono text-xs font-bold;
+    background-color: var(--ec-codeBg) !important;
+    color: color-mix(
+      in srgb,
+      var(--ec-codeFg) 70%,
+      var(--ec-codeBg)
+    ) !important;
+  }
+
+  article .reference-code-summary::-webkit-details-marker {
+    @apply hidden;
+  }
+
+  article .reference-code-summary::after {
+    content: "";
+    @apply absolute top-1/2 right-6 h-2 w-2 -translate-y-1/2 rotate-[-45deg] border-r border-b;
+    color: currentColor;
+  }
+
+  article .reference-code-summary::before {
+    content: "";
+    @apply absolute top-1/2 right-3 h-8 w-8 -translate-y-1/2;
+  }
+
+  article .reference-code[open] .reference-code-summary::after {
+    @apply rotate-45;
+  }
+
+  article .reference-code-summary:hover,
+  article .reference-code-summary:focus-visible {
+    color: var(--ec-codeFg) !important;
+  }
+
+  article .reference-code-icon {
+    @apply h-3.5 w-3.5 shrink-0;
+  }
+
+  article .reference-code-title {
+    @apply min-w-0;
+  }
+
+  article .reference-code > pre {
+    @apply box-border w-full max-w-full min-w-0;
+    background-color: var(--ec-codeBg) !important;
+    border-radius: 0 !important;
+    padding-block-start: 0 !important;
+  }
+
+  article .reference-code > .copy {
+    @apply flex items-center justify-end;
+    display: flex !important;
+    position: absolute !important;
+    inset-block-start: 2.5rem !important;
+    inset-inline-end: 0.5rem !important;
+    width: auto !important;
+    padding: 0 !important;
+    z-index: 2;
+  }
+
+  article .reference-code > .copy button {
+    width: 2rem !important;
+    height: 2rem !important;
+    background: transparent !important;
   }
 
   .mermaid foreignObject,

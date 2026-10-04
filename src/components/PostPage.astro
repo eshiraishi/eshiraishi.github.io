@@ -1,7 +1,9 @@
 ---
+import { Icon } from "astro-icon/components";
 import { type CollectionEntry, getEntry, render } from "astro:content";
 import Layout from "../layouts/Layout.astro";
 import type { Locale } from "../lib/i18n";
+import { getTocEntries } from "../lib/referenceToc";
 import { formatDate } from "../lib/utils";
 
 interface Props {
@@ -12,7 +14,9 @@ interface Props {
 const { post, locale } = Astro.props;
 const currentPost = (await getEntry("posts", post.id)) ?? post;
 const { Content, headings } = await render(currentPost);
-const tocHeadings = headings.filter(({ depth }) => depth <= 3);
+const tocHeadings = getTocEntries(currentPost.body ?? "", headings).filter(
+  ({ depth, isReference }) => depth <= 3 || isReference,
+);
 const tocLabel = locale === "pt-br" ? "Nesta página" : "On this page";
 ---
 
@@ -61,6 +65,13 @@ const tocLabel = locale === "pt-br" ? "Nesta página" : "On this page";
                   class="toc-link theme-muted transition-colors hover:text-neutral-900 dark:hover:text-neutral-100"
                   data-toc-link
                 >
+                  {heading.isReference && (
+                    <Icon
+                      name="lucide:code-2"
+                      class="mr-1 inline-block h-3 w-3 align-[-2px]"
+                      aria-hidden="true"
+                    />
+                  )}
                   {heading.text}
                 </a>
               </li>
@@ -133,6 +144,15 @@ const tocLabel = locale === "pt-br" ? "Nesta página" : "On this page";
     const links = [
       ...document.querySelectorAll<HTMLAnchorElement>("[data-toc-link]"),
     ];
+    links.forEach((link) => {
+      if (link.dataset.referenceInitialized) return;
+      link.addEventListener("click", () => {
+        const href = link.getAttribute("href");
+        const target = href ? document.getElementById(href.slice(1)) : null;
+        if (target instanceof HTMLDetailsElement) target.open = true;
+      });
+      link.dataset.referenceInitialized = "true";
+    });
     const headings = links
       .map((link) => {
         const href = link.getAttribute("href");

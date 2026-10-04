@@ -332,9 +332,7 @@ Mesmo ao escolher a opção 1, também é comum definir um tamanho máximo que a
 
 Em ambos os casos, o valor de $t$ geralmente é escolhido com base na memória disponível ou determinando empiricamente o valor para o comprimento de uma sequência onde, em média, os modelos sendo treinados não conseguem considerar toda a sequência recebida durante a geração.
 
-### Implementação completa do Tokenizer
-
-```python
+```python reference="Implementação completa do Tokenizer"
 class Tokenizer:
     def __init__(
         self: Self,
@@ -1557,8 +1555,6 @@ A arquitetura das redes feed-forward será:
 
 Onde $d_{ff}$ é um hiperparâmetro.
 
-#### Transformer blocks em PyTorch
-
 ```python
 @dataclass
 class TransformerBlockConfig:
@@ -1569,7 +1565,7 @@ class TransformerBlockConfig:
 
 &nbsp;
 
-```python
+```python reference="Transformer blocks em PyTorch"
 class TransformerBlock(nn.Module):
     def __init__(self: Self, config: TransformerBlockConfig) -> None:
         super().__init__()
@@ -1630,8 +1626,6 @@ flowchart
     EncoderBlockN --> outputN
 ```
 
-#### Encoder em Pytorch
-
 ```python
 @dataclass
 class EncoderConfig:
@@ -1641,7 +1635,7 @@ class EncoderConfig:
 
 &nbsp;
 
-```python
+```python reference="Encoder em Pytorch"
 class Encoder(nn.Module):
     def __init__(self: Self, config: EncoderConfig) -> None:
         super().__init__()
@@ -1667,8 +1661,6 @@ class Encoder(nn.Module):
 ```
 
 ### Decoder
-
-#### Decoder em PyTorch
 
 O decoder é responsável por combinar a sequência pós shift e a sequência do encoder em uma sequência final de embeddings.
 
@@ -1708,7 +1700,7 @@ class DecoderConfig:
 
 &nbsp;
 
-```python
+```python reference="Decoder em PyTorch"
 class Decoder(nn.Module):
     def __init__(self: Self, config: DecoderConfig) -> None:
         super().__init__()
@@ -1772,7 +1764,7 @@ flowchart
 
 &nbsp;
 
-```python
+```python reference="Bloco de decoder em PyTorch"
 class DecoderBlock(nn.Module):
     def __init__(self: Self, config: TransformerBlockConfig) -> None:
         super().__init__()
@@ -1828,8 +1820,6 @@ Durante o treinamento, os tokens essa sequência serão comparados com os tokens
 
 Após o treinamento, além de realizar todas as iterações necessárias com o modelo autoregressivo, é necessário converter os tokens gerados para seus valores textuais equivalentes e concatená-los.
 
-#### Processamento de saída em PyTorch
-
 ```python
 @dataclass
 class OutputProcessorConfig:
@@ -1839,7 +1829,7 @@ class OutputProcessorConfig:
 
 &nbsp;
 
-```python
+```python reference="Processamento de saída em PyTorch"
 class OutputProcessor(nn.Module):
     def __init__(self: Self, config: EmbedderConfig) -> None:
         super().__init__()
